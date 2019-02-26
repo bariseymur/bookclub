@@ -10,5 +10,6 @@ public class WelcomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
         System.out.println("Hi");
+        System.out.println("sadsdasfsd");
     }
 }
