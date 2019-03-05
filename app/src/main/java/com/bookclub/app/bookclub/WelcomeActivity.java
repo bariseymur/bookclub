@@ -25,7 +25,7 @@ public class WelcomeActivity extends AppCompatActivity {
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(WelcomeActivity.this, "Login Test", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(WelcomeActivity.this, "Login Test", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
                 intent.putExtra("User", 873638);
                 startActivity(intent);
@@ -36,7 +36,9 @@ public class WelcomeActivity extends AppCompatActivity {
         signInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(WelcomeActivity.this, "Signin Test", Toast.LENGTH_SHORT).show();
+              //  Toast.makeText(WelcomeActivity.this, "Signin Test", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(WelcomeActivity.this, SignupActivity.class);
+                startActivity(intent);
             }
         });
 
