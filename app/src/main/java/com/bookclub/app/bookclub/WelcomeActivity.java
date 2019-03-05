@@ -16,9 +16,7 @@ public class WelcomeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
-        System.out.println("Hi");
-        System.out.println("sadsdasfsd");
-        System.out.println("sanksfksdösdmaksfkjasfkjsd");
+
         loginButton = findViewById(R.id.loginButton);
         signInButton = findViewById(R.id.signInButton);
 
@@ -26,7 +24,7 @@ public class WelcomeActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //Toast.makeText(WelcomeActivity.this, "Login Test", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
+                Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
                 intent.putExtra("User", 873638);
                 startActivity(intent);
 
