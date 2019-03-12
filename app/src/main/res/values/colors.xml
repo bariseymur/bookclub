@@ -5,4 +5,5 @@
     <color name="colorAccent">#D81B60</color>
     <color name="buttonColor">#229021</color>
     <color name="backgroundColor">#e3e6ea</color>
+    <color name="cardBackgroundColor">#efe7de</color>
 </resources>

@@ -5,11 +5,15 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
+import android.widget.ListView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
@@ -31,6 +35,7 @@ public class GeneralListFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+    private ArrayList<GeneralListContent> generalListContent;
 
     private OnFragmentInteractionListener mListener;
 
@@ -56,6 +61,14 @@ public class GeneralListFragment extends Fragment {
         return fragment;
     }
 
+    private void populateGeneralList(){
+        generalListContent.add(new GeneralListContent(1, "1984", "George Orwell", "slkflskdfj"));
+        generalListContent.add(new GeneralListContent(2, "Harry Potter", "J.K. Rowling", "slkflskdfj"));
+        generalListContent.add(new GeneralListContent(1, "Küçük Prens", "Saint-exupery", "slkflskdfj"));
+        generalListContent.add(new GeneralListContent(1, "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", "slkflskdfj"));
+
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,8 +81,15 @@ public class GeneralListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        View view = inflater.inflate(R.layout.fragment_general_list, container, false);
+        generalListContent = new ArrayList<>();
+        populateGeneralList();
+        ListView listView = view.findViewById(R.id.generalList);
+        ArrayAdapter<GeneralListContent> generalListContentArrayAdapter = new GeneralListAdapter(generalListContent, getContext());
+        listView.setAdapter(generalListContentArrayAdapter);
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_general_list, container, false);
+        return view;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -111,11 +131,20 @@ public class GeneralListFragment extends Fragment {
         void onFragmentInteraction(Uri uri);
     }
 
+    protected static class ViewHolder{
+        ImageButton transactionImageButton;
+        TextView authorNameTextView;
+        TextView bookTitleTextView;
+        ImageButton bookImageButton;
+    }
+
 
     public class GeneralListAdapter extends ArrayAdapter<GeneralListContent> implements View.OnClickListener{
 
         private ArrayList<GeneralListContent> dataSet;
         Context context;
+
+
 
         public GeneralListAdapter(ArrayList<GeneralListContent> data, Context context) {
             super(context, R.layout.general_list_item, data);
@@ -126,10 +155,67 @@ public class GeneralListFragment extends Fragment {
 
         @NonNull
         @Override
-        public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+        public View getView(final int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+            final GeneralListContent generalListContent = getItem(position);
+
+            ViewHolder viewHolder;
+
+            final View result;
+
+            if (convertView == null){
+                viewHolder = new ViewHolder();
+                LayoutInflater inflater = LayoutInflater.from(getContext());
+                convertView = inflater.inflate(R.layout.general_list_item, parent, false);
+                viewHolder.authorNameTextView = (TextView)convertView.findViewById(R.id.authorTextView);
+                viewHolder.bookTitleTextView= (TextView)convertView.findViewById(R.id.bookTitleTextView);
+                viewHolder.bookImageButton= (ImageButton) convertView.findViewById(R.id.bookImageButton);
+                viewHolder.transactionImageButton = (ImageButton) convertView.findViewById(R.id.transactionImageButton);
+                result = convertView;
+                convertView.setTag(viewHolder);
+
+            }
+            else{
+                viewHolder = (ViewHolder)convertView.getTag();
+                result = convertView;
+            }
+
+            viewHolder.authorNameTextView.setText(generalListContent.getAuthorName());
+            viewHolder.bookTitleTextView.setText(generalListContent.getBookTitle());
 
 
-            return super.getView(position, convertView, parent);
+            if (generalListContent.getTransactionType() == 1){
+                viewHolder.bookImageButton.setBackgroundResource(R.drawable.ic_home_black_24dp);
+            }
+            else
+                viewHolder.bookImageButton.setBackgroundResource(R.drawable.ic_launcher_foreground);
+
+            viewHolder.transactionImageButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (generalListContent.getTransactionType() == 1){
+                        Snackbar.make(v, "Transaction Type : Sell", Snackbar.LENGTH_SHORT).show();
+                    }
+                    else{
+
+                        Snackbar.make(v, "Transaction Type : Trade", Snackbar.LENGTH_SHORT).show();
+                    }
+                }
+            });
+
+
+            viewHolder.bookImageButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Snackbar.make(v, "Title : " + generalListContent.getBookTitle() + " Author : " + generalListContent.getAuthorName(), Snackbar.LENGTH_SHORT).show();
+                }
+            });
+
+
+            // viewHolder.bookImageButton.setImageDrawable(sadasd);
+            //viewHolder.transactionImageButton;
+
+
+            return convertView;
         }
 
         @Override
