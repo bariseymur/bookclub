@@ -3,10 +3,15 @@ package com.bookclub.app.bookclub;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+
+import java.util.ArrayList;
 
 
 /**
@@ -105,4 +110,80 @@ public class GeneralListFragment extends Fragment {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
+
+
+    public class GeneralListAdapter extends ArrayAdapter<GeneralListContent> implements View.OnClickListener{
+
+        private ArrayList<GeneralListContent> dataSet;
+        Context context;
+
+        public GeneralListAdapter(ArrayList<GeneralListContent> data, Context context) {
+            super(context, R.layout.general_list_item, data);
+            this.dataSet = data;
+            this.context=context;
+
+        }
+
+        @NonNull
+        @Override
+        public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+
+
+            return super.getView(position, convertView, parent);
+        }
+
+        @Override
+        public void onClick(View v) {
+
+        }
+    }
+
+    class GeneralListContent{
+
+        int transactionType;
+        String bookTitle;
+        String authorName;
+        String bookImageURL;
+
+        public GeneralListContent(int transactionType, String bookTitle, String authorName, String bookImageURL) {
+            this.transactionType = transactionType;
+            this.bookTitle = bookTitle;
+            this.authorName = authorName;
+            this.bookImageURL = bookImageURL;
+        }
+
+        public int getTransactionType() {
+            return transactionType;
+        }
+
+        public void setTransactionType(int transactionType) {
+            this.transactionType = transactionType;
+        }
+
+        public String getBookTitle() {
+            return bookTitle;
+        }
+
+        public void setBookTitle(String bookTitle) {
+            this.bookTitle = bookTitle;
+        }
+
+        public String getAuthorName() {
+            return authorName;
+        }
+
+        public void setAuthorName(String authorName) {
+            this.authorName = authorName;
+        }
+
+        public String getBookImageURL() {
+            return bookImageURL;
+        }
+
+        public void setBookImageURL(String bookImageURL) {
+            this.bookImageURL = bookImageURL;
+        }
+    }
+
+
 }
