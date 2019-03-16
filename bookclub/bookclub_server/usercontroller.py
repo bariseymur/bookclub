@@ -3,10 +3,11 @@ from django.forms import model_to_dict
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.utils import json
-from .models import User, Match, TradeList, Suggestion
+from .models import User, Match, TradeList, Suggestion, History
 from django.http import JsonResponse
 from django.db.models import Q
 import random
+import datetime
 
 
 @api_view(['GET'])
@@ -98,6 +99,7 @@ def sign_out(request):
 
 @api_view(['POST'])
 def confirm_match(request):
+    # buraya matchler mlden geliyor
     user_data = json.loads(request.body)
     match = Match.objects.get(id=user_data['match_id'])
     user = User.objects.get(id=match.user_id1.id) or User.object.get(id=match.user_id2.id)
@@ -106,6 +108,9 @@ def confirm_match(request):
             if match.state == 'pending':
                 match.state = 'confirmed'
                 match.save()
+                date = datetime.datetime.now().strftime("%Y-%m-%d")
+                new_history_row = History(id=None, user_id=User.objects.get(id=request.session['user']), matchConfirmation_id=match, matchRejection_id=None, dateOfAction=date)
+                new_history_row.save()
                 status = 'success'
                 message = 'the match was confirmed succesfully'
             else:
@@ -124,6 +129,7 @@ def confirm_match(request):
 
 @api_view(['POST'])
 def reject_match(request):
+    # add to the history - not complete yet
     user_data = json.loads(request.body)
     match = Match.objects.get(id=user_data['match_id'])
     user = User.objects.get(id=match.user_id1.id) or User.object.get(id=match.user_id2.id)
@@ -132,6 +138,9 @@ def reject_match(request):
             if match.state == 'pending':
                 match.state = 'rejected'
                 match.save()
+                date = datetime.datetime.now().strftime("%Y-%m-%d")
+                new_history_row = History(id=None, user_id=User.objects.get(id=request.session['user']), matchConfirmation_id=None, matchRejection_id=match, dateOfAction=date)
+                new_history_row.save()
                 status = 'success'
                 message = 'the match was rejected succesfully'
             else:
