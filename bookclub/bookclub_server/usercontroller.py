@@ -3,7 +3,7 @@ from django.forms import model_to_dict
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.utils import json
-from .models import User, Match, TradeList, Suggestion, History
+from .models import User, Match, TradeList, Suggestion, History, AccountSettings
 from django.http import JsonResponse
 from django.db.models import Q
 import random
@@ -13,7 +13,7 @@ import datetime
 @api_view(['GET'])
 def get_session(request):
     if "user" in request.session:
-        return JsonResponse({'session_id': request.session['user']})
+        return JsonResponse({'session_id': model_to_dict(User.objects.get(id=request.session['user']))})
     else:
         return JsonResponse({'session_id': -1})
 
@@ -41,7 +41,7 @@ def login(request):
 
 
 @api_view(['POST'])
-def signup(request):
+def signup(request): # we should add to the account settings
     user_data = json.loads(request.body)
     if User.objects.filter(username=user_data['username']).exists() or User.objects.filter(
             mail=user_data['mail']).exists():
@@ -56,6 +56,8 @@ def signup(request):
                     lat=user_data['lat'], onlineState=user_data['onlineState'],
                     profilePicture=user_data['profilePicture'])
         user.save()
+        user_settings = AccountSettings(user_id=user)
+        user_settings.save()
         request.session['user'] = user.id
 
     json_data = {"status": status, "message": message}
