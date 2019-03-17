@@ -111,7 +111,7 @@ def change_online_state(request):
             user.onlineState = False
         else:
             user.onlineState = True
-        user.save()  # will use the real picture to store
+        user.save() # will use the real picture to store
         status = 'success'
         message = 'the user\'s online state was updated successfully'
     else:
@@ -128,7 +128,7 @@ def change_profile_picture(request):
     if "user" in request.session:
         user = User.objects.get(id=request.session['user'])
         user.profilePicture = user_data['profile_picture']
-        user.save()  # will use the real picture to store
+        user.save() # will use the real picture to store
         status = 'success'
         message = 'the profile picture was updated successfully'
     else:
@@ -192,7 +192,6 @@ def change_email(request):
     json_data = {"status": status, "message": message}
     return JsonResponse(json_data)
 
-
 @api_view(['POST'])
 def change_password(request):
     # gps will be added (discussed)
@@ -210,4 +209,4 @@ def change_password(request):
     json_data = {"status": status, "message": message}
     return JsonResponse(json_data)
 
-# i may later merge all functions together, also optional. for now everything is working
+# i may later merge all functions together, also optional. for now everything is ok
