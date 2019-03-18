@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.urls import path, include
-from . import usercontroller, wishlistcontroller, accountsettingscontroller
+from . import usercontroller, wishlistcontroller, accountsettingscontroller, tradelistcontroller, historycontroller, messagecontroller, chatcontroller
 urlpatterns = [
+
     # usercontroller
     path('login/', usercontroller.login),
     path('signup/', usercontroller.signup),
@@ -15,6 +16,7 @@ urlpatterns = [
     path('suggestionListIndex/', usercontroller.suggestion_list_index),
     path('mainMenuIndex/', usercontroller.main_menu_index),
     path('searchIndex/', usercontroller.search_index),
+
     # wishlistcontroller
     path('wishlist/index/', wishlistcontroller.index),
     path('wishlist/delete/', wishlistcontroller.delete),
@@ -33,5 +35,23 @@ urlpatterns = [
     path('accountSettings/changeMail/', accountsettingscontroller.change_email),
     path('accountSettings/changeLocation/', accountsettingscontroller.change_location),
     path('accountSettings/onlineState/', accountsettingscontroller.change_online_state),
-    path('accountSettings/changePassword/', accountsettingscontroller.change_password)
+    path('accountSettings/changePassword/', accountsettingscontroller.change_password),
+
+    # tradelistcontroller
+    path('tradelist/index/', tradelistcontroller.index),
+    path('tradelist/delete/', tradelistcontroller.delete),
+    path('tradelist/add/', tradelistcontroller.add),
+    path('tradelist/update/', tradelistcontroller.update),
+
+    # historycontroller
+    path('history/index/', historycontroller.index),
+    path('history/clear/', historycontroller.clear),
+
+    # chatcontroller
+    path('chat/index/', chatcontroller.index),
+    path('chat/delete/', chatcontroller.delete),
+
+    # messagecontroller
+    path('message/index/', messagecontroller.index),
+    path('message/delete/', messagecontroller.delete),
 ]
