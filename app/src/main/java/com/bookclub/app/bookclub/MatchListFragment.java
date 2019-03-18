@@ -10,6 +10,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,6 +40,8 @@ public class MatchListFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+
+    //our variables
     private ArrayList<MatchListContent> matchListContents;
     private OnFragmentInteractionListener mListener;
     private ImageButton preferencesButton, transactionButton;
@@ -94,7 +97,7 @@ public class MatchListFragment extends Fragment {
                 startActivity(intent);
             }
         });
-
+        Log.d("Fragment Created", "MatchListFragment Created");
         // Inflate the layout for this fragment
         return view;
     }
@@ -150,6 +153,12 @@ public class MatchListFragment extends Fragment {
         void onFragmentInteraction(Uri uri);
     }
 
+    /*
+    *
+    * class MatchListAdapter
+    *
+    * */
+
     private static class ViewHolder{
         TextView user1Name, user2Name, author1Name, author2Name, book1Title, book2Title;
         ImageView book1Image, book2Image;
@@ -201,7 +210,6 @@ public class MatchListFragment extends Fragment {
 
                 result = convertView;
                 convertView.setTag(viewHolder);
-
             }
             else{
                 viewHolder = (MatchListFragment.ViewHolder)convertView.getTag();
@@ -239,8 +247,14 @@ public class MatchListFragment extends Fragment {
         }
     }
 
-    class MatchListContent {
+    /*
+    *
+    * class MatchListContent
+    *
+    *
+    * */
 
+    class MatchListContent {
 
         private String userName1, userName2;
         private String bookTitle1, bookTitle2;
