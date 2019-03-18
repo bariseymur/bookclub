@@ -3,11 +3,9 @@ from django.forms import model_to_dict
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.utils import json
-from django.core import serializers
-from .models import User, Match, Book, TradeList, Suggestion
+from .models import User, Match, TradeList, Suggestion
 from django.http import JsonResponse
 from django.db.models import Q
-from rest_framework.renderers import JSONRenderer
 import random
 
 
@@ -21,7 +19,7 @@ def get_session(request):
 
 @api_view(['GET'])
 def login(request):
-    # hash eklenecek, maille kabul etsin
+    # hash eklenecek
     user_data = json.loads(request.body)
     if User.objects.filter(username=user_data['username']).exists() or User.objects.filter(
             mail=user_data['mail']).exists():
@@ -37,9 +35,7 @@ def login(request):
         status = 'error'
         message = 'there is no user with this username'
 
-    json_data = {"status": status,
-                 "message": message,
-                 "session_user": request.session['user']}
+    json_data = {"status": status, "message": message, "session_user": request.session['user']}
     return JsonResponse(json_data)
 
 
@@ -60,6 +56,7 @@ def signup(request):
                     profilePicture=user_data['profilePicture'])
         user.save()
         request.session['user'] = user.id
+
     json_data = {"status": status, "message": message}
     return JsonResponse(json_data)
 
@@ -73,17 +70,15 @@ def forgot_password(request):
         message = 'new password will be send'
         s = "abcdefghijklmnopqrstuvwxyz01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!?."
         p = "".join(random.sample(s, 8))
-        newpassword = p
-        user.password = newpassword
+        new_password = p
+        user.password = new_password
         user.save()
     else:
         status = 'error'
         message = 'there is no user with this email'
-        newpassword = -1
-    json_data = {"status": status,
-                 "message": message,
-                 "password": newpassword}
+        new_password = -1
 
+    json_data = {"status": status, "message": message, "password": new_password}
     return JsonResponse(json_data)
 
 
@@ -96,9 +91,8 @@ def sign_out(request):
     else:
         status = 'error'
         message = 'there is no user in the session'
-    json_data = {"status": status,
-                 "message": message}
 
+    json_data = {"status": status, "message": message}
     return JsonResponse(json_data)
 
 
@@ -124,16 +118,7 @@ def confirm_match(request):
         status = 'error'
         message = 'there is no user in the session'
 
-    match_info = {
-        "matchInformation": match.matchInformation,
-        "state": match.state,
-        "matchDate": match.matchDate,
-        "book_title": match.book_id.title,
-        "first_username": match.user_id1.username,
-        "second_username": match.user_id2.username
-    }
-
-    json_data = {"status": status, "message": message, "match_info": match_info}
+    json_data = {"status": status, "message": message, "match_info": model_to_dict(match)}
     return JsonResponse(json_data)
 
 
@@ -159,16 +144,7 @@ def reject_match(request):
         status = 'error'
         message = 'there is no user in the session'
 
-    match_info = {
-        "matchInformation": match.matchInformation,
-        "state": match.state,
-        "matchDate": match.matchDate,
-        "book_title": match.book_id.title,
-        "first_username": match.user_id1.username,
-        "second_username": match.user_id2.username
-    }
-
-    json_data = {"status": status, "message": message, "match_info": match_info}
+    json_data = {"status": status, "message": message, "match_info": model_to_dict(match)}
     return JsonResponse(json_data)
 
 
@@ -179,26 +155,12 @@ def see_other_user_profile(request):
         user = User.objects.get(username=data['username'])
         status = 'success'
         message = 'other user data send successfully'
-        json_data = {"status": status,
-                     "message": message,
-                     "otherusername": user.name,
-                     "otherusermail": user.mail,
-                     "otherusercountry": user.country,
-                     "otheruserBirthDate": user.dateOfBirth,
-                     "otheruserOnlineState": user.onlineState,
-                     "otheruserBirthDate": user.dateOfBirth,
-                     "otheruserOnlineState": user.onlineState,
-                     "otheruserPhoneNumber": user.phoneNumber,
-                     "otheruserprofilePicture": user.profilePicture,
-                     "otheruserLat": user.lat,
-                     "otheruserLong": user.long
-                     }
+        json_data = {"status": status, "message": message, "user_info": model_to_dict(user)}
     else:
         status = 'error'
         message = 'there is no user with this name'
-        json_data = {"status": status,
-                     "message": message
-                     }
+        json_data = {"status": status, "message": message}
+
     return JsonResponse(json_data)
 
 
@@ -206,62 +168,54 @@ def see_other_user_profile(request):
 # this function is used to obtain match list index of a user
 @api_view(['GET'])
 def match_list_index(request):
-    user_data = json.loads(request.body)
+    # does not need any json loading because checking with session already
     if "user" in request.session:
-        if request.session['user'] == int(user_data['id']):
+        matchlistIndex = []
+        matchlistRows = Match.objects.filter(
+            (Q(user_id1=request.session['user']) | Q(user_id2=request.session['user'])) & Q(state='pending'))
+        if matchlistRows.exists():
             status = 'success'
             message = 'Match list will be displayed'
-            matchlistIndex = []
-            matchlistRows = Match.objects.filter(Q(user_id1 = int(user_data['id'])) | Q(user_id2 = int(user_data['id'])))
             for match in matchlistRows:
                 matchlistIndex.append({"matchlist_info": model_to_dict(match),
-                                  "book_info": model_to_dict(Book.objects.get(id=match.book_id.id))})
+                                       "book_info": model_to_dict(match.book_id)})
         else:
-            status = 'error'
-            message = 'you do not have permission to reach this matchlist'
+            status = "error"
+            message = "there is no match list to display"
             matchlistIndex = None
     else:
-            status = 'error'
-            message = 'there is no user in the session'
-            matchlistIndex = None
-    json_data = {"status": status,
-                 "message": message,
-                 "matchlistIndex": matchlistIndex }
+        status = 'error'
+        message = 'you should login first'
+        matchlistIndex = None
+
+    json_data = {"status": status, "message": message, "matchlistIndex": matchlistIndex}
     return JsonResponse(json_data)
 
 
 @api_view(['GET'])
 def suggestion_list_index(request):
-    user_data = json.loads(request.body)
-    if User.objects.filter(id=user_data['id']).exists():
-        user = User.objects.get(id=user_data['id'])
+    # does not need any json loading
     if "user" in request.session:
-        if request.session['user'] == user.id:
-            suggests = Suggestion.objects.filter(user_id_id=user.id)
-            if suggests.exists():
-                suggest_list = []
-                for suggest in suggests :
-                    suggest_list.append({
-                        "suggest_info": model_to_dict(suggest),
-                        "book_info": model_to_dict(Book.objects.get(id=suggest.book_id.id))})
-                status = 'success'
-                message = 'other suggestion data send successfully'
-            else:
-                status = 'error'
-                message = 'no suggestion for this user'
-                suggest_list = None
+        suggests = Suggestion.objects.filter(user_id=request.session['user'])
+        if suggests.exists():
+            suggest_list = []
+            for suggest in suggests:
+                suggest_list.append({
+                    "suggest_info": model_to_dict(suggest),
+                    "book_info": model_to_dict(suggest.book_id)
+                })
+            status = 'success'
+            message = 'suggestion data sent successfully'
         else:
             status = 'error'
-            message = 'this action cannot be done'
+            message = 'no suggestion for this user'
             suggest_list = None
     else:
         status = 'error'
-        message = 'there is no user in the session'
+        message = 'you should login first'
         suggest_list = None
-    json_data = {"status": status,
-                 "message": message,
-                 "Suggestion List": suggest_list,
-                 }
+
+    json_data = {"status": status, "message": message, "suggestionList": suggest_list}
     return JsonResponse(json_data)
 
 
@@ -273,37 +227,65 @@ def main_menu_index(request):
     menu_index = []
     if "user" in request.session:
         tradelist = TradeList.objects.filter(~Q(user_id=request.session['user']))
+        if tradelist.exists():
+            status = "success"
+            message = "here are the books for your main menu"
+        else:
+            status = "error"
+            message = "there is nothing to show for the main menu"
+            menu_index = None
     else:
         tradelist = TradeList.objects.all()
+        if tradelist.exists():
+            status = "success"
+            message = "here are the books for your main menu"
+        else:
+            status = "error"
+            message = "there is nothing to show for the main menu"
+            menu_index = None
 
     for trade in tradelist:
         menu_index.append({
             "trade_info": model_to_dict(trade),
-            "book_info": model_to_dict(Book.objects.get(id=trade.givingBook_id.id)),
-            "user_info": model_to_dict(User.objects.get(id=trade.user_id.id))})
+            "book_info": model_to_dict(trade.givingBook_id),
+            "user_info": model_to_dict(trade.user_id)
+        })
 
-    json_data = {"mainMenuIndex": menu_index}
+    json_data = {"status": status, "message": message, "mainMenuIndex": menu_index}
     return JsonResponse(json_data, safe=False)
 
-# @api_view(['GET'])
-# def searchIndex(request):
-# this function returns the books from the menu screen of the user
-# user_data = json.loads(request.body) # json = { "action":"main_menu" } it is optional is not needed actually
-# if there is a user in the session
-#   search_index = []
-#  if "user" in request.session:
-#     books = Book.objects.filter(Q())
-#    tradelist = Sample.objects.filter(Q(name__istartswith=search_string) | Q(name__icontains=' ' + search_string))
-#    tradelist = TradeList.objects.filter(~Q(user_id=request.session['user']))
 
-# else:
-#   tradelist = TradeList.objects.all()
+@api_view(['GET'])
+def search_index(request):
+    user_data = json.loads(request.body)  # json = { "search_query":"something" }
+    search_index = []
+    if "user" in request.session:
+        tradelist = TradeList.objects.filter(~Q(user_id=request.session['user'])).select_related(
+            "givingBook_id").filter(givingBook_id__title__icontains=user_data['search_query'])
+        if tradelist.exists():
+            status = "success"
+            message = "the search query is found successfully"
+        else:
+            status = "error"
+            message = "nothing was found for this search query"
+            search_index = None
+    else:
+        tradelist = TradeList.objects.all().select_related("givingBook_id").filter(
+            givingBook_id__title__icontains=user_data['search_query'])
+        if tradelist.exists():
+            status = "success"
+            message = "the search query is found successfully"
+        else:
+            status = "error"
+            message = "nothing was found for this search query"
+            search_index = None
 
-# for trade in tradelist:
-#   search_index.append({
-#                  "trade_info": model_to_dict(trade),
-#                 "book_info":  model_to_dict(Book.objects.get(id=trade.givingBook_id.id)),
-#                "user_info":  model_to_dict(User.objects.get(id=trade.user_id.id))})
+    for trade in tradelist:
+        search_index.append({
+            "trade_info": model_to_dict(trade),
+            "book_info": model_to_dict(trade.givingBook_id),
+            "user_info": model_to_dict(trade.user_id)
+        })
 
-# json_data = {"mainMenuIndex": menu_index}
-# return JsonResponse(json_data, safe=False)
+    json_data = {"status": status, "message": message, "searchIndex": search_index}
+    return JsonResponse(json_data, safe=False)
