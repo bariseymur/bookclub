@@ -285,6 +285,8 @@ def main_menu_index(request):
     json_data = {"mainMenuIndex": menu_index}
     return JsonResponse(json_data, safe=False)
 
+
+
 # @api_view(['GET'])
 # def searchIndex(request):
 # this function returns the books from the menu screen of the user
@@ -293,7 +295,7 @@ def main_menu_index(request):
 #   search_index = []
 #  if "user" in request.session:
 #     books = Book.objects.filter(Q())
-#    tradelist = Sample.objects.filter(Q(name__istartswith=search_string) | Q(name__icontains=' ' + search_string))
+#    tradelist = Sample.objects.filter(Q(name_istartswith=search_string) | Q(name_icontains=' ' + search_string))
 #    tradelist = TradeList.objects.filter(~Q(user_id=request.session['user']))
 
 # else:
