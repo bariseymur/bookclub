@@ -34,7 +34,7 @@
             </SearchView>
 
             <ImageButton
-                android:id="@+id/imageButton"
+                android:id="@+id/preferencesButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"

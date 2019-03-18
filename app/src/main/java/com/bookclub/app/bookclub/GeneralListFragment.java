@@ -1,6 +1,7 @@
 package com.bookclub.app.bookclub;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -36,6 +37,7 @@ public class GeneralListFragment extends Fragment {
     private String mParam1;
     private String mParam2;
     private ArrayList<GeneralListContent> generalListContent;
+    private ImageButton preferencesButton;
 
     private OnFragmentInteractionListener mListener;
 
@@ -88,6 +90,16 @@ public class GeneralListFragment extends Fragment {
         ListView listView = view.findViewById(R.id.generalList);
         ArrayAdapter<GeneralListContent> generalListContentArrayAdapter = new GeneralListAdapter(generalListContent, getContext());
         listView.setAdapter(generalListContentArrayAdapter);
+
+        preferencesButton = view.findViewById(R.id.preferencesButton);
+        preferencesButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), PreferencesActivity.class);
+                startActivity(intent);
+            }
+        });
+
         // Inflate the layout for this fragment
         return view;
     }
@@ -131,7 +143,7 @@ public class GeneralListFragment extends Fragment {
         void onFragmentInteraction(Uri uri);
     }
 
-    protected static class ViewHolder{
+    private static class ViewHolder{
         ImageButton transactionImageButton;
         TextView authorNameTextView;
         TextView bookTitleTextView;

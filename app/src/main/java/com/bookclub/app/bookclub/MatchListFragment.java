@@ -1,13 +1,25 @@
 package com.bookclub.app.bookclub;
 
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.TextView;
+
+import java.util.ArrayList;
 
 
 /**
@@ -27,8 +39,11 @@ public class MatchListFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-
+    private ArrayList<MatchListContent> matchListContents;
     private OnFragmentInteractionListener mListener;
+    private ImageButton preferencesButton, transactionButton;
+
+
 
     public MatchListFragment() {
         // Required empty public constructor
@@ -64,9 +79,37 @@ public class MatchListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        View view = inflater.inflate(R.layout.fragment_match_list, container, false);
+        populateMatchList();
+        ListView listView = view.findViewById(R.id.matchList);
+        ArrayAdapter<MatchListContent> generalListContentArrayAdapter = new MatchListFragment.MatchListAdapter(matchListContents, getContext());
+        listView.setAdapter(generalListContentArrayAdapter);
+
+        preferencesButton = view.findViewById(R.id.preferencesButton);
+        preferencesButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), PreferencesActivity.class);
+                startActivity(intent);
+            }
+        });
+
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_match_list, container, false);
+        return view;
     }
+
+
+    private void populateMatchList(){
+        matchListContents = new ArrayList<>();
+        matchListContents.add(new MatchListContent("faruq476", "1984", "George Orwell", null, "YaraliCocuq", "Harry Potter", "J.K. Rowling", null));
+        matchListContents.add(new MatchListContent("faruq476", "Küçük Prens", "Saint-exupery", null, "KaraBela02", "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", null));
+        matchListContents.add(new MatchListContent("faruq476", "Küçük Prens", "Saint-exupery", null, "KaraBela02", "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", null));
+        matchListContents.add(new MatchListContent("faruq476", "Küçük Prens", "Saint-exupery", null, "KaraBela02", "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", null));
+        matchListContents.add(new MatchListContent("faruq476", "Küçük Prens", "Saint-exupery", null, "KaraBela02", "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", null));
+
+    }
+
 
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
@@ -106,4 +149,179 @@ public class MatchListFragment extends Fragment {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
+
+    private static class ViewHolder{
+        TextView user1Name, user2Name, author1Name, author2Name, book1Title, book2Title;
+        ImageView book1Image, book2Image;
+        ImageButton transactionButton;
+    }
+
+    public class MatchListAdapter extends ArrayAdapter<MatchListFragment.MatchListContent> implements View.OnClickListener{
+
+        private ArrayList<MatchListFragment.MatchListContent> dataSet;
+        Context context;
+
+
+
+        public MatchListAdapter(ArrayList<MatchListFragment.MatchListContent> data, Context context) {
+            super(context, R.layout.match_list_item, data);
+            this.dataSet = data;
+            this.context=context;
+
+        }
+
+        @NonNull
+        @Override
+        public View getView(final int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+            final MatchListFragment.MatchListContent matchListContent= getItem(position);
+
+            MatchListFragment.ViewHolder viewHolder;
+
+            final View result;
+
+            if (convertView == null){
+                viewHolder = new MatchListFragment.ViewHolder();
+                LayoutInflater inflater = LayoutInflater.from(getContext());
+                convertView = inflater.inflate(R.layout.match_list_item, parent, false);
+
+                //Text Views
+                viewHolder.user1Name = convertView.findViewById(R.id.userName1);
+                viewHolder.user2Name = convertView.findViewById(R.id.userName2);
+                viewHolder.author1Name = convertView.findViewById(R.id.author1Name);
+                viewHolder.author2Name = convertView.findViewById(R.id.author2Name);
+                viewHolder.book1Title = convertView.findViewById(R.id.book1Title);
+                viewHolder.book2Title = convertView.findViewById(R.id.book2Title);
+
+                //Image Views
+                viewHolder.book1Image = convertView.findViewById(R.id.bookImage1);
+                viewHolder.book2Image = convertView.findViewById(R.id.bookImage2);
+
+                //Image Buttons
+                viewHolder.transactionButton = convertView.findViewById(R.id.transactionButton);
+
+                result = convertView;
+                convertView.setTag(viewHolder);
+
+            }
+            else{
+                viewHolder = (MatchListFragment.ViewHolder)convertView.getTag();
+                result = convertView;
+            }
+
+
+            //item content is defined here
+            viewHolder.user1Name.setText(matchListContent.getUserName1());
+            viewHolder.user2Name.setText(matchListContent.getUserName2());
+            viewHolder.author1Name.setText(matchListContent.getAuthorName1());
+            viewHolder.author2Name.setText(matchListContent.getAuthorName2());
+            viewHolder.book1Title.setText(matchListContent.getBookTitle1());
+            viewHolder.book2Title.setText(matchListContent.getBookTitle2());
+
+            /*
+             TO BE UNCOMMENTED
+             viewHolder.book1Image.setImageDrawable(matchListContent.getBook1Image());
+            viewHolder.book2Image.setImageDrawable(matchListContent.getBook2Image());
+            */
+
+            viewHolder.transactionButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Snackbar.make(v, matchListContent.getUserName1() + " " + matchListContent.getBookTitle1() + "-" + matchListContent.getUserName2() + " " + matchListContent.getBookTitle2(), Snackbar.LENGTH_LONG).show();
+                }
+            });
+
+            return convertView;
+        }
+
+        @Override
+        public void onClick(View v) {
+
+        }
+    }
+
+    class MatchListContent {
+
+
+        private String userName1, userName2;
+        private String bookTitle1, bookTitle2;
+        private String authorName1, authorName2;
+        private Drawable book1Image, book2Image;
+
+        public MatchListContent(String userName1, String bookTitle1, String authorName1, Drawable book1Image,
+                                String userName2, String bookTitle2, String authorName2, Drawable book2Image) {
+            this.userName1 = userName1;
+            this.userName2 = userName2;
+            this.bookTitle1 = bookTitle1;
+            this.bookTitle2 = bookTitle2;
+            this.authorName1 = authorName1;
+            this.authorName2 = authorName2;
+            this.book1Image = book1Image;
+            this.book2Image = book2Image;
+        }
+
+        public String getUserName1() {
+            return userName1;
+        }
+
+        public void setUserName1(String userName1) {
+            this.userName1 = userName1;
+        }
+
+        public String getUserName2() {
+            return userName2;
+        }
+
+        public void setUserName2(String userName2) {
+            this.userName2 = userName2;
+        }
+
+        public String getBookTitle1() {
+            return bookTitle1;
+        }
+
+        public void setBookTitle1(String bookTitle1) {
+            this.bookTitle1 = bookTitle1;
+        }
+
+        public String getBookTitle2() {
+            return bookTitle2;
+        }
+
+        public void setBookTitle2(String bookTitle2) {
+            this.bookTitle2 = bookTitle2;
+        }
+
+        public String getAuthorName1() {
+            return authorName1;
+        }
+
+        public void setAuthorName1(String authorName1) {
+            this.authorName1 = authorName1;
+        }
+
+        public String getAuthorName2() {
+            return authorName2;
+        }
+
+        public void setAuthorName2(String authorName2) {
+            this.authorName2 = authorName2;
+        }
+
+        public Drawable getBook1Image() {
+            return book1Image;
+        }
+
+        public void setBook1Image(Drawable book1Image) {
+            this.book1Image = book1Image;
+        }
+
+        public Drawable getBook2Image() {
+            return book2Image;
+        }
+
+        public void setBook2Image(Drawable book2Image) {
+            this.book2Image = book2Image;
+        }
+    }
+
 }
