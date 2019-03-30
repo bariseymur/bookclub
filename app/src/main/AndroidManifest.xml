@@ -37,7 +37,11 @@
             android:label="@string/title_activity_main" />
         <activity android:name=".PreferencesActivity" />
         <activity android:name=".AccountSettingsActivity" />
-        <activity android:name=".WishListActivity"></activity>
+        <activity android:name=".WishListActivity" />
+        <activity
+            android:name=".RequestBookActivity"
+            android:label="@string/title_activity_request_book"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"></activity>
     </application>
 
 </manifest>

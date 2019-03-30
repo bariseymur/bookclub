@@ -6,4 +6,5 @@
     <dimen name="listBookTitleTextSize">20sp</dimen>
     <dimen name="listAuthorNameTextSize">14sp</dimen>
     <dimen name="listUsernameTextSize">20sp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
 </resources>
