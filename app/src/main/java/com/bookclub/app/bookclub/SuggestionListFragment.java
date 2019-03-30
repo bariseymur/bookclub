@@ -4,11 +4,21 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import java.util.ArrayList;
 
 
 /**
@@ -111,6 +121,164 @@ public class SuggestionListFragment extends Fragment {
     }
 
 
+    /*
+    * Class SuggestionListAdapter
+    * */
+    private static class ExchangeViewHolder{
+        TextView user1Name, user2Name, author1Name, author2Name, book1Title, book2Title, reasonText;
+        ImageView book1Image, book2Image;
+        ImageButton transactionButton;
+        
+    }
+
+    private static class SellViewHolder{
+        TextView user1Name, user2Name, author1Name, author2Name, book1Title, book2Title;
+        ImageView book1Image, book2Image;
+        ImageButton transactionButton;
+    }
+
+    public class SuggestionListAdapter extends ArrayAdapter<SuggestionListFragment.SuggestionListContent> implements View.OnClickListener{
+
+        private ArrayList<SuggestionListFragment.SuggestionListContent> dataSet;
+        Context context;
+
+
+
+        public SuggestionListAdapter(ArrayList<SuggestionListFragment.SuggestionListContent> data, Context context) {
+            super(context, R.layout.suggestion_list_exchange_item, data);
+            this.dataSet = data;
+            this.context=context;
+
+        }
+
+        @NonNull
+        @Override
+        public View getView(final int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+            final SuggestionListFragment.SuggestionListContent suggestionListContent= getItem(position);
+            final View result;
+            if (suggestionListContent.getTransactionType() == SuggestionListContent.TRANSACTION_EXCHANGE) {
+                SuggestionListFragment.ExchangeViewHolder viewHolder;
+
+                if (convertView == null){
+                    viewHolder = new SuggestionListFragment.ExchangeViewHolder();
+                    LayoutInflater inflater = LayoutInflater.from(getContext());
+                    convertView = inflater.inflate(R.layout.suggestion_list_exchange_item, parent, false);
+
+                    //Text Views
+                    viewHolder.user1Name = convertView.findViewById(R.id.userName1);
+                    viewHolder.user2Name = convertView.findViewById(R.id.userName2);
+                    viewHolder.author1Name = convertView.findViewById(R.id.author1Name);
+                    viewHolder.author2Name = convertView.findViewById(R.id.author2Name);
+                    viewHolder.book1Title = convertView.findViewById(R.id.book1Title);
+                    viewHolder.book2Title = convertView.findViewById(R.id.book2Title);
+                    viewHolder.reasonText = convertView.findViewById(R.id.reasonTextView);
+                    //Image Views
+                    viewHolder.book1Image = convertView.findViewById(R.id.bookImage1);
+                    viewHolder.book2Image = convertView.findViewById(R.id.bookImage2);
+
+                    //Image Buttons
+                    viewHolder.transactionButton = convertView.findViewById(R.id.transactionButton);
+
+                    result = convertView;
+                    convertView.setTag(viewHolder);
+                }
+                else{
+                    viewHolder = (SuggestionListFragment.ExchangeViewHolder)convertView.getTag();
+                    result = convertView;
+                }
+
+
+                //item content is defined here
+                viewHolder.user1Name.setText(suggestionListContent.getUserName1());
+                viewHolder.user2Name.setText(suggestionListContent.getUserName2());
+                viewHolder.author1Name.setText(suggestionListContent.getAuthorName1());
+                viewHolder.author2Name.setText(suggestionListContent.getAuthorName2());
+                viewHolder.book1Title.setText(suggestionListContent.getBookTitle1());
+                viewHolder.book2Title.setText(suggestionListContent.getBookTitle2());
+                viewHolder.reasonText.setText("You may like this " + suggestionListContent.getReason());
+
+            /*
+             TO BE UNCOMMENTED
+             viewHolder.book1Image.setImageDrawable(suggestionListContent.getBook1Image());
+            viewHolder.book2Image.setImageDrawable(suggestionListContent.getBook2Image());
+            */
+
+                viewHolder.transactionButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Snackbar.make(v, suggestionListContent.getUserName1() + " " + suggestionListContent.getBookTitle1() + "-" + suggestionListContent.getUserName2() + " " + suggestionListContent.getBookTitle2(), Snackbar.LENGTH_LONG).show();
+                    }
+                });
+
+                return convertView;
+            }
+            else if (suggestionListContent.getTransactionType() == SuggestionListContent.TRANSACTION_SELL){
+                SuggestionListFragment.SellViewHolder viewHolder;
+
+
+                if (convertView == null){
+                    viewHolder = new SuggestionListFragment.SellViewHolder();
+                    LayoutInflater inflater = LayoutInflater.from(getContext());
+                    convertView = inflater.inflate(R.layout.match_list_item, parent, false);
+
+                    //Text Views
+                    viewHolder.user1Name = convertView.findViewById(R.id.userName1);
+                    viewHolder.user2Name = convertView.findViewById(R.id.userName2);
+                    viewHolder.author1Name = convertView.findViewById(R.id.author1Name);
+                    viewHolder.author2Name = convertView.findViewById(R.id.author2Name);
+                    viewHolder.book1Title = convertView.findViewById(R.id.book1Title);
+                    viewHolder.book2Title = convertView.findViewById(R.id.book2Title);
+
+                    //Image Views
+                    viewHolder.book1Image = convertView.findViewById(R.id.bookImage1);
+                    viewHolder.book2Image = convertView.findViewById(R.id.bookImage2);
+
+                    //Image Buttons
+                    viewHolder.transactionButton = convertView.findViewById(R.id.transactionButton);
+
+                    result = convertView;
+                    convertView.setTag(viewHolder);
+                }
+                else{
+                    viewHolder = (SuggestionListFragment.SellViewHolder)convertView.getTag();
+                    result = convertView;
+                }
+
+
+                //item content is defined here
+                viewHolder.user1Name.setText(suggestionListContent.getUserName1());
+                viewHolder.user2Name.setText(suggestionListContent.getUserName2());
+                viewHolder.author1Name.setText(suggestionListContent.getAuthorName1());
+                viewHolder.author2Name.setText(suggestionListContent.getAuthorName2());
+                viewHolder.book1Title.setText(suggestionListContent.getBookTitle1());
+                viewHolder.book2Title.setText(suggestionListContent.getBookTitle2());
+
+            /*
+             TO BE UNCOMMENTED
+             viewHolder.book1Image.setImageDrawable(suggestionListContent.getBook1Image());
+            viewHolder.book2Image.setImageDrawable(suggestionListContent.getBook2Image());
+            */
+
+                viewHolder.transactionButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Snackbar.make(v, suggestionListContent.getUserName1() + " " + suggestionListContent.getBookTitle1() + "-" + suggestionListContent.getUserName2() + " " + suggestionListContent.getBookTitle2(), Snackbar.LENGTH_LONG).show();
+                    }
+                });
+            }
+            else{
+                return null;
+            } 
+
+            return convertView;
+        }
+
+        @Override
+        public void onClick(View v) {
+
+        }
+    }
+    
 
     /*
     * Class SuggestionListContent
@@ -118,8 +286,8 @@ public class SuggestionListFragment extends Fragment {
 
     public class SuggestionListContent{
 
-        public final int TRANSACTION_EXCHANGE = 0;
-        public final int TRANSACTION_SELL = 1;
+        public static final int TRANSACTION_EXCHANGE = 0;
+        public static final int TRANSACTION_SELL = 1;
 
         private double price;
         private String userName1, userName2;
@@ -127,9 +295,10 @@ public class SuggestionListFragment extends Fragment {
         private String authorName1, authorName2;
         private Drawable book1Image, book2Image;
         private int transactionType;
+        private String reason;
 
         public SuggestionListContent(String userName1, String bookTitle1, String authorName1, Drawable book1Image,
-                                String userName2, String bookTitle2, String authorName2, Drawable book2Image) {
+                                String userName2, String bookTitle2, String authorName2, Drawable book2Image, String reason) {
             this.transactionType = 0;
             this.userName1 = userName1;
             this.userName2 = userName2;
@@ -139,9 +308,10 @@ public class SuggestionListFragment extends Fragment {
             this.authorName2 = authorName2;
             this.book1Image = book1Image;
             this.book2Image = book2Image;
+            this.reason = reason;
         }
 
-        public SuggestionListContent( String userName1, String userName2, String bookTitle2, String authorName2, Drawable book2Image, double price) {
+        public SuggestionListContent( String userName1, String userName2, String bookTitle2, String authorName2, Drawable book2Image, double price, String reason) {
             this.transactionType = 1;
             this.userName1 = userName1;
             this.userName2 = userName2;
@@ -149,6 +319,15 @@ public class SuggestionListFragment extends Fragment {
             this.authorName2 = authorName2;
             this.book2Image = book2Image;
             this.price = price;
+            this.reason = reason;
+        }
+
+        public String getReason() {
+            return reason;
+        }
+
+        public void setReason(String reason) {
+            this.reason = reason;
         }
 
         public double getPrice() {
