@@ -3,21 +3,22 @@ from django.forms import model_to_dict
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.utils import json
-from .models import User, Match, TradeList, Suggestion
+from .models import User, Match, TradeList, Suggestion, History, AccountSettings
 from django.http import JsonResponse
 from django.db.models import Q
 import random
+import datetime
 
 
 @api_view(['GET'])
 def get_session(request):
     if "user" in request.session:
-        return JsonResponse({'session_id': request.session['user']})
+        return JsonResponse({'session_id': model_to_dict(User.objects.get(id=request.session['user']))})
     else:
         return JsonResponse({'session_id': -1})
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def login(request):
     # hash eklenecek
     user_data = json.loads(request.body)
@@ -40,7 +41,7 @@ def login(request):
 
 
 @api_view(['POST'])
-def signup(request):
+def signup(request): # we should add to the account settings
     user_data = json.loads(request.body)
     if User.objects.filter(username=user_data['username']).exists() or User.objects.filter(
             mail=user_data['mail']).exists():
@@ -55,6 +56,8 @@ def signup(request):
                     lat=user_data['lat'], onlineState=user_data['onlineState'],
                     profilePicture=user_data['profilePicture'])
         user.save()
+        user_settings = AccountSettings(user_id=user)
+        user_settings.save()
         request.session['user'] = user.id
 
     json_data = {"status": status, "message": message}
@@ -98,6 +101,7 @@ def sign_out(request):
 
 @api_view(['POST'])
 def confirm_match(request):
+    # buraya matchler mlden geliyor
     user_data = json.loads(request.body)
     match = Match.objects.get(id=user_data['match_id'])
     user = User.objects.get(id=match.user_id1.id) or User.object.get(id=match.user_id2.id)
@@ -106,6 +110,9 @@ def confirm_match(request):
             if match.state == 'pending':
                 match.state = 'confirmed'
                 match.save()
+                date = datetime.datetime.now().strftime("%Y-%m-%d")
+                new_history_row = History(id=None, user_id=User.objects.get(id=request.session['user']), matchConfirmation_id=match, matchRejection_id=None, dateOfAction=date)
+                new_history_row.save()
                 status = 'success'
                 message = 'the match was confirmed succesfully'
             else:
@@ -124,6 +131,7 @@ def confirm_match(request):
 
 @api_view(['POST'])
 def reject_match(request):
+    # add to the history - not complete yet
     user_data = json.loads(request.body)
     match = Match.objects.get(id=user_data['match_id'])
     user = User.objects.get(id=match.user_id1.id) or User.object.get(id=match.user_id2.id)
@@ -132,6 +140,9 @@ def reject_match(request):
             if match.state == 'pending':
                 match.state = 'rejected'
                 match.save()
+                date = datetime.datetime.now().strftime("%Y-%m-%d")
+                new_history_row = History(id=None, user_id=User.objects.get(id=request.session['user']), matchConfirmation_id=None, matchRejection_id=match, dateOfAction=date)
+                new_history_row.save()
                 status = 'success'
                 message = 'the match was rejected succesfully'
             else:
@@ -148,7 +159,7 @@ def reject_match(request):
     return JsonResponse(json_data)
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def see_other_user_profile(request):
     data = json.loads(request.body)
     if User.objects.filter(username=data['username']).exists():
@@ -161,6 +172,19 @@ def see_other_user_profile(request):
         message = 'there is no user with this name'
         json_data = {"status": status, "message": message}
 
+    return JsonResponse(json_data)
+
+@api_view(['POST'])
+def get_user_profile(request):
+    if "user" in request.session:
+        status = 'success'
+        message = 'other user data send successfully'
+        user = User.objects.get(id=request.session['user'])
+        json_data = {"status": status, "message": message, "user_info": model_to_dict(user)}
+    else:
+        status = 'error'
+        message = 'there is no user with this name'
+        json_data = {"status": status, "message": message}
     return JsonResponse(json_data)
 
 
@@ -255,7 +279,7 @@ def main_menu_index(request):
     return JsonResponse(json_data, safe=False)
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def search_index(request):
     user_data = json.loads(request.body)  # json = { "search_query":"something" }
     search_index = []
