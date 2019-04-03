@@ -1,3 +1,7 @@
+# read mmethdu -> is seeni updatelicez
+# send -> messagei message hem chat
+# message_list->
+
 from django.forms import model_to_dict
 from rest_framework.decorators import api_view
 from rest_framework.utils import json
@@ -7,8 +11,8 @@ from django.db.models import Q
 
 
 @api_view(['POST'])
-def index(request):
-    user_data = json.loads(request.body) # {"id":"1"}
+def message_list(request):
+    user_data = json.loads(request.body) # {"user_id":"1"}
     if "user" in request.session:
         if Message.objects.filter(id=user_data['message_id']).exists():
             messages = Message.objects.get(id=user_data['message_id'])
