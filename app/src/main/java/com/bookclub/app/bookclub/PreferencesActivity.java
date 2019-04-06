@@ -8,7 +8,7 @@ import android.widget.LinearLayout;
 
 public class PreferencesActivity extends AppCompatActivity {
 
-    LinearLayout accountSettings;
+    LinearLayout accountSettings, wishList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,6 +25,14 @@ public class PreferencesActivity extends AppCompatActivity {
             }
         });
 
+        wishList = findViewById(R.id.wishListLayout);
+        wishList.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(PreferencesActivity.this, WishListActivity.class);
+                startActivity(intent);
+            }
+        });
 
     }
 }
