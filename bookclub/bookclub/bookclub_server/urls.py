@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-from . import usercontroller, wishlistcontroller, accountsettingscontroller, tradelistcontroller, historycontroller, messagecontroller, chatcontroller
+from . import chatservice, usercontroller, wishlistcontroller, accountsettingscontroller, tradelistcontroller, historycontroller, messagecontroller, chatcontroller
 urlpatterns = [
 
     # usercontroller
@@ -16,6 +16,7 @@ urlpatterns = [
     path('suggestionListIndex/', usercontroller.suggestion_list_index),
     path('mainMenuIndex/', usercontroller.main_menu_index),
     path('searchIndex/', usercontroller.search_index),
+    path('getUserProfile/', usercontroller.get_user_profile),
 
     # wishlistcontroller
     path('wishlist/index/', wishlistcontroller.index),
@@ -54,4 +55,8 @@ urlpatterns = [
     # messagecontroller
     path('message/index/', messagecontroller.index),
     path('message/delete/', messagecontroller.delete),
+
+    # chatservice
+    path('chatservice/messageList/', chatservice.message_list),
+    path('chatservice/send/', chatservice.send)
 ]

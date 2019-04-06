@@ -4,6 +4,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.utils import json
 from .models import User, Match, TradeList, Suggestion, History, AccountSettings
+from . import emailservice
 from django.http import JsonResponse
 from django.db.models import Q
 import random
@@ -18,7 +19,7 @@ def get_session(request):
         return JsonResponse({'session_id': -1})
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def login(request):
     # hash eklenecek
     user_data = json.loads(request.body)
@@ -59,6 +60,7 @@ def signup(request): # we should add to the account settings
         user_settings = AccountSettings(user_id=user)
         user_settings.save()
         request.session['user'] = user.id
+        emailservice.signup_email(request)
 
     json_data = {"status": status, "message": message}
     return JsonResponse(json_data)
@@ -67,18 +69,22 @@ def signup(request): # we should add to the account settings
 @api_view(['POST'])
 def forgot_password(request):
     data = json.loads(request.body)
-    user = User.objects.get(username=data['username']) or User.objects.get(mail=data['mail'])
-    if data['mail'] == user.mail:
-        status = 'success'
-        message = 'new password will be send'
-        s = "abcdefghijklmnopqrstuvwxyz01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!?."
-        p = "".join(random.sample(s, 8))
-        new_password = p
-        user.password = new_password
-        user.save()
+    user_row = User.objects.filter((Q(username=data['username']) | Q(mail=data['mail'])))
+   # if data['mail'] == user.mail:
+    if user_row.exists():
+        for user in user_row:
+            status = 'success'
+            message = 'new password will be sent'
+            s = "abcdefghijklmnopqrstuvwxyz01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!?."
+            p = "".join(random.sample(s, 8))
+            new_password = p
+            new_request = {"username": user.username, "mail": user.mail, "new_password": new_password}
+            emailservice.forgot_password_email(json.dumps(new_request))
+            user.password = new_password
+            user.save()
     else:
         status = 'error'
-        message = 'there is no user with this email'
+        message = 'no such user exists'
         new_password = -1
 
     json_data = {"status": status, "message": message, "password": new_password}
@@ -159,7 +165,7 @@ def reject_match(request):
     return JsonResponse(json_data)
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def see_other_user_profile(request):
     data = json.loads(request.body)
     if User.objects.filter(username=data['username']).exists():
@@ -174,6 +180,20 @@ def see_other_user_profile(request):
 
     return JsonResponse(json_data)
 
+@api_view(['POST'])
+def get_user_profile(request):
+    if "user" in request.session:
+        status = 'success'
+        message = 'other user data send successfully'
+        user = User.objects.get(id=request.session['user'])
+        json_data = {"status": status, "message": message, "user_info": model_to_dict(user)}
+    else:
+        status = 'error'
+        message = 'there is no user with this name'
+        json_data = {"status": status, "message": message}
+    return JsonResponse(json_data)
+
+    
 
 # confirm ve reject matchde serializible eklemeliyiz
 # this function is used to obtain match list index of a user
@@ -266,7 +286,7 @@ def main_menu_index(request):
     return JsonResponse(json_data, safe=False)
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def search_index(request):
     user_data = json.loads(request.body)  # json = { "search_query":"something" }
     search_index = []
