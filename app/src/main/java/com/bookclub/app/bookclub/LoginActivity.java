@@ -3,7 +3,9 @@ package com.bookclub.app.bookclub;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -28,6 +30,8 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,7 +50,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * Id to identity READ_CONTACTS permission request.
      */
     private static final int REQUEST_READ_CONTACTS = 0;
-
+    private final String EMAIL_PREFERENCE_FILE_KEY = "rueyretuetureı";
+    private final String NOT_EXIST = "kkkgfjdgkjfkgj";
+    private final String PASSWORD_PREFERENCE_FILE_KEY = "765454868234";
+    private final String PREFERENCE_FILE_KEY = "myAppPreference";
     /**
      * A dummy authentication store containing known user names and passwords.
      * TODO: remove after connecting to a real authentication system.
@@ -54,6 +61,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private static final String[] DUMMY_CREDENTIALS = new String[]{
             "gulben@gmail.com:123456", "mehmet@gmail.com:qwerty"
     };
+
+    CheckBox rememberCB;
+
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
@@ -65,17 +75,18 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private View mProgressView;
     private View mLoginFormView;
 
+    private SharedPreferences sp;
+    private boolean remember;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        int i = (int)getIntent().getExtras().get("User");
-        Toast.makeText(this, i + "", Toast.LENGTH_SHORT).show();
-
+        remember = false;
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         populateAutoComplete();
+
 
         mPasswordView = (EditText) findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -86,6 +97,27 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     return true;
                 }
                 return false;
+            }
+        });
+
+        rememberCB = findViewById(R.id.remember);
+       sp = this.getSharedPreferences(EMAIL_PREFERENCE_FILE_KEY, Context.MODE_PRIVATE);
+        String eString = sp.getString(EMAIL_PREFERENCE_FILE_KEY, NOT_EXIST);
+        if (!eString.equals(NOT_EXIST)){
+            Log.d("DefaultUser", "DOESNT EXİST");
+            mEmailView.setText(eString);
+            sp = this.getSharedPreferences(PASSWORD_PREFERENCE_FILE_KEY, Context.MODE_PRIVATE);
+            mPasswordView.setText(sp.getString(PASSWORD_PREFERENCE_FILE_KEY, NOT_EXIST));
+            rememberCB.setChecked(true);
+        }
+        else rememberCB.setChecked(false);
+
+        rememberCB.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked){
+
+                }
             }
         });
 
@@ -313,7 +345,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            
+
             // TODO: attempt authentication against a network service.
             try {
                 // Simulate network access.

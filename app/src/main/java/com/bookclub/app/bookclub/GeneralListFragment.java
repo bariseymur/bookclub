@@ -202,7 +202,15 @@ public class GeneralListFragment extends Fragment {
             }
             else
                 viewHolder.bookImageButton.setBackgroundResource(R.drawable.ic_launcher_foreground);
-
+            viewHolder.bookImageButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getActivity(), BookDetailActivity.class);
+                    intent.putExtra("title", generalListContent.getBookTitle());
+                    intent.putExtra("author", generalListContent.getAuthorName());
+                    startActivity(intent);
+                }
+            });
             viewHolder.transactionImageButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -216,13 +224,6 @@ public class GeneralListFragment extends Fragment {
                 }
             });
 
-
-            viewHolder.bookImageButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Snackbar.make(v, "Title : " + generalListContent.getBookTitle() + " Author : " + generalListContent.getAuthorName(), Snackbar.LENGTH_SHORT).show();
-                }
-            });
 
 
             // viewHolder.bookImageButton.setImageDrawable(sadasd);

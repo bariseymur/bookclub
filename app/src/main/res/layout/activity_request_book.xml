@@ -145,9 +145,11 @@
                       android:layout_width="500px"
                       android:layout_height="200px"
                       android:layout_weight="1"
+                      android:background="@color/buttonColor"
                       android:minWidth="200px"
                       android:padding="10px"
-                      android:text="Change Birthday" />
+                      android:text="Change Birthday"
+                      android:textColor="#FFFFFF" />
               </LinearLayout>
 
               <android.support.design.widget.TextInputLayout
@@ -190,13 +192,16 @@
                   android:layout_width="match_parent"
                   android:layout_height="wrap_content"
                   android:layout_weight=".5"
+                  android:background="@color/buttonColor"
                   app:srcCompat="?android:attr/textCheckMark" />
 
               <ImageButton
                   android:id="@+id/cancelButton"
                   android:layout_width="match_parent"
                   android:layout_height="wrap_content"
+                  android:layout_marginTop="5dp"
                   android:layout_weight=".5"
+                  android:background="@color/buttonColor"
                   app:srcCompat="@android:drawable/ic_delete" />
 
 

@@ -49,6 +49,8 @@ public class MainActivity extends AppCompatActivity implements MatchListFragment
         addRequestButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, RequestBookActivity.class);
+                startActivity(intent);
             }
         });
 
@@ -67,26 +69,48 @@ public class MainActivity extends AppCompatActivity implements MatchListFragment
             switch (item.getItemId()) {
                 case R.id.generalList:
                     if (generalListFragment == null) generalListFragment = new GeneralListFragment();
-                    fm.beginTransaction().hide(active).add(R.id.fragment_container, generalListFragment, GENERALLIST_ID).commit();
-                    fm.beginTransaction().remove(active).commit();
-                    active = null;
-                    active = generalListFragment;
+
+                    try{
+                        fm.beginTransaction().hide(active).add(R.id.fragment_container, generalListFragment, GENERALLIST_ID).commit();
+                        fm.beginTransaction().remove(active).commit();
+                        active = null;
+                        active = generalListFragment;
+
+                    }catch (IllegalStateException e){
+                        return true;
+                    }
                     return true;
+
+
                 case R.id.matchList:
                     if (matchListFragment == null) matchListFragment = new MatchListFragment();
-                    fm.beginTransaction().hide(active).add(R.id.fragment_container, matchListFragment, MATCHLIST_ID).commit();
-                    fm.beginTransaction().remove(active).commit();
-                    active = null;
-                    active = matchListFragment;
-                    return true;
-                case R.id.suggestionList:
-                    System.out.println("Removed");
+
+                    try{
+
+                        fm.beginTransaction().hide(active).add(R.id.fragment_container, matchListFragment, MATCHLIST_ID).commit();
+                        fm.beginTransaction().remove(active).commit();
+                        active = null;
+                        active = matchListFragment;
+                        return true;
+                    }
+                    catch (IllegalStateException e){
+                        return true;
+                    }
+
+               case R.id.suggestionList:
                     if (suggestionListFragment == null) suggestionListFragment = new SuggestionListFragment();
-                    fm.beginTransaction().remove(active).add(R.id.fragment_container, suggestionListFragment, SUGGESTIONLIST_ID).commit();
-                  //  fm.beginTransaction().remove(active).commit();
-                    active = null;
-                    active = suggestionListFragment;
-                    return true;
+
+                    try{
+
+                        fm.beginTransaction().remove(active).add(R.id.fragment_container, suggestionListFragment, SUGGESTIONLIST_ID).commit();
+                        //  fm.beginTransaction().remove(active).commit();
+                        active = null;
+                        active = suggestionListFragment;
+                        return true;
+                    }catch (IllegalStateException e){
+                        return true;
+                    }
+
             }
             return false;
         }

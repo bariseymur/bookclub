@@ -25,7 +25,6 @@ public class WelcomeActivity extends AppCompatActivity {
             public void onClick(View v) {
                 //Toast.makeText(WelcomeActivity.this, "Login Test", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
-                intent.putExtra("User", 873638);
                 startActivity(intent);
 
             }

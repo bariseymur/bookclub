@@ -16,7 +16,7 @@
         android:allowBackup="true"
         android:icon="@mipmap/bookclub_icon"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@mipmap/bookclub_icon"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
         <activity android:name=".WelcomeActivity">
@@ -41,7 +41,8 @@
         <activity
             android:name=".RequestBookActivity"
             android:label="@string/title_activity_request_book"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"></activity>
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
+        <activity android:name=".BookDetailActivity"></activity>
     </application>
 
 </manifest>
