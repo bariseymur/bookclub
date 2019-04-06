@@ -10,8 +10,8 @@ from django.db.models import Q
 def index(request):
     user_data = json.loads(request.body) # {"id":"1"}
     if "user" in request.session:
-        if Message.objects.filter(id=user_data['id']).exists():
-            messages = Message.objects.get(id=user_data['id'])
+        if Message.objects.filter(id=user_data['message_id']).exists():
+            messages = Message.objects.get(id=user_data['message_id'])
             message_info= []
             message_info.append({
                 "date_info": messages.messageDate,
@@ -37,8 +37,8 @@ def index(request):
 def delete(request):
     user_data = json.loads(request.body) # {"id":"1"}
     if "user" in request.session:
-        if Message.objects.filter(id=user_data['id']).exists():
-            Message.objects.filter(id=user_data['id']).delete()
+        if Message.objects.filter(id=user_data['message_id']).exists():
+            Message.objects.filter(id=user_data['message_id']).delete()
             status = 'success'
             message = 'chat data deleted successfully'
         else:

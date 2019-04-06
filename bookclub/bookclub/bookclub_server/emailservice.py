@@ -1,17 +1,40 @@
-from django.core.mail import BadHeaderError, send_mail
-from django.http import HttpResponse, HttpResponseRedirect
+from django.conf import settings
+from django.core.mail import send_mail
+from django.http import JsonResponse
+from rest_framework.decorators import api_view
+from rest_framework.utils import json
 
-def send_email(request):
-    subject = request.POST.get('subject', 'x')
-    message = request.POST.get('message', 'y')
-    from_email = request.POST.get('from_email', 'bookclub_infohr@gmail.com')
-    if subject and message and from_email:
-        try:
-            send_mail(subject, message, from_email, ['bikemcamli@gmail.com'])
-        except BadHeaderError:
-            return HttpResponse('Invalid header found.')
-        return HttpResponseRedirect('/contact/thanks/')
+# in settings.py, find MIDDLEWARE_CLASSES and remove 'django.middleware.csrf.CsrfViewMiddleware'
+
+
+def signup_email(request):
+    user_data = json.loads(request.body)
+    subject = 'Welcome to BookClub ' + user_data['username'] + '!'
+    body = 'How are you? Thank you for joining the largest book club of our planet!'
+    email_from = settings.EMAIL_HOST_USER
+    recipient_list = [user_data['mail']]
+    if send_mail(subject, body, email_from, recipient_list, fail_silently=False) == 1:
+        status = "success"
+        message = "email sent successfully"
     else:
-        # In reality we'd use a form class
-        # to get proper validation errors.
-        return HttpResponse('Make sure all fields are entered and valid.')
+        status = "error"
+        message = "email cannot be sent"
+    json_data = {"status": status, "message": message}
+    return JsonResponse(json_data)
+
+
+def forgot_password_email(request):
+    user_data = json.loads(request)
+    subject = 'Forgot your password? Well, that happens sometimes.'
+    body = 'Here is your new password: ' + user_data['new_password']
+    email_from = settings.EMAIL_HOST_USER
+    recipient_list = [user_data['mail']]
+    if send_mail(subject, body, email_from, recipient_list, fail_silently=False) == 1:
+        status = "success"
+        message = "email sent successfully"
+    else:
+        status = "error"
+        message = "email cannot be sent"
+    new_password = user_data['new_password']
+    json_data = {"status": status, "message": message, "new_password": new_password}
+    return JsonResponse(json_data)
