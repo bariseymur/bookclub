@@ -105,11 +105,11 @@ public class MatchListFragment extends Fragment {
 
     private void populateMatchList(){
         matchListContents = new ArrayList<>();
-        matchListContents.add(new MatchListContent("faruq476", "1984", "George Orwell", null, "YaraliCocuq", "Harry Potter", "J.K. Rowling", null));
-        matchListContents.add(new MatchListContent("faruq476", "Küçük Prens", "Saint-exupery", null, "KaraBela02", "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", null));
-        matchListContents.add(new MatchListContent("faruq476", "Küçük Prens", "Saint-exupery", null, "KaraBela02", "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", null));
-        matchListContents.add(new MatchListContent("faruq476", "Küçük Prens", "Saint-exupery", null, "KaraBela02", "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", null));
-        matchListContents.add(new MatchListContent("faruq476", "Küçük Prens", "Saint-exupery", null, "KaraBela02", "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", null));
+        matchListContents.add(new MatchListContent("faruq476", "1984", "George Orwell", null, "YaraliCocuq", "Harry Potter", "J.K. Rowling", null, 44));
+        matchListContents.add(new MatchListContent("faruq476", "Küçük Prens", "Saint-exupery", null, "KaraBela02", "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", null, 43));
+        matchListContents.add(new MatchListContent("faruq476", "Küçük Prens", "Saint-exupery", null, "KaraBela02", "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", null, 55));
+        matchListContents.add(new MatchListContent("faruq476", "Küçük Prens", "Saint-exupery", null, "KaraBela02", "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", null, 1));
+        matchListContents.add(new MatchListContent("faruq476", "Küçük Prens", "Saint-exupery", null, "KaraBela02", "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", null, 12));
 
     }
 
@@ -234,7 +234,12 @@ public class MatchListFragment extends Fragment {
             viewHolder.transactionButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Snackbar.make(v, matchListContent.getUserName1() + " " + matchListContent.getBookTitle1() + "-" + matchListContent.getUserName2() + " " + matchListContent.getBookTitle2(), Snackbar.LENGTH_LONG).show();
+                    // Snackbar.make(v, matchListContent.getUserName1() + " " + matchListContent.getBookTitle1() + "-" + matchListContent.getUserName2() + " " + matchListContent.getBookTitle2(), Snackbar.LENGTH_LONG).show();
+                    Intent intent = new Intent(getActivity(), ChatActivity.class);
+                    intent.putExtra("MatchID", matchListContent.getMatchID());
+                    intent.putExtra("ChatID", 8342);
+                    startActivity(intent);
+
                 }
             });
 
@@ -260,9 +265,10 @@ public class MatchListFragment extends Fragment {
         private String bookTitle1, bookTitle2;
         private String authorName1, authorName2;
         private Drawable book1Image, book2Image;
+        private long matchID;
 
         public MatchListContent(String userName1, String bookTitle1, String authorName1, Drawable book1Image,
-                                String userName2, String bookTitle2, String authorName2, Drawable book2Image) {
+                                String userName2, String bookTitle2, String authorName2, Drawable book2Image, long matchID) {
             this.userName1 = userName1;
             this.userName2 = userName2;
             this.bookTitle1 = bookTitle1;
@@ -271,6 +277,7 @@ public class MatchListFragment extends Fragment {
             this.authorName2 = authorName2;
             this.book1Image = book1Image;
             this.book2Image = book2Image;
+            this.matchID = matchID;
         }
 
         public String getUserName1() {
@@ -336,6 +343,16 @@ public class MatchListFragment extends Fragment {
         public void setBook2Image(Drawable book2Image) {
             this.book2Image = book2Image;
         }
+
+        public long getMatchID() {
+            return matchID;
+        }
+
+        public void setMatchID(long matchID) {
+            this.matchID = matchID;
+        }
     }
+
+
 
 }

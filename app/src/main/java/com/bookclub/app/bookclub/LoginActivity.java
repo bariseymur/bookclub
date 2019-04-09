@@ -59,7 +59,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
      * TODO: remove after connecting to a real authentication system.
      */
     private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "gulben@gmail.com:123456", "mehmet@gmail.com:qwerty"
+            "gulben@gmail.com:123456", "mehmet@gmail.com:qwerty", "@:123456"
     };
 
     CheckBox rememberCB;

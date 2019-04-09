@@ -42,7 +42,8 @@
             android:name=".RequestBookActivity"
             android:label="@string/title_activity_request_book"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-        <activity android:name=".BookDetailActivity"></activity>
+        <activity android:name=".BookDetailActivity" />
+        <activity android:name=".ChatActivity"></activity>
     </application>
 
 </manifest>
