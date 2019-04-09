@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.urls import path, include
-from . import chatservice, usercontroller, wishlistcontroller, accountsettingscontroller, tradelistcontroller, historycontroller, messagecontroller, chatcontroller
+
+from . import emailservice
+from . import usercontroller, wishlistcontroller, accountsettingscontroller, tradelistcontroller, historycontroller, messagecontroller, chatcontroller
 urlpatterns = [
 
     # usercontroller
@@ -16,7 +18,6 @@ urlpatterns = [
     path('suggestionListIndex/', usercontroller.suggestion_list_index),
     path('mainMenuIndex/', usercontroller.main_menu_index),
     path('searchIndex/', usercontroller.search_index),
-    path('getUserProfile/', usercontroller.get_user_profile),
 
     # wishlistcontroller
     path('wishlist/index/', wishlistcontroller.index),
@@ -56,8 +57,7 @@ urlpatterns = [
     path('message/index/', messagecontroller.index),
     path('message/delete/', messagecontroller.delete),
 
-    # chatservice
-    path('chatService/messageList/', chatservice.message_list),
-    path('chatService/read/', chatservice.read),
-    path('chatService/send/', chatservice.send),
+    # emailservice
+    path('emailservice/signup_email/', emailservice.signup_email),
+    path('emailservice/forgot_password_email/', emailservice.forgot_password_email)
 ]
