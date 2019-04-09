@@ -23,9 +23,8 @@ def get_session(request):
 def login(request):
     # hash eklenecek
     user_data = json.loads(request.body)
-    if User.objects.filter(username=user_data['username']).exists() or User.objects.filter(
-            mail=user_data['mail']).exists():
-        user = User.objects.get(username=user_data['username'])
+    if User.objects.filter(username=user_data['username']).exists():
+        user = User.objects.get(username=user_data['username']) 
         if user.password == user_data['password']:
             status = 'success'
             message = 'you are logged in'
@@ -37,7 +36,7 @@ def login(request):
         status = 'error'
         message = 'there is no user with this username'
 
-    json_data = {"status": status, "message": message, "session_user": request.session['user']}
+    json_data = {"status": status, "message": message}
     return JsonResponse(json_data)
 
 
