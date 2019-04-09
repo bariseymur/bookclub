@@ -26,14 +26,6 @@ class AccountSettings(models.Model):
     userMessagable = models.BooleanField(default=True)
     lastSeen = models.BooleanField(default=True)
 
-
-# Message Table
-class Message(models.Model):
-    messageText = models.CharField(max_length=250)
-    messageDate = models.DateField(blank=False)
-    isSeen = models.BooleanField(default=False)
-
-
 # Book Table
 class Book(models.Model):
     title = models.CharField(max_length=250)
@@ -66,9 +58,16 @@ class Suggestion(models.Model):
 
 # Chat Table
 class Chat(models.Model):
-    receiver_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='receiver_id')
+    user_id_1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_id_1')
+    user_id_2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_id_2')
+
+# Message Table
+class Message(models.Model):
+    messageText = models.CharField(max_length=250)
+    messageDate = models.DateField(blank=False)
+    isSeen = models.BooleanField(default=False)
     sender_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sender_id')
-    message_id = models.ForeignKey(Message, on_delete=models.CASCADE)
+    chat_id = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name='chat_id')
 
 
 # TradeList Table

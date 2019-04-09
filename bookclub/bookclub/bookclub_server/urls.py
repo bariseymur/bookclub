@@ -50,12 +50,12 @@ urlpatterns = [
 
     # chatcontroller
     path('chat/index/', chatcontroller.index),
-    path('chat/delete/', chatcontroller.delete),
+    # chatservice methods
+    path('chat/messageList/', chatservice.message_list),
+    path('chat/send/', chatservice.send),
+    path('chat/read/', chatservice.read),
 
     # messagecontroller
     path('message/index/', messagecontroller.index),
-    path('message/delete/', messagecontroller.delete),
 
-    # chatservice
-    path('chat/messageList/', chatservice.message_list)
 ]
