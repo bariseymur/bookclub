@@ -3,9 +3,13 @@ package com.bookclub.app.bookclub;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.app.DatePickerDialog;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.AppCompatActivity;
 import android.app.LoaderManager.LoaderCallbacks;
 
@@ -19,6 +23,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -26,10 +31,18 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.bookclub.app.bookclub.bookclubapi.BookClubAPI;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import static android.Manifest.permission.READ_CONTACTS;
@@ -56,11 +69,21 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
      */
     private UserLoginTask mAuthTask = null;
 
+
+    String[] countries = {"Turkey", "France", "Albania", "Spain", "UK", "USA"};
+
+
     // UI references.
     private AutoCompleteTextView mEmailView;
-    private EditText mPasswordView;
+    private EditText mPasswordView, mconfirmPassword;
     private View mProgressView;
     private View mLoginFormView;
+    private Spinner countrySpinner;
+    private TextView birthDateText;
+    private Button changeDateButton;
+    private DatePickerDialog.OnDateSetListener mDateSetListener;
+    TextInputEditText userName, name, surname, phoneNumber, date;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,7 +98,7 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
                 if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
-                    attemptLogin();
+                    attemptSignup();
                     return true;
                 }
                 return false;
@@ -86,12 +109,57 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                attemptLogin();
+                attemptSignup();
             }
         });
 
+        userName = findViewById(R.id.usernameText);
+        mconfirmPassword = findViewById(R.id.passwordConfirm);
+        name = findViewById(R.id.nameText);
+        surname = findViewById(R.id.surnameText);
+        phoneNumber = findViewById(R.id.phoneNumberText);
+
+
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+
+        countrySpinner = findViewById(R.id.spinner);
+        ArrayAdapter<String> mAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, countries);
+        countrySpinner.setAdapter(mAdapter);
+
+
+        birthDateText = findViewById(R.id.dateText);
+
+        changeDateButton = findViewById(R.id.changeDatePickButton);
+        changeDateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Calendar cal = Calendar.getInstance();
+                int year = cal.get(Calendar.YEAR);
+                int month = cal.get(Calendar.MONTH);
+                int day = cal.get(Calendar.DAY_OF_MONTH);
+
+                DatePickerDialog dialog = new DatePickerDialog(
+                        SignupActivity.this,
+                        android.R.style.Theme_Holo_Light_Dialog_MinWidth,
+                        mDateSetListener,
+                        year,month,day);
+                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                dialog.show();
+            }
+        });
+
+        mDateSetListener = new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker datePicker, int year, int month, int day) {
+                month = month + 1;
+
+                String date = day + "/" + month + "/" + year;
+                birthDateText.setText(date);
+            }
+        };
+
+
     }
 
     private void populateAutoComplete() {
@@ -143,7 +211,7 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
      * If there are form errors (invalid email, missing fields, etc.), the
      * errors are presented and no actual login attempt is made.
      */
-    private void attemptLogin() {
+    private void attemptSignup() {
         if (mAuthTask != null) {
             return;
         }
@@ -165,6 +233,11 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
             focusView = mPasswordView;
             cancel = true;
         }
+        if (!mPasswordView.getText().toString().equals(mconfirmPassword.getText().toString())){
+            focusView = mPasswordView;
+            cancel = true;
+        }
+
 
         // Check for a valid email address.
         if (TextUtils.isEmpty(email)) {
@@ -177,6 +250,8 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
             cancel = true;
         }
 
+
+
         if (cancel) {
             // There was an error; don't attempt login and focus the first
             // form field with an error.
@@ -185,7 +260,7 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(email, password);
+            mAuthTask = new UserLoginTask();
             mAuthTask.execute((Void) null);
         }
     }
@@ -296,12 +371,7 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
      */
     public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
 
-        private final String mEmail;
-        private final String mPassword;
-
-        UserLoginTask(String email, String password) {
-            mEmail = email;
-            mPassword = password;
+        UserLoginTask() {
         }
 
         @Override
@@ -311,17 +381,31 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
             try {
                 // Simulate network access.
                 Thread.sleep(2000);
+                SimpleDateFormat dt = new SimpleDateFormat("dd/mm/yyyy" );
+                Date d1 = dt.parse(birthDateText.getText().toString());
+                SimpleDateFormat nf = new SimpleDateFormat("yyyy-MM-dd");
+                String d2 = nf.format(d1);
+                Date d = nf.parse(d2);
+                Log.d("signup attempt", d.toString());
+
+                BookClubAPI api = new BookClubAPI();
+                ArrayList<Object> status = api.signup(userName.getText().toString(), mPasswordView.getText().toString(),
+                        mEmailView.getText().toString(), name.getText().toString(), surname.getText().toString(),
+                        countrySpinner.getSelectedItem().toString(), phoneNumber.getText().toString(), d);
+                Log.d("signup attempt", status.toString());
+
+                if (status.get(0).equals("success")){
+                    return true;
+                }
+
+
             } catch (InterruptedException e) {
+                return false;
+            } catch (ParseException p){
                 return false;
             }
 
-            for (String credential : DUMMY_CREDENTIALS) {
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mEmail)) {
-                    // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
-                }
-            }
+
 
             // TODO: register the new account here.
             return true;

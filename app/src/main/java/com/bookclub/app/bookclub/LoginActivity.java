@@ -37,8 +37,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-
+import com.bookclub.app.bookclub.bookclubapi.*;
 import static android.Manifest.permission.READ_CONTACTS;
 
 /**
@@ -74,13 +75,22 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
-
+    private Button forgotPasswordButton;
     private SharedPreferences sp;
     private boolean remember;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+       forgotPasswordButton = findViewById(R.id.forgotPasswordButton);
+        forgotPasswordButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
+                startActivity(intent);
+            }
+        });
 
         remember = false;
         // Set up the login form.
@@ -198,7 +208,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         boolean cancel = false;
         View focusView = null;
 
-        // Check for a valid password, if the user entered one.
+     /*   // Check for a valid password, if the user entered one.
         if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
             mPasswordView.setError(getString(R.string.error_invalid_password));
             focusView = mPasswordView;
@@ -215,7 +225,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             focusView = mEmailView;
             cancel = true;
         }
-
+    */
         if (cancel) {
             // There was an error; don't attempt login and focus the first
             // form field with an error.
@@ -345,29 +355,28 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         @Override
         protected Boolean doInBackground(Void... params) {
-
+            /* to be uncommented
             // TODO: attempt authentication against a network service.
             try {
                 // Simulate network access.
-                Thread.sleep(2000);
-                Log.d("Login", "aaaaaaaaaaaaaaaaaaa");
+                Thread.sleep(1000);
+             //   Log.d("Login", "aaaaaaaaaaaaaaaaaaa");
+                BookClubAPI api = new BookClubAPI();
+                ArrayList<Object> status = api.login(mEmailView.getText().toString(), mPasswordView.getText().toString());
+                Log.d("login attempt", status.toString());
+                if (status.get(0).equals("success"))
+                    return true;
+                else
+                    return false;
+                //TODO: login credential checking will be done here
 
             } catch (InterruptedException e) {
                 return false;
             }
+        */
 
-            //TODO: login credential checking will be done here
-            for (String credential : DUMMY_CREDENTIALS) {
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mEmail)) {
-                    // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
-                }
-            }
-
-
-            // TODO: register the new account here.
-            return false;
+            //test to be commented out
+            return true;
         }
 
         @Override

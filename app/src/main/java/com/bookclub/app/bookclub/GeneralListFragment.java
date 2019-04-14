@@ -2,7 +2,10 @@ package com.bookclub.app.bookclub;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -17,6 +20,8 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 
 
@@ -65,10 +70,10 @@ public class GeneralListFragment extends Fragment {
     }
 
     private void populateGeneralList(){
-        generalListContent.add(new GeneralListContent(1, "1984", "George Orwell", "slkflskdfj"));
-        generalListContent.add(new GeneralListContent(2, "Harry Potter", "J.K. Rowling", "slkflskdfj"));
-        generalListContent.add(new GeneralListContent(1, "Küçük Prens", "Saint-exupery", "slkflskdfj"));
-        generalListContent.add(new GeneralListContent(1, "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", "slkflskdfj"));
+        generalListContent.add(new GeneralListContent(1, "1984", "George Orwell", "http://images.amazon.com/images/P/0195153448.01.MZZZZZZZ.jpg"));
+        generalListContent.add(new GeneralListContent(2, "Harry Potter", "J.K. Rowling", "http://images.amazon.com/images/P/0195153448.01.THUMBZZZ.jpg"));
+        generalListContent.add(new GeneralListContent(1, "Küçük Prens", "Saint-exupery", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
+        generalListContent.add(new GeneralListContent(1, "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", "http://images.amazon.com/images/P/0195153448.01.THUMBZZZ.jpg"));
 
     }
 
@@ -175,7 +180,7 @@ public class GeneralListFragment extends Fragment {
             ViewHolder viewHolder;
 
             final View result;
-
+            Bitmap bitmap = null;
             if (convertView == null){
                 viewHolder = new ViewHolder();
                 LayoutInflater inflater = LayoutInflater.from(getContext());
@@ -183,6 +188,18 @@ public class GeneralListFragment extends Fragment {
                 viewHolder.authorNameTextView = (TextView)convertView.findViewById(R.id.authorTextView);
                 viewHolder.bookTitleTextView= (TextView)convertView.findViewById(R.id.bookTitleTextView);
                 viewHolder.bookImageButton= (ImageButton) convertView.findViewById(R.id.bookImageButton);
+
+                try {
+                    ImageLoader imageLoader = new ImageLoader(generalListContent.getBookImageURL());
+                    bitmap = imageLoader.execute().get();
+
+                    viewHolder.bookImageButton.setImageBitmap(bitmap);
+
+                } catch (Exception e) {
+                    // Log.e("Error Message", e.getMessage());
+                    e.printStackTrace();
+                }
+
                 viewHolder.transactionImageButton = (ImageButton) convertView.findViewById(R.id.transactionImageButton);
                 result = convertView;
                 convertView.setTag(viewHolder);
@@ -239,6 +256,36 @@ public class GeneralListFragment extends Fragment {
         }
     }
 
+    public class ImageLoader extends AsyncTask<Void, Void, Bitmap>{
+
+        String url;
+
+        public ImageLoader(String url){
+            this.url = url;
+
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+
+        @Override
+        protected Bitmap doInBackground(Void... voids) {
+             Bitmap bitmap = null;
+             try{
+
+                 InputStream in = new java.net.URL(url).openStream();
+                 bitmap = BitmapFactory.decodeStream(in);
+                 return bitmap;
+             }catch (Exception e){
+                 e.printStackTrace();
+             }
+             return null;
+        }
+    }
+
     class GeneralListContent{
 
         int transactionType;
@@ -250,6 +297,7 @@ public class GeneralListFragment extends Fragment {
             this.transactionType = transactionType;
             this.bookTitle = bookTitle;
             this.authorName = authorName;
+
             this.bookImageURL = bookImageURL;
         }
 

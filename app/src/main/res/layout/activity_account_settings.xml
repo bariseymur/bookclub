@@ -112,7 +112,7 @@
                         android:clickable="false"
                         android:gravity="left|center_vertical"
                         android:hint="Birth Date"
-                        android:text="gg/aa/yyyy" />
+                        android:text="dd/mm/yyyy" />
                 </android.support.design.widget.TextInputLayout>
 
                 <Button

@@ -8,6 +8,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.bookclub.app.bookclub.bookclubapi.BookClubAPI;
+
+import java.util.Date;
+
 public class WelcomeActivity extends AppCompatActivity {
 
     Button loginButton, signInButton;
@@ -38,6 +42,8 @@ public class WelcomeActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+
 
     }
 }
