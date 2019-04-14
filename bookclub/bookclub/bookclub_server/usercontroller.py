@@ -3,12 +3,13 @@ from django.forms import model_to_dict
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.utils import json
-from .models import User, Match, TradeList, Suggestion, History, AccountSettings, UserRating, Chat
+from .models import User, Match, TradeList, Suggestion, History, AccountSettings, UserRating, Chat, Book
 from . import emailservice
 from django.http import JsonResponse
 from django.db.models import Q
 import random
 import datetime
+import csv
 
 
 @api_view(['GET'])
@@ -349,3 +350,13 @@ def rate_user(request):
 
     json_data = {"status": status, "message": message}
     return JsonResponse(json_data)
+
+@api_view(['POST'])
+def add_books(request):
+    with open('C:\\Users\\Mehin\\Desktop\\book\\bookclub\\bookclub\\bookclub_server\\datasets\\BX-Books.csv') as csvfile:
+        reader = csv.DictReader(csvfile, delimiter=';')
+        for row in reader:
+            p = Book(isbn=row['isbn'], title=row['title'], authorName=row['authorName'], publishDate=row['publishDate'], publisher=row['publisher'], bookPhoto=row['bookPhoto'])
+            p.save()
+    return JsonResponse({'success':'yes'})
+

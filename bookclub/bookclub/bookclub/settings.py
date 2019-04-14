@@ -78,9 +78,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'bookclub',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': 'localhost',
+        'USER': 'clubber',
+        'PASSWORD': 'arabeniyarim',
+        'HOST': 'db4free.net',
         'PORT': '3306',
         'OPTIONS': {
             'autocommit': True,
