@@ -17,13 +17,13 @@ urlpatterns = [
     path('mainMenuIndex/', usercontroller.main_menu_index),
     path('searchIndex/', usercontroller.search_index),
     path('getUserProfile/', usercontroller.get_user_profile),
+    path('rate/', usercontroller.rate_user),
 
     # wishlistcontroller
     path('wishlist/index/', wishlistcontroller.index),
     path('wishlist/delete/', wishlistcontroller.delete),
     path('wishlist/add/', wishlistcontroller.add),
-    # wishlist/update olacak mi?
-    # wishlist/drag olacak mi?
+    path('wishlist/drag/', wishlistcontroller.drag),
 
     # accountsettingscontroller
     path('accountSettings/index/', accountsettingscontroller.index),
@@ -42,7 +42,7 @@ urlpatterns = [
     path('tradelist/index/', tradelistcontroller.index),
     path('tradelist/delete/', tradelistcontroller.delete),
     path('tradelist/add/', tradelistcontroller.add),
-    path('tradelist/update/', tradelistcontroller.update),
+    # path('tradelist/update/', tradelistcontroller.update),
 
     # historycontroller
     path('history/index/', historycontroller.index),
@@ -50,12 +50,12 @@ urlpatterns = [
 
     # chatcontroller
     path('chat/index/', chatcontroller.index),
-    path('chat/delete/', chatcontroller.delete),
+    # chatservice methods
+    path('chat/messageList/', chatservice.message_list),
+    path('chat/send/', chatservice.send),
+    path('chat/read/', chatservice.read),
 
     # messagecontroller
     path('message/index/', messagecontroller.index),
-    path('message/delete/', messagecontroller.delete),
 
-    # chatservice
-    path('chat/messageList/', chatservice.message_list)
 ]
