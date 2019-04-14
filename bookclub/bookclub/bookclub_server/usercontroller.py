@@ -3,7 +3,7 @@ from django.forms import model_to_dict
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.utils import json
-from .models import User, Match, TradeList, Suggestion, History, AccountSettings
+from .models import User, Match, TradeList, Suggestion, History, AccountSettings, UserRating, Chat
 from . import emailservice
 from django.http import JsonResponse
 from django.db.models import Q
@@ -319,3 +319,33 @@ def search_index(request):
 
     json_data = {"status": status, "message": message, "searchIndex": search_index}
     return JsonResponse(json_data, safe=False)
+
+
+@api_view(['POST'])
+def rate_user(request):
+    data = json.loads(request.body) # {"user_id":"1", "rating":"10"}
+    test = UserRating.objects.filter(rating_user=User.objects.get(id=request.session['user']), rated_user=User.objects.get(id=data['user_id']), rating=data['rating'])
+    if 'user' in request.session:
+        if Chat.objects.filter((Q(user_id_1=request.session['user']) & Q(user_id_2=data['user_id'])) | (Q(user_id_2=request.session['user']) & Q(user_id_1=data['user_id']))).exists():
+            chat = Chat.objects.get((Q(user_id_1=request.session['user']) & Q(user_id_2=data['user_id'])) | (Q(user_id_2=request.session['user']) & Q(user_id_1=data['user_id'])))
+            if chat.state_1 == 'confirmed' and chat.state_2 == 'confirmed':
+                if data['rating'] > 10 or data['rating'] < 0:
+                    status = 'error'
+                    message = 'the rating input is invalid'
+                elif test.exists():
+                    status = 'error'
+                    message = 'you have already rated this user'
+                else:
+                    status = 'success'
+                    message = 'you succesfully rated the user'
+                    rating = UserRating(rating_user=User.objects.get(id=request.session['user']), rated_user=User.objects.get(id=data['user_id']), rating=data['rating'])
+                    rating.save()
+        else:
+            status = 'error'
+            message = 'you cannot rate a user that you never had a trade with'
+    else:
+        status = 'error'
+        message = 'you should login first'
+
+    json_data = {"status": status, "message": message}
+    return JsonResponse(json_data)

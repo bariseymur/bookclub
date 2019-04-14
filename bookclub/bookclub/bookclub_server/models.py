@@ -54,12 +54,15 @@ class Suggestion(models.Model):
     suggestionInformation = models.CharField(max_length=250)
     book_id = models.ForeignKey(Book, on_delete=models.CASCADE)
     suggestionDate = models.DateField(blank=False)
+    recommendation_score = models.IntegerField(default=0)
 
 
 # Chat Table
 class Chat(models.Model):
     user_id_1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_id_1')
     user_id_2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_id_2')
+    state_1 = models.CharField(max_length=250, default="nothing") # iksi de confirmed olmayinca chat kapanmiyor ve puanlanmiyor
+    state_2 = models.CharField(max_length=250, default="nothing")
 
 # Message Table
 class Message(models.Model):
@@ -73,7 +76,6 @@ class Message(models.Model):
 # TradeList Table
 class TradeList(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    wantedBook_id = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='wantedBook_id')
     givingBook_id = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='givingBook_id')
 
 
@@ -81,6 +83,7 @@ class TradeList(models.Model):
 class WishList(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     book_id = models.ForeignKey(Book, on_delete=models.CASCADE)
+    order = models.IntegerField(default=1)
 
 
 # History Table
@@ -89,3 +92,15 @@ class History(models.Model):
     matchConfirmation_id = models.ForeignKey(Match, on_delete=models.CASCADE, null=True, related_name='matchConfirmation_id')
     matchRejection_id = models.ForeignKey(Match, on_delete=models.CASCADE, null=True, related_name='matchRejection_id')
     dateOfAction = models.DateField(blank=False)
+
+# BookRating Table
+class BookRating(models.Model):
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    book_isbn = models.ForeignKey(Book, on_delete=models.CASCADE)
+    raiting = models.IntegerField(default=0)
+
+# UserRating Table
+class UserRating(models.Model):
+    rating_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='rating_user')
+    rated_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='rated_user')
+    rating = models.IntegerField(default=0)
