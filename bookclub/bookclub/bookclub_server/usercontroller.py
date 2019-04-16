@@ -10,6 +10,10 @@ from django.db.models import Q
 import random
 import datetime
 import csv
+from faker import Faker
+from faker import Factory
+import factory
+import factory.django
 
 
 @api_view(['GET'])
@@ -51,7 +55,7 @@ def signup(request): # we should add to the account settings
     else:
         status = 'success'
         message = 'User successfully signed up'
-        user = User(name=user_data['name'], surname=user_data['surname'], country=user_data['country'],
+        user = User(name=user_data['name'], country=user_data['country'],
                     mail=user_data['mail'], phoneNumber=user_data['phoneNumber'], dateOfBirth=user_data['dateOfBirth'],
                     username=user_data['username'], password=user_data['password'], long=user_data['long'],
                     lat=user_data['lat'], onlineState=user_data['onlineState'],
@@ -351,12 +355,35 @@ def rate_user(request):
     json_data = {"status": status, "message": message}
     return JsonResponse(json_data)
 
-@api_view(['POST'])
-def add_books(request):
-    with open('C:\\Users\\Mehin\\Desktop\\book\\bookclub\\bookclub\\bookclub_server\\datasets\\BX-Books.csv') as csvfile:
-        reader = csv.DictReader(csvfile, delimiter=';')
-        for row in reader:
-            p = Book(isbn=row['isbn'], title=row['title'], authorName=row['authorName'], publishDate=row['publishDate'], publisher=row['publisher'], bookPhoto=row['bookPhoto'])
-            p.save()
-    return JsonResponse({'success':'yes'})
+# @api_view(['POST'])
+# def add_books(request):
+#     with open('C:\\Users\\Mehin\\Desktop\\book\\bookclub\\bookclub\\bookclub_server\\datasets\\BX-Books.csv') as csvfile:
+#         reader = csv.DictReader(csvfile, delimiter=';')
+#         for row in reader:
+#             p = Book(isbn=row['isbn'], title=row['title'], authorName=row['authorName'], publishDate=row['publishDate'], publisher=row['publisher'], bookPhoto=row['bookPhoto'])
+#             p.save()
+#     return JsonResponse({'success':'yes'})
 
+# @api_view(['POST'])
+# def seed_user(request):
+#     i = 0
+#     while i < 500:
+#         faker = Factory.create('tr_TR')
+#         name = faker.name()
+#         country = 'Turkey'
+#         mail = faker.email()
+#         phoneNumber = faker.phone_number()
+#         dateOfBirth = faker.date_of_birth(minimum_age=18, maximum_age=100)
+#         username = faker.user_name()
+#         password = faker.password(length=6, special_chars=False, digits=False, upper_case=False, lower_case=True)
+#         longitude = random.uniform(36, 42) 
+#         latitude = random.uniform(26,45)
+
+#         user = User(name=name, country=country, mail=mail, phoneNumber=phoneNumber, dateOfBirth=dateOfBirth, username=username, password=password,
+#                     long=longitude, lat=latitude, onlineState=1, profilePicture='noimage.jpg')
+
+#         user.save()
+#         user_settings = AccountSettings(user_id=user)
+#         user_settings.save()
+#         i += 1
+#     return JsonResponse({'success': 'yes'})
