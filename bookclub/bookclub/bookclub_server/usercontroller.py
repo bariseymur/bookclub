@@ -3,7 +3,7 @@ from django.forms import model_to_dict
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.utils import json
-from .models import User, Match, TradeList, Suggestion, History, AccountSettings, UserRating, Chat, Book
+from .models import User, Match, TradeList, Suggestion, History, AccountSettings, UserRating, Chat, Book, WishList
 from . import emailservice
 from django.http import JsonResponse
 from django.db.models import Q
@@ -355,6 +355,21 @@ def rate_user(request):
     json_data = {"status": status, "message": message}
     return JsonResponse(json_data)
 
+@api_view(['POST'])
+def get_book(request):
+    data = json.loads(request.body)  # json = { "search_query":"something" }
+    if Book.objects.filter(id=data['book_id']).exists():
+        book = Book.objects.get(id=data['book_id'])
+        status = 'success'
+        message = 'other user data send successfully'
+        json_data = {"status": status, "message": message, "book_info": model_to_dict(book)}
+    else:
+        status = 'error'
+        message = 'there is no book with this id'
+        json_data = {"status": status, "message": message}
+
+    return JsonResponse(json_data)
+
 # @api_view(['POST'])
 # def add_books(request):
 #     with open('C:\\Users\\Mehin\\Desktop\\book\\bookclub\\bookclub\\bookclub_server\\datasets\\BX-Books.csv') as csvfile:
@@ -386,4 +401,47 @@ def rate_user(request):
 #         user_settings = AccountSettings(user_id=user)
 #         user_settings.save()
 #         i += 1
+#     return JsonResponse({'success': 'yes'})
+
+# @api_view(['POST'])
+# def seed_wishlist(request):
+#     i = 1
+#     while i <= 489:
+#         wishlistSize = random.randint(0, 10)
+#         # print(tradelistSize)
+#         index = 0
+#         while index < wishlistSize:
+#             if i <= 50:
+#                 book_id = random.randint(1, 30)
+#             else:
+#                 book_id = random.randint(1, 25665)
+#             if WishList.objects.filter(book_id_id=book_id, user_id_id=i).count() == 1:
+#                 continue
+#             else:
+#                 wishlistRow = WishList(book_id_id=book_id, user_id_id=i, order=(index+1))
+#                 wishlistRow.save()
+#             index = index + 1
+#         i = i + 1
+#     return JsonResponse({'success': 'yes'})
+
+# @api_view(['POST'])
+# def seed_tradelist(request):
+#     i = 1
+#     while i <= 489:
+#         tradelistSize = random.randint(0, 10)
+#        # print(tradelistSize)
+#         index = 0
+#         while index < tradelistSize:
+#             if i <= 50:
+#                 add_book_id = random.randint(1, 30)
+#             else:
+#                 add_book_id = random.randint(1, 25665)
+#             wishlistRow = WishList.objects.filter(Q(user_id=i) & Q(book_id=add_book_id))
+#             if (wishlistRow.exists()) or (TradeList.objects.filter(givingBook_id_id=add_book_id, user_id_id=i).count() == 1):
+#                 continue
+#             else:
+#                 tradelistRow = TradeList(givingBook_id_id=add_book_id, user_id_id=i)
+#                 tradelistRow.save()
+#             index = index + 1
+#         i = i + 1
 #     return JsonResponse({'success': 'yes'})

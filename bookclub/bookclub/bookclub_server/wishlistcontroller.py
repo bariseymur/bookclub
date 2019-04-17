@@ -85,12 +85,12 @@ def drag(request):
             if user_data['action'] == 'up':
                 status = 'success'
                 message = 'the book was succesfully dragged up'
-                wishlist.order = wishlist.order + 1
+                wishlist.order = wishlist.order - 1
                 wishlist.save()
             elif user_data['action'] == 'down':
                 status = 'success'
-                message = 'the book was succesfully dragged up'
-                wishlist.order = wishlist.order - 1
+                message = 'the book was succesfully dragged down'
+                wishlist.order = wishlist.order + 1
                 wishlist.save()
         else:
             status = 'error'
