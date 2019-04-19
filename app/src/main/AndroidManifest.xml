@@ -32,7 +32,8 @@
             android:label="@string/title_activity_login" />
         <activity
             android:name=".SignupActivity"
-            android:label="@string/title_activity_signup" />
+            android:label="@string/title_activity_signup"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".MainActivity"
             android:label="@string/title_activity_main" />
@@ -45,7 +46,8 @@
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity android:name=".BookDetailActivity" />
         <activity android:name=".ChatActivity" />
-        <activity android:name=".ForgotPasswordActivity"></activity>
+        <activity android:name=".ForgotPasswordActivity" />
+        <activity android:name=".ProfileActivity"></activity>
     </application>
 
 </manifest>

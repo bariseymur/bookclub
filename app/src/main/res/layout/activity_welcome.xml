@@ -37,7 +37,7 @@
         android:layout_marginBottom="5dp"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        android:background="@color/buttonColor"
+        android:background="@drawable/rounded_button"
         android:text="Login"
         android:textColor="#FFFFFF"
         tools:text="Login" />
@@ -49,7 +49,7 @@
         android:layout_marginBottom="50dp"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        android:background="@color/buttonColor"
+        android:background="@drawable/rounded_button"
         android:text="Register"
         android:textColor="#FFFFFF"
         tools:text="Register" />

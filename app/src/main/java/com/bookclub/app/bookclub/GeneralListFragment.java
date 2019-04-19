@@ -1,5 +1,6 @@
 package com.bookclub.app.bookclub;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -24,6 +25,8 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 
+import dmax.dialog.SpotsDialog;
+
 
 /**
  * A simple {@link Fragment} subclass.
@@ -44,7 +47,7 @@ public class GeneralListFragment extends Fragment {
     private String mParam2;
     private ArrayList<GeneralListContent> generalListContent;
     private ImageButton preferencesButton;
-
+    private AlertDialog alertDialog;
     private OnFragmentInteractionListener mListener;
 
     public GeneralListFragment() {
@@ -84,6 +87,11 @@ public class GeneralListFragment extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+
+        //get items from server here
+        alertDialog = new SpotsDialog(getActivity());
+        alertDialog.show();
+
     }
 
     @Override
@@ -106,7 +114,7 @@ public class GeneralListFragment extends Fragment {
             }
         });
         Log.d("Fragment Created", "GeneralListFragment Created");
-
+        //alertDialog.dismiss();
         // Inflate the layout for this fragment
         return view;
     }
@@ -127,6 +135,15 @@ public class GeneralListFragment extends Fragment {
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentInteractionListener");
         }
+
+
+
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (alertDialog != null && alertDialog.isShowing())alertDialog.dismiss();
     }
 
     @Override
@@ -190,7 +207,7 @@ public class GeneralListFragment extends Fragment {
                 viewHolder.bookImageButton= (ImageButton) convertView.findViewById(R.id.bookImageButton);
 
                 try {
-                    ImageLoader imageLoader = new ImageLoader(generalListContent.getBookImageURL());
+                    ImageLoader imageLoader = new ImageLoader(getContext(), generalListContent.getBookImageURL());
                     bitmap = imageLoader.execute().get();
 
                     viewHolder.bookImageButton.setImageBitmap(bitmap);
@@ -214,11 +231,11 @@ public class GeneralListFragment extends Fragment {
             viewHolder.bookTitleTextView.setText(generalListContent.getBookTitle());
 
 
-            if (generalListContent.getTransactionType() == 1){
-                viewHolder.bookImageButton.setBackgroundResource(R.drawable.ic_home_black_24dp);
+            if (generalListContent.getTransactionType() == 2){
+                viewHolder.transactionImageButton.setImageResource(R.drawable.ic_compare_arrows_black_24dp);
             }
             else
-                viewHolder.bookImageButton.setBackgroundResource(R.drawable.ic_launcher_foreground);
+                viewHolder.transactionImageButton.setImageResource(R.drawable.ic_shopping_cart_black_24dp);
             viewHolder.bookImageButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -253,36 +270,6 @@ public class GeneralListFragment extends Fragment {
         @Override
         public void onClick(View v) {
 
-        }
-    }
-
-    public class ImageLoader extends AsyncTask<Void, Void, Bitmap>{
-
-        String url;
-
-        public ImageLoader(String url){
-            this.url = url;
-
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-
-        @Override
-        protected Bitmap doInBackground(Void... voids) {
-             Bitmap bitmap = null;
-             try{
-
-                 InputStream in = new java.net.URL(url).openStream();
-                 bitmap = BitmapFactory.decodeStream(in);
-                 return bitmap;
-             }catch (Exception e){
-                 e.printStackTrace();
-             }
-             return null;
         }
     }
 
@@ -333,6 +320,4 @@ public class GeneralListFragment extends Fragment {
             this.bookImageURL = bookImageURL;
         }
     }
-
-
 }

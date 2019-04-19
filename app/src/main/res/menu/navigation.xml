@@ -9,7 +9,9 @@
     <item
         android:id="@+id/matchList"
         android:icon="@drawable/ic_dashboard_black_24dp"
-        android:title="@string/title_match" />
+        android:title="@string/title_match"
+
+    />
 
     <item
         android:id="@+id/suggestionList"

@@ -3,6 +3,7 @@ package com.bookclub.app.bookclub;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -40,6 +41,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import com.bookclub.app.bookclub.bookclubapi.*;
+
+import dmax.dialog.SpotsDialog;
+
 import static android.Manifest.permission.READ_CONTACTS;
 
 /**
@@ -78,6 +82,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private Button forgotPasswordButton;
     private SharedPreferences sp;
     private boolean remember;
+    AlertDialog alertDialog;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -141,6 +146,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
+        alertDialog = new SpotsDialog(this);
     }
 
     private void populateAutoComplete() {
@@ -257,7 +263,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
         // for very easy animations. If available, use these APIs to fade-in
         // the progress spinner.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+   /*     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
             int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
             mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
@@ -282,7 +288,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // and hide the relevant UI components.
             mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
             mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
+        }*/
+
+        if (show)alertDialog.show();
+        else alertDialog.dismiss();
+
     }
 
     @Override
@@ -355,11 +365,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            /* to be uncommented
-            // TODO: attempt authentication against a network service.
+          /*  // TODO: attempt authentication against a network service.
             try {
                 // Simulate network access.
-                Thread.sleep(1000);
+                // Thread.sleep(1000);
              //   Log.d("Login", "aaaaaaaaaaaaaaaaaaa");
                 BookClubAPI api = new BookClubAPI();
                 ArrayList<Object> status = api.login(mEmailView.getText().toString(), mPasswordView.getText().toString());
@@ -370,12 +379,17 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                     return false;
                 //TODO: login credential checking will be done here
 
-            } catch (InterruptedException e) {
+            } catch (Exception e) {
                 return false;
             }
-        */
+*/
 
             //test to be commented out
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             return true;
         }
 
@@ -384,6 +398,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             mAuthTask = null;
 
             if (success) {
+
                 Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(intent);
                 showProgress(false);
