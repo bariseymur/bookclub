@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.app.AlertDialog;
+import android.util.Log;
 
 import java.io.InputStream;
 
@@ -25,16 +26,14 @@ public class ImageLoader extends AsyncTask<Void, Void, Bitmap> {
     public ImageLoader(Context context, String url){
         this.url = url;
         this.context = context;
-
-
-    }
+     }
 
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
+        Log.d("onPreExecute ImageLoader", "before");
+
     }
-
-
 
     @Override
     protected Bitmap doInBackground(Void... voids) {
@@ -52,5 +51,7 @@ public class ImageLoader extends AsyncTask<Void, Void, Bitmap> {
     @Override
     protected void onPostExecute(Bitmap bitmap) {
         super.onPostExecute(bitmap);
+        Log.d("onPostExecute ImageLoader", "before");
+
     }
 }

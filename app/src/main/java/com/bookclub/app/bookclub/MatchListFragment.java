@@ -3,13 +3,12 @@ package com.bookclub.app.bookclub;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -55,7 +54,7 @@ public class MatchListFragment extends Fragment {
     private ArrayList<MatchListContent> matchListContents;
     private OnFragmentInteractionListener mListener;
     private ImageButton preferencesButton, transactionButton;
-
+    private ListView listView;
 
 
     public MatchListFragment() {
@@ -87,6 +86,8 @@ public class MatchListFragment extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+
+        populateMatchList();
     }
 
     @Override
@@ -94,8 +95,8 @@ public class MatchListFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_match_list, container, false);
-        populateMatchList();
-        ListView listView = view.findViewById(R.id.matchList);
+
+        listView = view.findViewById(R.id.matchList);
         ArrayAdapter<MatchListContent> matchListContentArrayAdapter = new MatchListFragment.MatchListAdapter(matchListContents, getContext());
         listView.setAdapter(matchListContentArrayAdapter);
 
@@ -243,13 +244,13 @@ public class MatchListFragment extends Fragment {
                 viewHolder.user1Name = convertView.findViewById(R.id.userName1);
                 viewHolder.user2Name = convertView.findViewById(R.id.userName2);
                 viewHolder.author1Name = convertView.findViewById(R.id.author1Name);
-                viewHolder.author2Name = convertView.findViewById(R.id.author2Name);
+                viewHolder.author2Name = convertView.findViewById(R.id.authorName);
                 viewHolder.book1Title = convertView.findViewById(R.id.book1Title);
-                viewHolder.book2Title = convertView.findViewById(R.id.book2Title);
+                viewHolder.book2Title = convertView.findViewById(R.id.bookTitle);
 
                 //Image Views
                 viewHolder.book1Image = convertView.findViewById(R.id.bookImage1);
-                viewHolder.book2Image = convertView.findViewById(R.id.bookImage2);
+                viewHolder.book2Image = convertView.findViewById(R.id.bookImage);
 
                 //Image Buttons
                 viewHolder.transactionButton = convertView.findViewById(R.id.transactionButton);
@@ -302,6 +303,7 @@ public class MatchListFragment extends Fragment {
 
     }
 
+
     /*
     *
     * class MatchListContent
@@ -346,6 +348,9 @@ public class MatchListFragment extends Fragment {
 
         }
 
+        public void setAuthorName2(String authorName2) {
+            this.authorName2 = authorName2;
+        }
 
         public Bitmap getBook1Image() {
             return book1Image;

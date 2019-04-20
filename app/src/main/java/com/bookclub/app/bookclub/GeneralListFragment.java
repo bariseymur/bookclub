@@ -73,6 +73,9 @@ public class GeneralListFragment extends Fragment {
     }
 
     private void populateGeneralList(){
+
+        generalListContent = new ArrayList<>();
+
         generalListContent.add(new GeneralListContent(1, "1984", "George Orwell", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
         generalListContent.add(new GeneralListContent(2, "Harry Potter", "J.K. Rowling", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
         generalListContent.add(new GeneralListContent(1, "Küçük Prens", "Saint-exupery", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
@@ -98,7 +101,7 @@ public class GeneralListFragment extends Fragment {
         //get items from server here
         alertDialog = new SpotsDialog(getActivity());
         alertDialog.show();
-
+        new GeneralListCreator().execute();
     }
 
     @Override
@@ -106,8 +109,9 @@ public class GeneralListFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_general_list, container, false);
-        generalListContent = new ArrayList<>();
-        populateGeneralList();
+        //generalListContent = new ArrayList<>();
+
+       // populateGeneralList();
         ListView listView = view.findViewById(R.id.generalList);
         ArrayAdapter<GeneralListContent> generalListContentArrayAdapter = new GeneralListAdapter(generalListContent, getContext());
         listView.setAdapter(generalListContentArrayAdapter);
@@ -150,7 +154,7 @@ public class GeneralListFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        if (alertDialog != null && alertDialog.isShowing())alertDialog.dismiss();
+        // if (alertDialog != null && alertDialog.isShowing())alertDialog.dismiss();
     }
 
     @Override
@@ -280,12 +284,32 @@ public class GeneralListFragment extends Fragment {
         }
     }
 
+
+    public class GeneralListCreator extends AsyncTask<Void, Void, Void>{
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+            populateGeneralList();
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            if (alertDialog.isShowing())alertDialog.dismiss();
+        }
+    }
+
+
     class GeneralListContent{
 
         int transactionType;
         String bookTitle;
         String authorName;
         String bookImageURL;
+
 
         public GeneralListContent(int transactionType, String bookTitle, String authorName, String bookImageURL) {
             this.transactionType = transactionType;

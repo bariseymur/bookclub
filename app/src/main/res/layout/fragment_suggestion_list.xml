@@ -3,9 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginTop="20dp"
-    android:background="@color/backgroundColor"
-    tools:context="com.bookclub.app.bookclub.GeneralListFragment">
+    android:background="@android:color/background_light"
+    tools:context="com.bookclub.app.bookclub.SuggestionListFragment">
 
     <!-- TODO: Update blank fragment layout -->
 
@@ -19,29 +18,48 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:paddingBottom="5dp"
+            android:paddingTop="20dp"
+            android:weightSum="4">
 
+
+            <TextView
+                android:id="@+id/textView13"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:text="Suggestions"
+                android:textAlignment="center"
+                android:textSize="24sp"
+                android:textStyle="bold" />
 
             <ImageButton
                 android:id="@+id/preferencesButton"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:src="@android:drawable/ic_menu_myplaces" />
+                android:background="@android:drawable/screen_background_light_transparent"
+                android:src="@drawable/ic_settings_black_24dp" />
 
             <ImageButton
                 android:id="@+id/imageButton2"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:src="@android:drawable/ic_menu_myplaces" />
+                android:backgroundTint="@android:drawable/screen_background_light_transparent"
+                android:src="@drawable/ic_speaker_notes_black_24dp" />
+
 
         </LinearLayout>
 
         <ListView
-            android:id="@+id/matchList"
+            android:id="@+id/suggestionList"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:divider="@null"
+            android:dividerHeight="0px"
+            android:headerDividersEnabled="false" />
 
     </LinearLayout>
 

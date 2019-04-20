@@ -15,7 +15,7 @@
         android:layout_marginEnd="24dp"
         android:layout_marginStart="24dp"
         android:layout_marginTop="36dp"
-        android:text="Welcome To BookClub"
+        android:text="Welcome to BookClub"
         android:textAlignment="center"
         android:textSize="48sp"
         app:layout_constraintEnd_toEndOf="parent"
