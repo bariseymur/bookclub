@@ -4,6 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@android:color/background_light"
+    android:paddingTop="20dp"
     tools:context=".PreferencesActivity">
 
     <LinearLayout
@@ -66,7 +68,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="80dp"
                         android:background="#fff"
-                        app:srcCompat="@mipmap/ic_launcher_round" />
+                        app:srcCompat="@drawable/ic_account_circle_black_48dp" />
 
                     <TextView
                         android:id="@+id/accountSettings_text"
@@ -95,7 +97,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="80dp"
                         android:background="#fff"
-                        app:srcCompat="@mipmap/ic_launcher_round" />
+                        app:srcCompat="@drawable/heart" />
 
                     <TextView
                         android:id="@+id/wishlist_text"
@@ -111,6 +113,7 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/tradeListLayout"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_marginTop="10dp"
@@ -123,7 +126,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="80dp"
                         android:background="#fff"
-                        app:srcCompat="@mipmap/ic_launcher_round" />
+                        app:srcCompat="@drawable/sync" />
 
                     <TextView
                         android:id="@+id/tradelist_text"
@@ -151,7 +154,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="80dp"
                         android:background="#fff"
-                        app:srcCompat="@mipmap/ic_launcher_round" />
+                        app:srcCompat="@drawable/history" />
 
                     <TextView
                         android:id="@+id/history_text"
@@ -179,7 +182,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="80dp"
                         android:background="#fff"
-                        app:srcCompat="@mipmap/ic_launcher_round" />
+                        app:srcCompat="@drawable/chat" />
 
                     <TextView
                         android:id="@+id/chatSettings_text"
@@ -207,7 +210,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="80dp"
                         android:background="#fff"
-                        app:srcCompat="@mipmap/ic_launcher_round" />
+                        app:srcCompat="@drawable/logout" />
 
                     <TextView
                         android:id="@+id/logout_text"

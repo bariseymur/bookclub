@@ -36,7 +36,8 @@
             android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".MainActivity"
-            android:label="@string/title_activity_main" />
+            android:label="@string/title_activity_main"
+            android:hardwareAccelerated="true"/>
         <activity android:name=".PreferencesActivity" />
         <activity android:name=".AccountSettingsActivity" />
         <activity android:name=".WishListActivity" />
@@ -47,7 +48,9 @@
         <activity android:name=".BookDetailActivity" />
         <activity android:name=".ChatActivity" />
         <activity android:name=".ForgotPasswordActivity" />
-        <activity android:name=".ProfileActivity"></activity>
+        <activity android:name=".ProfileActivity" />
+        <activity android:name=".TradeListActivity" />
+        <activity android:name=".HistoryActivity"></activity>
     </application>
 
 </manifest>

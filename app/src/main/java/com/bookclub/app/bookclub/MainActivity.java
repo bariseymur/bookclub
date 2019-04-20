@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity implements MatchListFragment
     private Fragment suggestionListFragment;
     private FragmentManager fm = getSupportFragmentManager();
     Fragment active;
-    private FloatingActionButton addRequestButton;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,14 +45,6 @@ public class MainActivity extends AppCompatActivity implements MatchListFragment
         // fm.beginTransaction().add(R.id.fragment_container, matchListFragment, MATCHLIST_ID).hide(matchListFragment).commit();
        // fm.beginTransaction().add(R.id.fragment_container, suggestionListFragment, SUGGESTIONLIST_ID).hide(suggestionListFragment).commit();
         fm.beginTransaction().add(R.id.fragment_container, generalListFragment, GENERALLIST_ID).commit();
-        addRequestButton = findViewById(R.id.requestBookButton);
-        addRequestButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, RequestBookActivity.class);
-                startActivity(intent);
-            }
-        });
 
     }
 

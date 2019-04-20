@@ -28,23 +28,23 @@ import java.util.ArrayList;
 
 import static android.widget.Toast.LENGTH_SHORT;
 
-public class WishListActivity extends AppCompatActivity {
+public class TradeListActivity extends AppCompatActivity {
 
     LinearLayout linearLayout;
-    WishListAdapter adapter;
-    ArrayList<WishListContent> wishListContent;
+    TradeListAdapter adapter;
+    ArrayList<TradeListContent> tradeListContent;
     ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_wish_list);
+        setContentView(R.layout.activity_trade_list);
 
         linearLayout = findViewById(R.id.linearLayout);
-        listView = findViewById(R.id.wishList);
+        listView = findViewById(R.id.tradeList);
 
-        populateWishList();
-        adapter = new WishListAdapter(wishListContent, this);
+        populateTradeList();
+        adapter = new TradeListAdapter(tradeListContent, this);
         listView.setAdapter(adapter);
 
         final SwipeToDismissTouchListener<ListViewAdapter> touchListener = new SwipeToDismissTouchListener<>(
@@ -69,7 +69,7 @@ public class WishListActivity extends AppCompatActivity {
                 if (touchListener.existPendingDismisses()) {
                     touchListener.undoPendingDismiss();
                 } else {
-                    Toast.makeText(WishListActivity.this, "Position " + position, LENGTH_SHORT).show();
+                    Toast.makeText(TradeListActivity.this, "Position " + position, LENGTH_SHORT).show();
                 }
             }
         });
@@ -77,17 +77,17 @@ public class WishListActivity extends AppCompatActivity {
     }
 
 
-    private void populateWishList(){
-        wishListContent = new ArrayList<>();
-        wishListContent.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        wishListContent.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        wishListContent.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        wishListContent.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        wishListContent.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        wishListContent.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        wishListContent.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        wishListContent.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        wishListContent.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, null) );
+    private void populateTradeList(){
+        tradeListContent = new ArrayList<>();
+        tradeListContent.add(new TradeListContent("Gülben Author", "Mehmet Kitap", 1, null) );
+        tradeListContent.add(new TradeListContent("Gülben Author", "Mehmet Kitap", 1, null) );
+        tradeListContent.add(new TradeListContent("Gülben Author", "Mehmet Kitap", 1, null) );
+        tradeListContent.add(new TradeListContent("Gülben Author", "Mehmet Kitap", 1, null) );
+        tradeListContent.add(new TradeListContent("Gülben Author", "Mehmet Kitap", 1, null) );
+        tradeListContent.add(new TradeListContent("Gülben Author", "Mehmet Kitap", 1, null) );
+        tradeListContent.add(new TradeListContent("Gülben Author", "Mehmet Kitap", 1, null) );
+        tradeListContent.add(new TradeListContent("Gülben Author", "Mehmet Kitap", 1, null) );
+        tradeListContent.add(new TradeListContent("Gülben Author", "Mehmet Kitap", 1, null) );
     }
 
     private static class ViewHolder{
@@ -96,13 +96,13 @@ public class WishListActivity extends AppCompatActivity {
         ImageView transactionImageButton;
     }
 
-    public class WishListAdapter extends ArrayAdapter<WishListContent> implements View.OnClickListener {
+    public class TradeListAdapter extends ArrayAdapter<TradeListContent> implements View.OnClickListener {
 
-        ArrayList<WishListContent> dataSet;
+        ArrayList<TradeListContent> dataSet;
         Context context;
 
-        public WishListAdapter(ArrayList<WishListContent> data, Context context) {
-            super(context, R.layout.wish_list_item, data);
+        public TradeListAdapter(ArrayList<TradeListContent> data, Context context) {
+            super(context, R.layout.trade_list_item, data);
             this.dataSet = data;
             this.context=context;
         }
@@ -110,16 +110,16 @@ public class WishListActivity extends AppCompatActivity {
         @NonNull
         @Override
         public View getView(final int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-            final WishListContent wishListContent= getItem(position);
+            final TradeListContent tradeListContent= getItem(position);
 
-            WishListActivity.ViewHolder viewHolder;
+            TradeListActivity.ViewHolder viewHolder;
 
             final View result;
 
             if (convertView == null){
-                viewHolder = new WishListActivity.ViewHolder();
+                viewHolder = new TradeListActivity.ViewHolder();
                 LayoutInflater inflater = LayoutInflater.from(getContext());
-                convertView = inflater.inflate(R.layout.wish_list_item, parent, false);
+                convertView = inflater.inflate(R.layout.trade_list_item, parent, false);
 
                 viewHolder.authorText = convertView.findViewById(R.id.authorTextView);
                 viewHolder.bookText = convertView.findViewById(R.id.bookTitleTextView);
@@ -131,15 +131,15 @@ public class WishListActivity extends AppCompatActivity {
 
             }
             else{
-                viewHolder = (WishListActivity.ViewHolder)convertView.getTag();
+                viewHolder = (TradeListActivity.ViewHolder)convertView.getTag();
                 result = convertView;
             }
 
-            viewHolder.authorText.setText(wishListContent.getAuthorName());
-            viewHolder.bookText.setText(wishListContent.getBookTitle());
+            viewHolder.authorText.setText(tradeListContent.getAuthorName());
+            viewHolder.bookText.setText(tradeListContent.getBookTitle());
 
             /*
-            if (wishListContent.getTransactionType() == 1){
+            if (tradeListContent.getTransactionType() == 1){
                 viewHolder.transactionImageButton.setBackgroundResource(R.drawable.ic_home_black_24dp);
             }
             else
@@ -148,16 +148,16 @@ public class WishListActivity extends AppCompatActivity {
             viewHolder.bookImage.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(WishListActivity.this, BookDetailActivity.class);
-                    intent.putExtra("title", wishListContent.getBookTitle());
-                    intent.putExtra("author", wishListContent.getAuthorName());
+                    Intent intent = new Intent(TradeListActivity.this, BookDetailActivity.class);
+                    intent.putExtra("title", tradeListContent.getBookTitle());
+                    intent.putExtra("author", tradeListContent.getAuthorName());
                     startActivity(intent);
                 }
             });
             viewHolder.transactionImageButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (wishListContent.getTransactionType() == 1){
+                    if (tradeListContent.getTransactionType() == 1){
                         Snackbar.make(v, "Transaction Type : Sell", Snackbar.LENGTH_SHORT).show();
                     }
                     else{
@@ -167,7 +167,7 @@ public class WishListActivity extends AppCompatActivity {
                 }
             });
 
-            
+
 
             // viewHolder.bookImageButton.setImageDrawable(sadasd);
             //viewHolder.transactionImageButton;
@@ -177,7 +177,7 @@ public class WishListActivity extends AppCompatActivity {
         }
 
         public void remove(int position) {
-            wishListContent.remove(position);
+            tradeListContent.remove(position);
             notifyDataSetChanged();
         }
 
@@ -189,20 +189,20 @@ public class WishListActivity extends AppCompatActivity {
     }
 
 
-    class WishListContent {
+    class TradeListContent {
 
         private String authorName, bookTitle;
         private int transactionType;
         private Drawable bookImage;
 
-        public WishListContent(String authorName, String bookTitle, int transactionType, Drawable bookImage) {
+        public TradeListContent(String authorName, String bookTitle, int transactionType, Drawable bookImage) {
             this.authorName = authorName;
             this.bookTitle = bookTitle;
             this.transactionType = transactionType;
             this.bookImage = bookImage;
         }
 
-        public WishListContent(WishListContent copy){
+        public TradeListContent(TradeListContent copy){
             authorName = copy.getAuthorName();
             bookTitle = copy.getAuthorName();
             transactionType = copy.transactionType;

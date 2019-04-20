@@ -73,10 +73,17 @@ public class GeneralListFragment extends Fragment {
     }
 
     private void populateGeneralList(){
-        generalListContent.add(new GeneralListContent(1, "1984", "George Orwell", "http://images.amazon.com/images/P/0195153448.01.MZZZZZZZ.jpg"));
-        generalListContent.add(new GeneralListContent(2, "Harry Potter", "J.K. Rowling", "http://images.amazon.com/images/P/0195153448.01.THUMBZZZ.jpg"));
+        generalListContent.add(new GeneralListContent(1, "1984", "George Orwell", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
+        generalListContent.add(new GeneralListContent(2, "Harry Potter", "J.K. Rowling", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
         generalListContent.add(new GeneralListContent(1, "Küçük Prens", "Saint-exupery", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
-        generalListContent.add(new GeneralListContent(1, "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", "http://images.amazon.com/images/P/0195153448.01.THUMBZZZ.jpg"));
+        generalListContent.add(new GeneralListContent(1, "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
+        generalListContent.add(new GeneralListContent(1, "1984", "George Orwell", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
+        generalListContent.add(new GeneralListContent(2, "Harry Potter", "J.K. Rowling", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
+        generalListContent.add(new GeneralListContent(1, "Küçük Prens", "Saint-exupery", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
+        generalListContent.add(new GeneralListContent(1, "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
+        generalListContent.add(new GeneralListContent(1, "1984", "George Orwell", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
+        generalListContent.add(new GeneralListContent(2, "Harry Potter", "J.K. Rowling", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
+        generalListContent.add(new GeneralListContent(1, "Küçük Prens", "Saint-exupery", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
 
     }
 
@@ -210,7 +217,7 @@ public class GeneralListFragment extends Fragment {
                     ImageLoader imageLoader = new ImageLoader(getContext(), generalListContent.getBookImageURL());
                     bitmap = imageLoader.execute().get();
 
-                    viewHolder.bookImageButton.setImageBitmap(bitmap);
+                    viewHolder.bookImageButton.setImageBitmap(Bitmap.createScaledBitmap(bitmap, 300, 400, false));
 
                 } catch (Exception e) {
                     // Log.e("Error Message", e.getMessage());

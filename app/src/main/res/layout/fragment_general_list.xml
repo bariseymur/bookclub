@@ -3,8 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginTop="20dp"
-    android:background="@color/backgroundColor"
+    android:background="@android:color/background_light"
     tools:context="com.bookclub.app.bookclub.GeneralListFragment">
 
     <!-- TODO: Update blank fragment layout -->
@@ -20,8 +19,20 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:drawable/screen_background_light_transparent"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:paddingBottom="5dp"
+            android:paddingTop="20dp">
 
+            <TextView
+                android:id="@+id/textView13"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:paddingLeft="5dp"
+                android:paddingTop="7dp"
+                android:text="General"
+                android:textAlignment="textStart"
+                android:textSize="24sp"
+                android:textStyle="bold" />
 
             <SearchView
                 android:layout_width="wrap_content"
@@ -31,7 +42,7 @@
                 android:layout_marginRight="5dp"
                 android:layout_marginTop="2dp"
                 android:background="@android:drawable/screen_background_light_transparent"
-                android:minWidth="250dp">
+                android:minWidth="200dp">
 
             </SearchView>
 
@@ -57,7 +68,8 @@
             android:id="@+id/generalList"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@android:drawable/screen_background_light_transparent" />
+            android:background="@android:drawable/screen_background_light_transparent"
+            android:divider="@null"/>
 
     </LinearLayout>
 

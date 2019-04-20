@@ -386,7 +386,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
             //test to be commented out
             try {
-                Thread.sleep(2000);
+                Thread.sleep(500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

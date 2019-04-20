@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -8,125 +8,168 @@
     android:padding="10dp">
 
 
-    <android.support.v7.widget.CardView
-        android:id="@+id/cardview"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/backgroundColor"
-        android:clickable="true"
-        android:focusable="auto"
-        app:cardBackgroundColor="@color/cardBackgroundColor"
-        app:cardCornerRadius="20px">
+        android:orientation="horizontal">
 
-
-        <RelativeLayout
+        <android.support.v7.widget.CardView
+            android:id="@+id/pad"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="50px">
+            app:cardBackgroundColor="@color/backgroundColor"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="10dp"
+            app:cardPreventCornerOverlap="true"
+            app:cardUseCompatPadding="true"
+            app:contentPadding="10dp">
 
-            <TextView
-                android:id="@+id/userName1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentTop="true"
-                android:layout_alignStart="@+id/bookImage1"
-                android:layout_marginTop="19dp"
-                android:text="TextView"
-                android:textSize="@dimen/listUsernameTextSize" />
 
-            <TextView
-                android:id="@+id/userName2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignBaseline="@+id/userName1"
-                android:layout_alignBottom="@+id/userName1"
-                android:layout_alignEnd="@+id/bookImage2"
-                android:text="TextView"
-                android:textSize="@dimen/listUsernameTextSize" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="50px">
 
-            <ImageView
-                android:id="@+id/bookImage2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_alignTop="@+id/bookImage1"
-                app:srcCompat="@mipmap/ic_launcher" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="2"
+                    android:orientation="vertical">
 
-            <ImageView
-                android:id="@+id/bookImage1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_below="@+id/userName1"
-                android:layout_marginTop="43dp"
-                app:srcCompat="@mipmap/ic_launcher" />
+                    <ImageView
+                        android:id="@+id/bookImage1"
+                        android:layout_width="match_parent"
+                        android:layout_height="400px"
+                        android:layout_alignParentStart="true"
+                        android:layout_below="@+id/userName1"
+                        app:srcCompat="@mipmap/ic_launcher" />
 
-            <TextView
-                android:id="@+id/book1Title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignStart="@+id/bookImage1"
-                android:layout_below="@+id/bookImage1"
-                android:layout_marginTop="11dp"
-                android:gravity="left"
-                android:maxWidth="500px"
-                android:text="TextView"
-                android:textSize="@dimen/listBookTitleTextSize"
-                android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/userName1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentTop="true"
+                        android:layout_alignStart="@+id/bookImage1"
+                        android:text="TextView"
+                        android:textSize="18sp" />
 
-            <TextView
-                android:id="@+id/book2Title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignBaseline="@+id/book1Title"
-                android:layout_alignBottom="@+id/book1Title"
-                android:layout_alignEnd="@+id/bookImage2"
-                android:gravity="right"
-                android:maxWidth="500px"
-                android:singleLine="false"
-                android:text="TextView"
-                android:textSize="@dimen/listBookTitleTextSize"
-                android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/book1Title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignStart="@+id/bookImage1"
+                        android:layout_below="@+id/bookImage1"
+                        android:layout_marginTop="8dp"
+                        android:gravity="left"
+                        android:maxWidth="500px"
+                        android:text="TextView"
+                        android:textSize="@dimen/listBookTitleTextSize"
+                        android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/author1Name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignStart="@+id/book1Title"
-                android:layout_below="@+id/book1Title"
-                android:gravity="left"
-                android:text="TextView"
-                android:textSize="@dimen/listAuthorNameTextSize" />
+                    <TextView
+                        android:id="@+id/author1Name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignStart="@+id/book1Title"
+                        android:layout_below="@+id/book1Title"
+                        android:gravity="left"
+                        android:text="TextView"
+                        android:textSize="@dimen/listAuthorNameTextSize" />
 
-            <TextView
-                android:id="@+id/author2Name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignEnd="@+id/book2Title"
-                android:layout_below="@+id/book2Title"
-                android:gravity="right"
-                android:text="TextView"
-                android:textSize="@dimen/listAuthorNameTextSize" />
+                </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/transactionButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_above="@+id/book1Title"
-                android:layout_centerHorizontal="true"
-                android:background="@android:color/transparent"
-                app:srcCompat="@drawable/ic_compare_arrows_black_24dp" />
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp"
+                    android:orientation="vertical">
 
-            <ImageButton
-                android:id="@+id/imageButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignStart="@+id/transactionButton"
-                android:layout_alignTop="@+id/bookImage2"
-                android:background="@android:color/transparent"
-                app:srcCompat="@drawable/ic_highlight_off_black_24dp" />
+                    <ImageButton
+                        android:id="@+id/transactionButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:layout_centerVertical="true"
+                        android:layout_gravity="center"
+                        android:background="@android:color/transparent"
+                        app:srcCompat="@drawable/sync" />
+                </RelativeLayout>
 
-        </RelativeLayout>
-    </android.support.v7.widget.CardView>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="2"
+                    android:orientation="vertical">
 
-</RelativeLayout>
+                    <ImageView
+                        android:id="@+id/bookImage2"
+                        android:layout_width="match_parent"
+                        android:layout_height="400px"
+                        android:layout_above="@+id/author2Name"
+                        android:layout_alignParentEnd="true"
+                        android:src="@mipmap/bookclub_icon" />
+
+                    <TextView
+                        android:id="@+id/userName2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignBaseline="@+id/userName1"
+                        android:layout_alignBottom="@+id/userName1"
+                        android:layout_alignEnd="@+id/bookImage2"
+                        android:text="TextView"
+                        android:textAlignment="textEnd"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:id="@+id/book2Title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignBaseline="@+id/book1Title"
+                        android:layout_alignBottom="@+id/book1Title"
+                        android:layout_alignEnd="@+id/bookImage2"
+                        android:layout_marginTop="8dp"
+                        android:gravity="right"
+                        android:maxWidth="500px"
+                        android:singleLine="false"
+                        android:text="TextView"
+                        android:textSize="@dimen/listBookTitleTextSize"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/author2Name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignEnd="@+id/book2Title"
+                        android:layout_below="@+id/book2Title"
+                        android:gravity="right"
+                        android:text="TextView"
+                        android:textSize="@dimen/listAuthorNameTextSize" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </android.support.v7.widget.CardView>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/background_light"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        android:weightSum="3">
+
+        <TextView
+            android:id="@+id/txt_delete"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:clickable="false"
+            android:gravity="center_vertical"
+            android:hapticFeedbackEnabled="true"
+            android:text="Removed Match"
+            android:textColor="@android:color/background_dark" />
+
+    </LinearLayout>
+
+</FrameLayout>
