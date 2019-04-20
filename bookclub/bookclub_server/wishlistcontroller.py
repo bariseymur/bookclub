@@ -19,9 +19,13 @@ def index(request):
         if wishlist.exists():
             status = "success"
             message = "here is the wishlist"
+            index = 0
             for book in wishlist:
+                index += 1
                 wishlist_index.append({"wishlist_info": model_to_dict(book),
                                        "book_info": model_to_dict(book.book_id)})
+                if index > 50:
+                    break
         else:
             status = "error"
             message = "you do not have anything in the wishlist"
@@ -85,12 +89,12 @@ def drag(request):
             if user_data['action'] == 'up':
                 status = 'success'
                 message = 'the book was succesfully dragged up'
-                wishlist.order = wishlist.order + 1
+                wishlist.order = wishlist.order - 1
                 wishlist.save()
             elif user_data['action'] == 'down':
                 status = 'success'
-                message = 'the book was succesfully dragged up'
-                wishlist.order = wishlist.order - 1
+                message = 'the book was succesfully dragged down'
+                wishlist.order = wishlist.order + 1
                 wishlist.save()
         else:
             status = 'error'

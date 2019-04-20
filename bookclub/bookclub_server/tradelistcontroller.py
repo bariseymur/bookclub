@@ -19,10 +19,14 @@ def index(request):
         if tradelist.exists():
             status = "success"
             message = "Tradelist will be displayed"
+            index = 0
             for book in tradelist:
+                index += 1
                 tradelist_index.append({"tradelist_info": model_to_dict(book),
                                         "giving_book_info": model_to_dict(book.givingBook_id)
                                         })
+                if index > 50:
+                    break
         else:
             status = "error"
             message = "you do not have anything in the tradelist"

@@ -11,8 +11,12 @@ def index(request):
         history = History.objects.filter(user_id=request.session['user'])
         if history.exists():
             history_list = []
+            index = 0 
             for line in history:
+                index += 1
                 history_list.append(model_to_dict(line))
+                if index > 50:
+                    break
             status = 'success'
             message = 'history data send successfully'
         else:

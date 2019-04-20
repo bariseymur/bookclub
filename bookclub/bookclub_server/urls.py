@@ -18,6 +18,11 @@ urlpatterns = [
     path('searchIndex/', usercontroller.search_index),
     path('getUserProfile/', usercontroller.get_user_profile),
     path('rate/', usercontroller.rate_user),
+    path('getBook/', usercontroller.get_book),
+    # path('ekle/', usercontroller.add_books),
+    # path('seed_user/', usercontroller.seed_user),
+    # path('seed_wishlist/', usercontroller.seed_wishlist),
+    # path('seed_tradelist/', usercontroller.seed_wishlist),
 
     # wishlistcontroller
     path('wishlist/index/', wishlistcontroller.index),

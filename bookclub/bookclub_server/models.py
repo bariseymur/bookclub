@@ -6,7 +6,7 @@ from django.db import models
 # User table
 class User(models.Model):
     name = models.CharField(max_length=100)
-    surname = models.CharField(max_length=100)
+    # surname = models.CharField(max_length=100)
     country = models.CharField(max_length=100)
     mail = models.CharField(max_length=250)
     phoneNumber = models.CharField(max_length=100, blank=True, null=True)
@@ -32,9 +32,8 @@ class Book(models.Model):
     authorName = models.CharField(max_length=250)
     isbn = models.CharField(max_length=100)
     publisher = models.CharField(max_length=250)
-    originalPrice = models.DecimalField(max_digits=8, decimal_places=2)
-    publishDate = models.DateField(blank=False)
-    edition = models.CharField(max_length=100)
+    # originalPrice = models.DecimalField(max_digits=8, decimal_places=2, default=30)
+    publishDate = models.CharField(max_length=250)
     bookPhoto = models.CharField(default="defaultBook.jpg", max_length=250)
 
 

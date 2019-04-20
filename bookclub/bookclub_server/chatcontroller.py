@@ -14,6 +14,7 @@ def index(request):
         chat = Chat.objects.filter(Q(user_id_2=request.session['user']) | Q(user_id_1=request.session['user']))
         if chat.exists():
             chat_list = []
+            # i dont think we should limit it here for now
             for line in chat:
                 chat_list.append(model_to_dict(line))
             status = 'success'
