@@ -88,8 +88,8 @@ class WishList(models.Model):
 # History Table
 class History(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    matchConfirmation_id = models.ForeignKey(Match, on_delete=models.CASCADE, null=True, related_name='matchConfirmation_id')
-    matchRejection_id = models.ForeignKey(Match, on_delete=models.CASCADE, null=True, related_name='matchRejection_id')
+    match_id = models.ForeignKey(Match, on_delete=models.CASCADE, null=True, related_name='match_id')
+    state = models.CharField(max_length=250, default="nothing") # should be confirmed both
     dateOfAction = models.DateField(blank=False)
 
 # BookRating Table

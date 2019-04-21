@@ -19,9 +19,13 @@ def index(request):
         if wishlist.exists():
             status = "success"
             message = "here is the wishlist"
+            index = 0
             for book in wishlist:
+                index += 1
                 wishlist_index.append({"wishlist_info": model_to_dict(book),
                                        "book_info": model_to_dict(book.book_id)})
+                if index > 50:
+                    break
         else:
             status = "error"
             message = "you do not have anything in the wishlist"

@@ -18,6 +18,8 @@ import factory.django
 
 @api_view(['GET'])
 def get_session(request):
+    # this method returns the id of the user who is in the session, 
+    # if there is no user in the session it returns -1
     if "user" in request.session:
         return JsonResponse({'session_id': model_to_dict(User.objects.get(id=request.session['user']))})
     else:
@@ -26,14 +28,15 @@ def get_session(request):
 
 @api_view(['POST'])
 def login(request):
-    # hash eklenecek
+    # this method logs in the user whose cridentials are correct and opens up a new session
+    # the session is not closed until the user logs out
     user_data = json.loads(request.body)
     if User.objects.filter(username=user_data['username']).exists():
         user = User.objects.get(username=user_data['username']) 
         if user.password == user_data['password']:
             status = 'success'
             message = 'you are logged in'
-            request.session['user'] = user.id
+            request.session['user'] = user.id # opened a session
         else:
             status = 'error'
             message = 'the password is incorrect'
@@ -46,10 +49,11 @@ def login(request):
 
 
 @api_view(['POST'])
-def signup(request): # we should add to the account settings
+def signup(request): 
+    # this method signs up the user and opens a session for them
+    # it also adds the user's account settings into the accountsettings table
     user_data = json.loads(request.body)
-    if User.objects.filter(username=user_data['username']).exists() or User.objects.filter(
-            mail=user_data['mail']).exists():
+    if User.objects.filter(username=user_data['username']).exists() or User.objects.filter(mail=user_data['mail']).exists():
         status = 'error'
         message = 'This username or email address already exists'
     else:
@@ -63,8 +67,8 @@ def signup(request): # we should add to the account settings
         user.save()
         user_settings = AccountSettings(user_id=user)
         user_settings.save()
-        request.session['user'] = user.id
-        emailservice.signup_email(request)
+        request.session['user'] = user.id # opened a session
+        emailservice.signup_email(request) # signup mail is sent
 
     json_data = {"status": status, "message": message}
     return JsonResponse(json_data)
@@ -72,9 +76,10 @@ def signup(request): # we should add to the account settings
 
 @api_view(['POST'])
 def forgot_password(request):
+    # this method is for resetting the password if it is forgotten
     data = json.loads(request.body)
     user_row = User.objects.filter((Q(username=data['username']) | Q(mail=data['mail'])))
-   # if data['mail'] == user.mail:
+    # if data['mail'] == user.mail:
     if user_row.exists():
         for user in user_row:
             status = 'success'
@@ -88,7 +93,7 @@ def forgot_password(request):
             user.save()
     else:
         status = 'error'
-        message = 'no such user exists'
+        message = 'user does not exist'
         new_password = -1
 
     json_data = {"status": status, "message": message, "password": new_password}
@@ -97,8 +102,9 @@ def forgot_password(request):
 
 @api_view(['GET'])
 def sign_out(request):
+    # this method signs out the user and closes session
     if "user" in request.session:
-        del request.session['user']
+        del request.session['user'] # session is closed
         status = 'success'
         message = 'you signed out'
     else:
@@ -110,67 +116,87 @@ def sign_out(request):
 
 
 @api_view(['POST'])
-def confirm_match(request):
-    # buraya matchler mlden geliyor
-    user_data = json.loads(request.body)
-    match = Match.objects.get(id=user_data['match_id'])
-    user = User.objects.get(id=match.user_id1.id) or User.object.get(id=match.user_id2.id)
+def action_on_match(request):
+    # check if there is a user in the session
     if "user" in request.session:
-        if request.session['user'] == user.id:
-            if match.state == 'pending':
-                match.state = 'confirmed'
-                match.save()
-                date = datetime.datetime.now().strftime("%Y-%m-%d")
-                new_history_row = History(id=None, user_id=User.objects.get(id=request.session['user']), matchConfirmation_id=match, matchRejection_id=None, dateOfAction=date)
-                new_history_row.save()
-                status = 'success'
-                message = 'the match was confirmed succesfully'
+        # load user data: {"match_id":1, "state":'confirmed'}
+        user_data = json.loads(request.body)
+
+        # find that match row in the match list
+        match = Match.objects.filter(id=user_data['match_id'])
+
+        # if there is such match
+        if match.exists():
+            match = Match.objects.get(id=user_data['match_id'])
+            # check if the user in the session has a previlege for proceeding and action
+            if match.user_id1.id == request.session['user'] or match.user_id2.id == request.session['user']:
+                # other user's history action
+                history_row = History.objects.filter(Q(user_id=match.user_id2.id) & Q(match_id=match.id)) or History.objects.filter(Q(user_id=match.user_id1.id) & Q(match_id=match.id))
+                # if there was an action of other user and he/she confirmed the match
+
+                if history_row.exists() and History.objects.get((Q(user_id=match.user_id2.id) & Q(match_id=match.id)) | (Q(user_id=match.user_id1.id) & Q(match_id=match.id))).state == 'confirmed':
+                    # if the user in the session also confirmed the match
+                    if user_data['state'] == 'confirmed':
+                        match.state = 'confirmed'
+                        match.save()
+                        date = datetime.datetime.now().strftime("%Y-%m-%d")
+                        new_history_row = History(id=None, user_id=User.objects.get(id=request.session['user']), match_id=match, state='confirmed', dateOfAction=date)
+                        new_history_row.save()
+                        new_chat = Chat(id=None, state_1=None, state_2=None, user_id_1=match.user_id1, user_id_2=match.user_id2)
+                        new_chat.save()
+                        status = 'success'
+                        message = 'the match was confirmed'
+                    # if the user in the session rejected the match
+                    elif user_data['state'] == 'rejected':
+                        match.state = 'rejected'
+                        match.save()
+                        date = datetime.datetime.now().strftime("%Y-%m-%d")
+                        new_history_row = History(id=None, user_id=User.objects.get(id=request.session['user']), match_id=match, state='rejected', dateOfAction=date)
+                        new_history_row.save()
+                        status = 'success'
+                        message = 'the match was rejected'
+                # if there was an action of other user and he/she rejected the match
+                elif history_row.exists() and History.objects.get((Q(user_id=match.user_id2.id) & Q(match_id=match.id)) | (Q(user_id=match.user_id1.id) & Q(match_id=match.id))).state == 'rejected':
+                    # there is no point in analyzing the user's data anymore because match is rejected
+                    match.state = 'rejected'
+                    match.save()
+                    status = 'error'
+                    message = 'the match was already rejected by the other user, you cannot proceed further'
+                # if there was no action of other user 
+                elif not history_row.exists():
+                    # this user confirms the match
+                    if user_data['state'] == 'confirmed':
+                        date = datetime.datetime.now().strftime("%Y-%m-%d")
+                        new_history_row = History(id=None, user_id=User.objects.get(id=request.session['user']), match_id=match, state='confirmed', dateOfAction=date)
+                        new_history_row.save()
+                        status = 'success'
+                        message = 'the match was confirmed'
+                    # if the user in the session rejected the match
+                    elif user_data['state'] == 'rejected':
+                        match.state = 'rejected'
+                        match.save()
+                        date = datetime.datetime.now().strftime("%Y-%m-%d")
+                        new_history_row = History(id=None, user_id=User.objects.get(id=request.session['user']), match_id=match, state='rejected', dateOfAction=date)
+                        new_history_row.save()
+                        status = 'success'
+                        message = 'the match was rejected'
             else:
                 status = 'error'
-                message = 'could not confirm the match'
+                message = 'you do not have a previlege to do this action'
         else:
             status = 'error'
-            message = 'this action cannot be done'
+            message = 'this match does not exist'
     else:
         status = 'error'
-        message = 'there is no user in the session'
+        message = 'you should login first'
 
-    json_data = {"status": status, "message": message, "match_info": model_to_dict(match)}
-    return JsonResponse(json_data)
-
-
-@api_view(['POST'])
-def reject_match(request):
-    # add to the history - not complete yet
-    user_data = json.loads(request.body)
-    match = Match.objects.get(id=user_data['match_id'])
-    user = User.objects.get(id=match.user_id1.id) or User.object.get(id=match.user_id2.id)
-    if "user" in request.session:
-        if request.session['user'] == user.id:
-            if match.state == 'pending':
-                match.state = 'rejected'
-                match.save()
-                date = datetime.datetime.now().strftime("%Y-%m-%d")
-                new_history_row = History(id=None, user_id=User.objects.get(id=request.session['user']), matchConfirmation_id=None, matchRejection_id=match, dateOfAction=date)
-                new_history_row.save()
-                status = 'success'
-                message = 'the match was rejected succesfully'
-            else:
-                status = 'error'
-                message = 'could not reject the match'
-        else:
-            status = 'error'
-            message = 'this action cannot be done'
-    else:
-        status = 'error'
-        message = 'there is no user in the session'
-
-    json_data = {"status": status, "message": message, "match_info": model_to_dict(match)}
+    json_data = {"status": status, "message": message}
     return JsonResponse(json_data)
 
 
 @api_view(['POST'])
 def see_other_user_profile(request):
+    # returns the profile of a user
     data = json.loads(request.body)
     if User.objects.filter(username=data['username']).exists():
         user = User.objects.get(username=data['username'])
@@ -186,6 +212,7 @@ def see_other_user_profile(request):
 
 @api_view(['POST'])
 def get_user_profile(request):
+    # returns the profile of a user in the session
     if "user" in request.session:
         status = 'success'
         message = 'other user data send successfully'
@@ -195,11 +222,11 @@ def get_user_profile(request):
         status = 'error'
         message = 'there is no user with this name'
         json_data = {"status": status, "message": message}
+
     return JsonResponse(json_data)
 
     
-
-# confirm ve reject matchde serializible eklemeliyiz
+# confirm ve reject matchde serializible eklemeliyiz ???(discuss)
 # this function is used to obtain match list index of a user
 @api_view(['GET'])
 def match_list_index(request):
@@ -207,13 +234,17 @@ def match_list_index(request):
     if "user" in request.session:
         matchlistIndex = []
         matchlistRows = Match.objects.filter(
-            (Q(user_id1=request.session['user']) | Q(user_id2=request.session['user'])) & Q(state='pending'))
+            (Q(user_id1=request.session['user']) | Q(user_id2=request.session['user'])) & (Q(state='pending') | Q(state='confirmed')))
         if matchlistRows.exists():
             status = 'success'
             message = 'Match list will be displayed'
+            index = 0
             for match in matchlistRows:
+                index += 1
                 matchlistIndex.append({"matchlist_info": model_to_dict(match),
                                        "book_info": model_to_dict(match.book_id)})
+                if index > 50: # limited for 50 matches only - no randomizing
+                    break
         else:
             status = "error"
             message = "there is no match list to display"
@@ -234,11 +265,15 @@ def suggestion_list_index(request):
         suggests = Suggestion.objects.filter(user_id=request.session['user'])
         if suggests.exists():
             suggest_list = []
+            index = 0
             for suggest in suggests:
+                index += 1
                 suggest_list.append({
                     "suggest_info": model_to_dict(suggest),
                     "book_info": model_to_dict(suggest.book_id)
                 })
+                if index > 50: # limited for 50 suggestions only - no randomizing
+                    break
             status = 'success'
             message = 'suggestion data sent successfully'
         else:
@@ -278,13 +313,16 @@ def main_menu_index(request):
             status = "error"
             message = "there is nothing to show for the main menu"
             menu_index = None
-
+    index = 0
     for trade in tradelist:
+        index += 1
         menu_index.append({
             "trade_info": model_to_dict(trade),
             "book_info": model_to_dict(trade.givingBook_id),
             "user_info": model_to_dict(trade.user_id)
         })
+        if index > 50:
+            break
 
     json_data = {"status": status, "message": message, "mainMenuIndex": menu_index}
     return JsonResponse(json_data, safe=False)
@@ -315,12 +353,16 @@ def search_index(request):
             message = "nothing was found for this search query"
             search_index = None
 
+    index = 0
     for trade in tradelist:
+        index += 1
         search_index.append({
             "trade_info": model_to_dict(trade),
             "book_info": model_to_dict(trade.givingBook_id),
             "user_info": model_to_dict(trade.user_id)
         })
+        if index > 50:
+            break
 
     json_data = {"status": status, "message": message, "searchIndex": search_index}
     return JsonResponse(json_data, safe=False)
