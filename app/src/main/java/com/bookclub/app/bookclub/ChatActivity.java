@@ -10,6 +10,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -29,6 +31,8 @@ public class ChatActivity extends AppCompatActivity {
     private MessageListAdapter messageListAdapter;
     private ArrayList<Message> messages;
     private int chat;
+    private Button sendButton;
+    private EditText editText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +45,20 @@ public class ChatActivity extends AppCompatActivity {
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setAdapter(messageListAdapter);
+        editText = findViewById(R.id.edittext_chatbox);
+        sendButton = findViewById(R.id.button_chatbox_send);
+        sendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (editText.getText() != null && !editText.getText().equals("")){
+                    Log.d("send pressed", editText.getText().toString());
+                    messages.add(new Message(editText.getText().toString(), "Deniz Şen", 1, new Date(42345), false));
+                    messageListAdapter.notifyDataSetChanged();
+                    editText.setText("");
+                    recyclerView.scrollToPosition(messages.size()-1);
+                }
+            }
+        });
     }
 
     private void populateMessages(){

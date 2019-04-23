@@ -34,7 +34,7 @@
     </ListView>
 
     <Button
-        android:id="@+id/button5"
+        android:id="@+id/tradeBookButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="0dp"

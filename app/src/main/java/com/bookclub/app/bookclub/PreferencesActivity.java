@@ -9,7 +9,7 @@ import android.widget.LinearLayout;
 
 public class PreferencesActivity extends AppCompatActivity {
 
-    LinearLayout accountSettings, wishList, tradeList;
+    LinearLayout accountSettings, wishList, tradeList, history;
     ImageButton profileButton;
 
     @Override
@@ -51,6 +51,17 @@ public class PreferencesActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(PreferencesActivity.this, TradeListActivity.class);
+                intent.putExtra("UserID", 5);
+                startActivity(intent);
+            }
+        });
+
+
+        history = findViewById(R.id.historyLinearLayout);
+        history.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(PreferencesActivity.this, HistoryActivity.class);
                 intent.putExtra("UserID", 5);
                 startActivity(intent);
             }

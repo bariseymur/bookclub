@@ -32,11 +32,11 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/userName1"
+                    android:id="@+id/userNameText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_alignParentTop="true"
-                    android:layout_alignStart="@+id/bookImage1"
+                    android:layout_alignStart="@+id/bookImage"
                     android:text="You"
                     android:textAlignment="center"
                     android:textSize="18sp" />
@@ -91,8 +91,8 @@
                     android:id="@+id/userName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_alignBaseline="@+id/userName1"
-                    android:layout_alignBottom="@+id/userName1"
+                    android:layout_alignBaseline="@+id/userNameText"
+                    android:layout_alignBottom="@+id/userNameText"
                     android:layout_alignEnd="@+id/bookImage"
                     android:text="TextView"
                     android:textAlignment="textEnd"
@@ -102,8 +102,8 @@
                     android:id="@+id/bookTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_alignBaseline="@+id/book1Title"
-                    android:layout_alignBottom="@+id/book1Title"
+                    android:layout_alignBaseline="@+id/bookTitle"
+                    android:layout_alignBottom="@+id/bookTitle"
                     android:layout_alignEnd="@+id/bookImage"
                     android:layout_marginTop="8dp"
                     android:gravity="right"

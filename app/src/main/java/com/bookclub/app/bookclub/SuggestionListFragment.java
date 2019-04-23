@@ -20,9 +20,7 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import dmax.dialog.SpotsDialog;
@@ -48,7 +46,7 @@ public class SuggestionListFragment extends Fragment {
     ArrayList<SuggestionListContent> suggestionListContents;
     ArrayAdapter<SuggestionListContent> adapter;
     ListView listView;
-    ImageButton preferencesButton;
+    ImageButton preferencesButton, chatButton;
     private OnFragmentInteractionListener mListener;
     AlertDialog alertDialog;
     public SuggestionListFragment() {
@@ -164,6 +162,17 @@ public class SuggestionListFragment extends Fragment {
             }
         });
 
+
+        chatButton = view.findViewById(R.id.chatButton);
+        chatButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), ChatListActivity.class);
+                startActivity(intent);
+            }
+        });
+
+
         // Inflate the layout for this fragment
         return view;
     }
@@ -278,15 +287,15 @@ public class SuggestionListFragment extends Fragment {
                     convertView = inflater.inflate(R.layout.suggestion_list_exchange_item, parent, false);
 
                     //Text Views
-                    viewHolder.user1Name = convertView.findViewById(R.id.userName1);
+                    viewHolder.user1Name = convertView.findViewById(R.id.userNameText);
                     viewHolder.user2Name = convertView.findViewById(R.id.userName2);
                     viewHolder.author1Name = convertView.findViewById(R.id.author1Name);
                     viewHolder.author2Name = convertView.findViewById(R.id.authorName);
-                    viewHolder.book1Title = convertView.findViewById(R.id.book1Title);
+                    viewHolder.book1Title = convertView.findViewById(R.id.bookTitle);
                     viewHolder.book2Title = convertView.findViewById(R.id.bookTitle);
                     viewHolder.price = convertView.findViewById(R.id.priceText);
                     //Image Button
-                    viewHolder.book1Image = convertView.findViewById(R.id.bookImage1);
+                    viewHolder.book1Image = convertView.findViewById(R.id.bookImage);
                     viewHolder.book2Image = convertView.findViewById(R.id.bookImage);
                     viewHolder.transactionButton = convertView.findViewById(R.id.transactionButton);
 

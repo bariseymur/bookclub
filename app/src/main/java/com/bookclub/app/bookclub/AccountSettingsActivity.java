@@ -6,7 +6,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -24,7 +23,7 @@ public class AccountSettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_account_settings);
 
-        birthDateText = findViewById(R.id.dateText);
+        birthDateText = findViewById(R.id.userNameText);
 
         changeDateButton = findViewById(R.id.changeDatePickButton);
         changeDateButton.setOnClickListener(new View.OnClickListener() {

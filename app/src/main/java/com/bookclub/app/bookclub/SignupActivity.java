@@ -128,7 +128,7 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
         countrySpinner.setAdapter(mAdapter);
 
 
-        birthDateText = findViewById(R.id.dateText);
+        birthDateText = findViewById(R.id.userNameText);
 
         changeDateButton = findViewById(R.id.changeDatePickButton);
         changeDateButton.setOnClickListener(new View.OnClickListener() {

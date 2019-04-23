@@ -1,5 +1,6 @@
 package com.bookclub.app.bookclub;
 
+import android.app.DownloadManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
@@ -14,6 +15,7 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -32,8 +34,9 @@ public class WishListActivity extends AppCompatActivity {
 
     LinearLayout linearLayout;
     WishListAdapter adapter;
-    ArrayList<WishListContent> wishListContent;
+    ArrayList<WishListContent> wishListContents;
     ListView listView;
+    Button wishBookButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +47,7 @@ public class WishListActivity extends AppCompatActivity {
         listView = findViewById(R.id.wishList);
 
         populateWishList();
-        adapter = new WishListAdapter(wishListContent, this);
+        adapter = new WishListAdapter(wishListContents, this);
         listView.setAdapter(adapter);
 
         final SwipeToDismissTouchListener<ListViewAdapter> touchListener = new SwipeToDismissTouchListener<>(
@@ -74,25 +77,34 @@ public class WishListActivity extends AppCompatActivity {
             }
         });
 
+        wishBookButton = findViewById(R.id.wishBookButton);
+        wishBookButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(WishListActivity.this, RequestBookActivity.class);
+                startActivity(intent);
+            }
+        });
+
     }
 
 
     private void populateWishList(){
-        wishListContent = new ArrayList<>();
-        wishListContent.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        wishListContent.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        wishListContent.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        wishListContent.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        wishListContent.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        wishListContent.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        wishListContent.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        wishListContent.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        wishListContent.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, null) );
+        wishListContents = new ArrayList<>();
+        wishListContents.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, null, 1) );
+        wishListContents.add(new WishListContent("Gülben Author", "Mehmesfgdsadt Kitap", 1, null, 2) );
+        wishListContents.add(new WishListContent("Gülben Author", "Mehmet Kdsfsdfitap", 1, null, 3) );
+        wishListContents.add(new WishListContent("Gülben Author", "Mehmssset Kitap", 1, null, 4) );
+        wishListContents.add(new WishListContent("Gülben Author", "Mehmgffet Kitap", 1, null, 5) );
+        wishListContents.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, null, 6) );
+        wishListContents.add(new WishListContent("Gülben Author", "Mehmeffffft Kitap", 1, null, 7) );
+        wishListContents.add(new WishListContent("Gülben Author", "Mehmet ggggggss", 1, null, 8) );
+        wishListContents.add(new WishListContent("Gülben Author", "Mehssssdffgfgmet Kitap", 1, null, 9) );
     }
 
     private static class ViewHolder{
         TextView authorText, bookText;
-        ImageButton bookImage;
+        ImageButton bookImage, up, down;
         ImageView transactionImageButton;
     }
 
@@ -125,7 +137,8 @@ public class WishListActivity extends AppCompatActivity {
                 viewHolder.bookText = convertView.findViewById(R.id.bookTitleTextView);
                 viewHolder.transactionImageButton = convertView.findViewById(R.id.transactionButton);
                 viewHolder.bookImage = convertView.findViewById(R.id.bookImageView);
-
+                viewHolder.up = convertView.findViewById(R.id.upArrow);
+                viewHolder.down = convertView.findViewById(R.id.downArrow);
                 result = convertView;
                 convertView.setTag(viewHolder);
 
@@ -161,13 +174,45 @@ public class WishListActivity extends AppCompatActivity {
                         Snackbar.make(v, "Transaction Type : Sell", Snackbar.LENGTH_SHORT).show();
                     }
                     else{
-
                         Snackbar.make(v, "Transaction Type : Trade", Snackbar.LENGTH_SHORT).show();
                     }
                 }
             });
 
-            
+            if (position == 0){
+                viewHolder.up.setVisibility(View.INVISIBLE);
+                viewHolder.up.setClickable(false);
+            }
+            else if(position == wishListContents.size()-1){
+                viewHolder.down.setVisibility(View.INVISIBLE);
+                viewHolder.down.setClickable(false);
+            }
+            else{
+                viewHolder.down.setVisibility(View.VISIBLE);
+                viewHolder.down.setClickable(true);
+            }
+
+            viewHolder.down.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //decrease order value
+                    WishListContent w = wishListContents.get(position+1);
+                    wishListContents.set(position + 1, wishListContent);
+                    wishListContents.set(position, w);
+                    notifyDataSetChanged();
+                }
+            });
+
+            viewHolder.up.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //decrease order value
+                    WishListContent w = wishListContents.get(position - 1);
+                    wishListContents.set(position - 1, wishListContent);
+                    wishListContents.set(position, w);
+                    notifyDataSetChanged();
+                }
+            });
 
             // viewHolder.bookImageButton.setImageDrawable(sadasd);
             //viewHolder.transactionImageButton;
@@ -177,7 +222,7 @@ public class WishListActivity extends AppCompatActivity {
         }
 
         public void remove(int position) {
-            wishListContent.remove(position);
+            wishListContents.remove(position);
             notifyDataSetChanged();
         }
 
@@ -193,13 +238,15 @@ public class WishListActivity extends AppCompatActivity {
 
         private String authorName, bookTitle;
         private int transactionType;
-        private Drawable bookImage;
+        private Drawable bookImage; //TODO make it bitmap
+        private int order;
 
-        public WishListContent(String authorName, String bookTitle, int transactionType, Drawable bookImage) {
+        public WishListContent(String authorName, String bookTitle, int transactionType, Drawable bookImage, int order) {
             this.authorName = authorName;
             this.bookTitle = bookTitle;
             this.transactionType = transactionType;
             this.bookImage = bookImage;
+            this.order = order;
         }
 
         public WishListContent(WishListContent copy){
@@ -207,6 +254,15 @@ public class WishListActivity extends AppCompatActivity {
             bookTitle = copy.getAuthorName();
             transactionType = copy.transactionType;
             bookImage = copy.bookImage;
+            order = copy.getOrder();
+        }
+
+        public int getOrder() {
+            return order;
+        }
+
+        public void setOrder(int order) {
+            this.order = order;
         }
 
         public String getAuthorName() {

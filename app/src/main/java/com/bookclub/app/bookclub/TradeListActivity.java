@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -34,6 +35,7 @@ public class TradeListActivity extends AppCompatActivity {
     TradeListAdapter adapter;
     ArrayList<TradeListContent> tradeListContent;
     ListView listView;
+    Button tradeButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +73,15 @@ public class TradeListActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(TradeListActivity.this, "Position " + position, LENGTH_SHORT).show();
                 }
+            }
+        });
+
+        tradeButton = findViewById(R.id.tradeBookButton);
+        tradeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(TradeListActivity.this, RequestBookActivity.class);
+                startActivity(intent);
             }
         });
 

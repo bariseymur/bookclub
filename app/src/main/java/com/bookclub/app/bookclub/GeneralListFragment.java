@@ -46,7 +46,7 @@ public class GeneralListFragment extends Fragment {
     private String mParam1;
     private String mParam2;
     private ArrayList<GeneralListContent> generalListContent;
-    private ImageButton preferencesButton;
+    private ImageButton preferencesButton, chatButton;
     private AlertDialog alertDialog;
     private OnFragmentInteractionListener mListener;
 
@@ -124,6 +124,16 @@ public class GeneralListFragment extends Fragment {
                 startActivity(intent);
             }
         });
+
+        chatButton = view.findViewById(R.id.chatButton);
+        chatButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), ChatListActivity.class);
+                startActivity(intent);
+            }
+        });
+
         Log.d("Fragment Created", "GeneralListFragment Created");
         //alertDialog.dismiss();
         // Inflate the layout for this fragment

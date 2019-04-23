@@ -28,6 +28,11 @@ public class ImageLoader extends AsyncTask<Void, Void, Bitmap> {
         this.context = context;
      }
 
+    public ImageLoader(String url){
+        this.url = url;
+        context = null;
+    }
+
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
