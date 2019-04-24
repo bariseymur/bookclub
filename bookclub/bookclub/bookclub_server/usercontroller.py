@@ -129,57 +129,44 @@ def action_on_match(request):
         if match.exists():
             match = Match.objects.get(id=user_data['match_id'])
             # check if the user in the session has a previlege for proceeding and action
-            if match.user_id1.id == request.session['user'] or match.user_id2.id == request.session['user']:
-                # other user's history action
-                history_row = History.objects.filter(Q(user_id=match.user_id2.id) & Q(match_id=match.id)) or History.objects.filter(Q(user_id=match.user_id1.id) & Q(match_id=match.id))
-                # if there was an action of other user and he/she confirmed the match
-
-                if history_row.exists() and History.objects.get((Q(user_id=match.user_id2.id) & Q(match_id=match.id)) | (Q(user_id=match.user_id1.id) & Q(match_id=match.id))).state == 'confirmed':
-                    # if the user in the session also confirmed the match
-                    if user_data['state'] == 'confirmed':
-                        match.state = 'confirmed'
+            if match.user_id.id == request.session['user']:
+                other_users_match = Match.objects.get(user_id=match.matched_user)
+                date = datetime.datetime.now().strftime("%Y-%m-%d")
+                # if session user confirmed the match
+                if user_data['state'] == 'confirmed':
+                    if other_users_match.state == 'confirmed':
+                        match.state = confirmed
                         match.save()
-                        date = datetime.datetime.now().strftime("%Y-%m-%d")
-                        new_history_row = History(id=None, user_id=User.objects.get(id=request.session['user']), match_id=match, state='confirmed', dateOfAction=date)
+                        new_history_row = History(id=None, user_id=match.user_id, match_id=match, state='confirmed', dateOfAction=date)
                         new_history_row.save()
-                        new_chat = Chat(id=None, state_1=None, state_2=None, user_id_1=match.user_id1, user_id_2=match.user_id2)
+                        new_chat = Chat(id=None, state_1='not_confirmed', state_2='not_confirmed', user_id_1=match.user_id, user_id_2=match.matched_user)
                         new_chat.save()
                         status = 'success'
-                        message = 'the match was confirmed'
-                    # if the user in the session rejected the match
-                    elif user_data['state'] == 'rejected':
+                        message = 'the match was confirmed from both sides'
+                    if other_users_match.state == 'rejected':
                         match.state = 'rejected'
                         match.save()
-                        date = datetime.datetime.now().strftime("%Y-%m-%d")
-                        new_history_row = History(id=None, user_id=User.objects.get(id=request.session['user']), match_id=match, state='rejected', dateOfAction=date)
+                        new_history_row = History(id=None, user_id=match.user_id, match_id=match, state='rejected', dateOfAction=date)
+                        new_history_row.save()
+                        status = 'error'
+                        message = 'the match could not be confirmed, because it was rejected by the other user'
+                    if other_users_match.state == 'pending':
+                        match.state = 'confirmed'
+                        match.save()
+                        new_history_row = History(id=None, user_id=match.user_id, match_id=match, state='confirmed', dateOfAction=date)
                         new_history_row.save()
                         status = 'success'
-                        message = 'the match was rejected'
-                # if there was an action of other user and he/she rejected the match
-                elif history_row.exists() and History.objects.get((Q(user_id=match.user_id2.id) & Q(match_id=match.id)) | (Q(user_id=match.user_id1.id) & Q(match_id=match.id))).state == 'rejected':
-                    # there is no point in analyzing the user's data anymore because match is rejected
+                        message = 'the match was confirmed'
+                # if session user rejected the match
+                elif user_data['state'] == 'rejected':
                     match.state = 'rejected'
                     match.save()
-                    status = 'error'
-                    message = 'the match was already rejected by the other user, you cannot proceed further'
-                # if there was no action of other user 
-                elif not history_row.exists():
-                    # this user confirms the match
-                    if user_data['state'] == 'confirmed':
-                        date = datetime.datetime.now().strftime("%Y-%m-%d")
-                        new_history_row = History(id=None, user_id=User.objects.get(id=request.session['user']), match_id=match, state='confirmed', dateOfAction=date)
-                        new_history_row.save()
-                        status = 'success'
-                        message = 'the match was confirmed'
-                    # if the user in the session rejected the match
-                    elif user_data['state'] == 'rejected':
-                        match.state = 'rejected'
-                        match.save()
-                        date = datetime.datetime.now().strftime("%Y-%m-%d")
-                        new_history_row = History(id=None, user_id=User.objects.get(id=request.session['user']), match_id=match, state='rejected', dateOfAction=date)
-                        new_history_row.save()
-                        status = 'success'
-                        message = 'the match was rejected'
+                    other_users_match.state = 'rejected'
+                    other_users_match.save()
+                    new_history_row = History(id=None, user_id=match.user_id, match_id=match, state='rejected', dateOfAction=date)
+                    new_history_row.save()
+                    status = 'success'
+                    message = 'the match was rejected'
             else:
                 status = 'error'
                 message = 'you do not have a previlege to do this action'
@@ -233,8 +220,7 @@ def match_list_index(request):
     # does not need any json loading because checking with session already
     if "user" in request.session:
         matchlistIndex = []
-        matchlistRows = Match.objects.filter(
-            (Q(user_id1=request.session['user']) | Q(user_id2=request.session['user'])) & (Q(state='pending') | Q(state='confirmed')))
+        matchlistRows = Match.objects.filter(Q(user_id=request.session['user']) & Q(state='pending'))
         if matchlistRows.exists():
             status = 'success'
             message = 'Match list will be displayed'
@@ -376,7 +362,7 @@ def rate_user(request):
         if Chat.objects.filter((Q(user_id_1=request.session['user']) & Q(user_id_2=data['user_id'])) | (Q(user_id_2=request.session['user']) & Q(user_id_1=data['user_id']))).exists():
             chat = Chat.objects.get((Q(user_id_1=request.session['user']) & Q(user_id_2=data['user_id'])) | (Q(user_id_2=request.session['user']) & Q(user_id_1=data['user_id'])))
             if chat.state_1 == 'confirmed' and chat.state_2 == 'confirmed':
-                if data['rating'] > 10 or data['rating'] < 0:
+                if data['rating'] > 5 or data['rating'] <= 0:
                     status = 'error'
                     message = 'the rating input is invalid'
                 elif test.exists():
@@ -411,6 +397,27 @@ def get_book(request):
         json_data = {"status": status, "message": message}
 
     return JsonResponse(json_data)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # @api_view(['POST'])
 # def add_books(request):

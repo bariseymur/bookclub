@@ -86,3 +86,31 @@ def read(request):
                  "message": message
                  }
     return JsonResponse(json_data)
+
+# @api_view(['POST'])
+# def confirm_trade(request):
+#     user_data = json.loads(request.body)  # {"chat_id":"1"}
+#     # check if user is logged in
+#     if "user" in request.session:
+#         # if this chat exists
+#         chat = Chat.objects.filter(id=user_data['chat_id'])
+#         if chat.exists():
+#             # if the other user have not confirmed
+#             if chat.user_id_1.id == request.session['user']:
+#                 if chat.state_1 == 'not_confirmed' and chat.state_2 == 'confirmed':
+#                     chat.state_1 == 'confirmed'
+#                     status = 'success'
+#                     message = 'the trade was confirmed succesfully'
+#                     # both confirmed should do rating and delete from tradelist, wishlist and chat
+#                 elif chat.state_1 == 'confirmed':
+#                     status = 'error'
+#                     message = 'the trade is already confirmed by you'
+#             elif chat.user_id_2.id == request.session['user']:
+#                 if chat.state_2 == 'not_confirmed':
+#                     chat.state_2 == 'confirmed'
+#                     status = 'success'
+#                     message = 'the trade was confirmed succesfully'
+#                 elif chat.state_2 == 'confirmed':
+#                     status = 'error'
+#                     message = 'the trade is already confirmed by you'
+#     return JsonResponse(json_data)

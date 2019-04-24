@@ -39,12 +39,13 @@ class Book(models.Model):
 
 # Match Table
 class Match(models.Model):
-    user_id1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_id1')
-    user_id2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_id2')
-    matchInformation = models.CharField(max_length=250)
-    book_id = models.ForeignKey(Book, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_id', default=1)
+    matched_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='matched_user', default=1)
+    match_score = models.IntegerField(default=0)
+    giving_book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='giving_book', default=1)
+    wanted_book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='wanted_book', default=1)
     state = models.CharField(max_length=250, default="nothing")
-    matchDate = models.DateField(blank=False)
+    match_date = models.DateField(blank=False)
 
 
 # Suggestion Table
