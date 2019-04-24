@@ -25,6 +25,7 @@ import android.widget.Toast;
 
 import com.hudomju.swipe.SwipeToDismissTouchListener;
 import com.hudomju.swipe.adapter.ListViewAdapter;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
@@ -91,15 +92,15 @@ public class WishListActivity extends AppCompatActivity {
 
     private void populateWishList(){
         wishListContents = new ArrayList<>();
-        wishListContents.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, null, 1) );
-        wishListContents.add(new WishListContent("Gülben Author", "Mehmesfgdsadt Kitap", 1, null, 2) );
-        wishListContents.add(new WishListContent("Gülben Author", "Mehmet Kdsfsdfitap", 1, null, 3) );
-        wishListContents.add(new WishListContent("Gülben Author", "Mehmssset Kitap", 1, null, 4) );
-        wishListContents.add(new WishListContent("Gülben Author", "Mehmgffet Kitap", 1, null, 5) );
-        wishListContents.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, null, 6) );
-        wishListContents.add(new WishListContent("Gülben Author", "Mehmeffffft Kitap", 1, null, 7) );
-        wishListContents.add(new WishListContent("Gülben Author", "Mehmet ggggggss", 1, null, 8) );
-        wishListContents.add(new WishListContent("Gülben Author", "Mehssssdffgfgmet Kitap", 1, null, 9) );
+        wishListContents.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", 1) );
+        wishListContents.add(new WishListContent("Gülben Author", "Mehmesfgdsadt Kitap", 1, "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", 2) );
+        wishListContents.add(new WishListContent("Gülben Author", "Mehmet Kdsfsdfitap", 1, "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", 3) );
+        wishListContents.add(new WishListContent("Gülben Author", "Mehmssset Kitap", 1, "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", 4) );
+        wishListContents.add(new WishListContent("Gülben Author", "Mehmgffet Kitap", 1, "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", 5) );
+        wishListContents.add(new WishListContent("Gülben Author", "Mehmet Kitap", 1, "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", 6) );
+        wishListContents.add(new WishListContent("Gülben Author", "Mehmeffffft Kitap", 1, "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", 7) );
+        wishListContents.add(new WishListContent("Gülben Author", "Mehmet ggggggss", 1, "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", 8) );
+        wishListContents.add(new WishListContent("Gülben Author", "Mehssssdffgfgmet Kitap", 1, "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", 9) );
     }
 
     private static class ViewHolder{
@@ -139,6 +140,25 @@ public class WishListActivity extends AppCompatActivity {
                 viewHolder.bookImage = convertView.findViewById(R.id.bookImageView);
                 viewHolder.up = convertView.findViewById(R.id.upArrow);
                 viewHolder.down = convertView.findViewById(R.id.downArrow);
+
+
+                viewHolder.authorText.setText(wishListContent.getAuthorName());
+                viewHolder.bookText.setText(wishListContent.getBookTitle());
+
+            /*
+            if (wishListContent.getTransactionType() == 1){
+                viewHolder.transactionImageButton.setBackgroundResource(R.drawable.ic_home_black_24dp);
+            }
+            else
+                viewHolder.transactionImageButton.setBackgroundResource(R.drawable.ic_launcher_foreground);
+            */
+                Picasso.get()
+                        .load(wishListContent.getBookImageURL())
+                        .resize(150, 250)
+                        .error(R.drawable.book)
+                        .into(viewHolder.bookImage);
+
+
                 result = convertView;
                 convertView.setTag(viewHolder);
 
@@ -148,16 +168,6 @@ public class WishListActivity extends AppCompatActivity {
                 result = convertView;
             }
 
-            viewHolder.authorText.setText(wishListContent.getAuthorName());
-            viewHolder.bookText.setText(wishListContent.getBookTitle());
-
-            /*
-            if (wishListContent.getTransactionType() == 1){
-                viewHolder.transactionImageButton.setBackgroundResource(R.drawable.ic_home_black_24dp);
-            }
-            else
-                viewHolder.transactionImageButton.setBackgroundResource(R.drawable.ic_launcher_foreground);
-            */
             viewHolder.bookImage.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -214,8 +224,6 @@ public class WishListActivity extends AppCompatActivity {
                 }
             });
 
-            // viewHolder.bookImageButton.setImageDrawable(sadasd);
-            //viewHolder.transactionImageButton;
 
 
             return convertView;
@@ -240,13 +248,24 @@ public class WishListActivity extends AppCompatActivity {
         private int transactionType;
         private Drawable bookImage; //TODO make it bitmap
         private int order;
+        private String bookImageURL;
 
-        public WishListContent(String authorName, String bookTitle, int transactionType, Drawable bookImage, int order) {
+
+        public WishListContent(String authorName, String bookTitle, int transactionType, String bookImageURL, int order) {
             this.authorName = authorName;
             this.bookTitle = bookTitle;
             this.transactionType = transactionType;
             this.bookImage = bookImage;
             this.order = order;
+            this.bookImageURL = bookImageURL;
+        }
+
+        public String getBookImageURL() {
+            return bookImageURL;
+        }
+
+        public void setBookImageURL(String bookImageURL) {
+            this.bookImageURL = bookImageURL;
         }
 
         public WishListContent(WishListContent copy){

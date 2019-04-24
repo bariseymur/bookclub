@@ -1,10 +1,9 @@
-package com.bookclub.app.bookclub.bookclubapi;
-
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+package com.bookclub.app.bookclub.bookclubapi;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -27,6 +26,28 @@ public class Book {
             bookPhotoUrl;
     private double originalPrice;
     private Date publishDate;
+
+    public Book() {
+
+    }
+
+    public Book(
+            int id,
+            String title,
+            String authorName,
+            String isbn,
+            String publisher,
+            String publishDate,
+            String bookPhotoUrl
+    ) {
+        this.id = id;
+        this.title = title;
+        this.authorName = authorName;
+        this.isbn = isbn;
+        this.publisher = publisher;
+        this.setPublishDate(publishDate);
+        this.bookPhotoUrl = bookPhotoUrl;
+    }
 
     public int getId() {
         return this.id;
@@ -100,10 +121,20 @@ public class Book {
         // parameter should be in "yyyy-MM-dd" format
 
         try {
-            this.publishDate = new SimpleDateFormat("yyyy-MM-dd").parse(publishDate);
+            this.publishDate = new SimpleDateFormat("yyyy").parse(publishDate);
         } catch (ParseException ex) {
             Logger.getLogger(Book.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    public String toString() {
+        return "\nid: " + this.id
+                + "\ntitle: " + this.title
+                + "\nauthorName: " + this.authorName
+                + "\nisbn: " + this.isbn
+                + "\npublisher: " + this.publisher
+                + "\npublishDate: " + this.publishDate
+                + "\nbookPhoto: " + this.bookPhotoUrl;
     }
 
 }

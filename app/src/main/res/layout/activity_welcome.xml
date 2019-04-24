@@ -43,6 +43,18 @@
         tools:text="Login" />
 
     <Button
+        android:id="@+id/noLoginButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:background="@drawable/rounded_button"
+        android:text="Guest"
+        android:textColor="#FFFFFF"
+        tools:text="Guest" />
+
+    <Button
         android:id="@+id/signInButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -53,52 +65,6 @@
         android:text="Register"
         android:textColor="#FFFFFF"
         tools:text="Register" />
-
-    <!--   <ImageView
-           android:layout_width="128dp"
-           android:layout_height="wrap_content"
-           android:layout_marginTop="39dp"
-           android:foregroundGravity="center_horizontal"
-           app:layout_constraintTop_toBottomOf="@+id/Text"
-           app:srcCompat="@mipmap/bookclub_icon"
-           tools:layout_editor_absoluteX="141dp" />
-
-      <Button
-           android:id="@+id/loginButton"
-           style="@style/Widget.AppCompat.Button"
-
-           android:width="200dp"
-           android:layout_marginBottom="10dp"
-           android:layout_marginEnd="24dp"
-           android:layout_marginStart="24dp"
-           android:height="48dp"
-           android:background="@color/buttonColor"
-           android:ellipsize="middle"
-           android:text="Login"
-           android:textColor="#FFFFFF"
-           app:layout_constraintBottom_toTopOf="@+id/signInButton"
-           app:layout_constraintEnd_toEndOf="parent"
-           app:layout_constraintHorizontal_bias="0.0"
-           app:layout_constraintStart_toStartOf="parent" />
-
-       <Button
-           android:id="@+id/signInButton"
-           style="@style/Widget.AppCompat.Button"
-           android:layout_width="200dp"
-           android:layout_height="wrap_content"
-           android:layout_marginBottom="100dp"
-           android:layout_marginEnd="24dp"
-           android:layout_marginStart="24dp"
-           android:background="@color/buttonColor"
-           android:ellipsize="middle"
-           android:radius="25px"
-           android:text="SignIn"
-           android:textColor="#FFFFFF"
-           app:layout_constraintBottom_toBottomOf="parent"
-           app:layout_constraintEnd_toEndOf="parent"
-           app:layout_constraintHorizontal_bias="0.0"
-           app:layout_constraintStart_toStartOf="parent" />
-           -->
 
 
 </LinearLayout>

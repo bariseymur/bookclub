@@ -18,7 +18,7 @@ import dmax.dialog.SpotsDialog;
 
 public class WelcomeActivity extends AppCompatActivity {
 
-    Button loginButton, signInButton;
+    Button loginButton, signInButton, guestButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +37,15 @@ public class WelcomeActivity extends AppCompatActivity {
                 Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
                 startActivity(intent);
 
+            }
+        });
+
+        guestButton = findViewById(R.id.noLoginButton);
+        guestButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
+                startActivity(intent);
             }
         });
 

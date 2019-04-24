@@ -1,15 +1,25 @@
 package com.bookclub.app.bookclub;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.DatePickerDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.app.LoaderManager.LoaderCallbacks;
 
@@ -33,17 +43,20 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.bookclub.app.bookclub.bookclubapi.BookClubAPI;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -80,9 +93,10 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
     private View mLoginFormView;
     private Spinner countrySpinner;
     private TextView birthDateText;
-    private Button changeDateButton;
+    private double lat, lon;
+    private ImageButton changeDateButton, changeLocationButton;
     private DatePickerDialog.OnDateSetListener mDateSetListener;
-    TextInputEditText userName, name, surname, phoneNumber, date;
+    TextInputEditText userName, name, surname, phoneNumber, date, locationText;
 
 
     @Override
@@ -159,8 +173,98 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
             }
         };
 
+        locationText = findViewById(R.id.locationText);
+
+        changeLocationButton = findViewById(R.id.getLocationButton);
+        changeLocationButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && (checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED || checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)){
+                    requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 1000);
+                }else {
+
+                    LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+                    if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+                        buildAlertMessageNoGps();
+                    }else {
+                       // Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                        Location location = getLastKnownLocation(locationManager);
+                        System.out.println(location);
+
+                        lat = location.getLatitude();
+                        lon = location.getLongitude();
+
+                        String city = hereLocation(lat, lon);
+
+                        locationText.setText(city);
+                    }
+                }
+            }
+        });
+
 
     }
+
+    private Location getLastKnownLocation(LocationManager mLocationManager) {
+        mLocationManager = (LocationManager)getApplicationContext().getSystemService(LOCATION_SERVICE);
+        List<String> providers = mLocationManager.getProviders(true);
+        Location bestLocation = null;
+        for (String provider : providers) {
+
+            @SuppressLint("MissingPermission") Location l = mLocationManager.getLastKnownLocation(provider);
+            if (l == null) {
+                continue;
+            }
+            if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
+                // Found best last known location: %s", l);
+                bestLocation = l;
+            }
+        }
+        return bestLocation;
+    }
+
+
+    private void buildAlertMessageNoGps() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("Your GPS seems to be disabled, do you want to enable it?")
+                .setCancelable(false)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                        dialog.cancel();
+                    }
+                });
+        final AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private String hereLocation(double lat, double lon){
+        String cityName = "";
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        List<Address> addresses;
+        try {
+            addresses = geocoder.getFromLocation(lat, lon, 10);
+            if (addresses.size() > 0){
+                for (Address adr: addresses){
+                    if (adr.getLocality() != null && adr.getCountryName() != null && adr.getLocality().length() > 0){
+                        cityName = adr.getLocality() + ", " + adr.getCountryName();
+                        System.out.println(adr.getCountryName() + " " + adr.getAddressLine(0) + " " + adr.getPostalCode() + " " + adr.getSubLocality() + " " + adr.getThoroughfare() + " " + adr.getSubThoroughfare());
+                        break;
+                    }
+                }
+            }
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+
+        return cityName;
+    }
+
 
     private void populateAutoComplete() {
         if (!mayRequestContacts()) {
@@ -391,7 +495,7 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
                 BookClubAPI api = new BookClubAPI();
                 ArrayList<Object> status = api.signup(userName.getText().toString(), mPasswordView.getText().toString(),
                         mEmailView.getText().toString(), name.getText().toString(), surname.getText().toString(),
-                        countrySpinner.getSelectedItem().toString(), phoneNumber.getText().toString(), d);
+                        countrySpinner.getSelectedItem().toString(), phoneNumber.getText().toString(), d, 4.000, 4.000);
                 Log.d("signup attempt", status.toString());
 
                 if (status.get(0).equals("success")){

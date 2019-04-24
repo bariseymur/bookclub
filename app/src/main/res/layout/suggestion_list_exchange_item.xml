@@ -31,7 +31,7 @@
                 android:orientation="vertical">
 
                 <ImageButton
-                    android:id="@+id/bookImage"
+                    android:id="@+id/book1Image"
                     android:layout_width="match_parent"
                     android:layout_height="400px"
                     android:layout_alignParentStart="true"
@@ -39,7 +39,7 @@
                     app:srcCompat="@mipmap/ic_launcher" />
 
                 <TextView
-                    android:id="@+id/userNameText"
+                    android:id="@+id/userName1"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_alignParentTop="true"
@@ -48,7 +48,7 @@
                     android:textSize="18sp" />
 
                 <TextView
-                    android:id="@+id/bookTitle"
+                    android:id="@+id/book1Title"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignStart="@+id/bookImage"
@@ -97,7 +97,7 @@
                 android:orientation="vertical">
 
                 <ImageButton
-                    android:id="@+id/bookImage"
+                    android:id="@+id/book2Image"
                     android:layout_width="match_parent"
                     android:layout_height="400px"
                     android:layout_above="@+id/authorName"
@@ -116,7 +116,7 @@
                     android:textSize="18sp" />
 
                 <TextView
-                    android:id="@+id/bookTitle"
+                    android:id="@+id/book2Title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_alignBaseline="@+id/bookTitle"
@@ -131,7 +131,7 @@
                     android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/authorName"
+                    android:id="@+id/author2Name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_alignEnd="@+id/bookTitle"

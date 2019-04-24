@@ -21,9 +21,15 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.bookclub.app.bookclub.bookclubapi.Book;
+import com.bookclub.app.bookclub.bookclubapi.BookClubAPI;
+import com.bookclub.app.bookclub.bookclubapi.User;
+import com.squareup.picasso.Picasso;
+
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import dmax.dialog.SpotsDialog;
 
@@ -45,7 +51,7 @@ public class GeneralListFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-    private ArrayList<GeneralListContent> generalListContent;
+    private ArrayList<GeneralListContent> generalListContents;
     private ImageButton preferencesButton, chatButton;
     private AlertDialog alertDialog;
     private OnFragmentInteractionListener mListener;
@@ -73,9 +79,31 @@ public class GeneralListFragment extends Fragment {
     }
 
     private void populateGeneralList(){
+        generalListContents = new ArrayList<>();
 
-        generalListContent = new ArrayList<>();
+        BookClubAPI api = new BookClubAPI();
+        System.out.println("Coockie Info : " + api.getCookie());
+        ArrayList<Object> list = api.mainMenuIndex();
+       // Log.d("General List", "List : " + list);
+        System.out.println(list);
+        ArrayList<Object> tradeList = (ArrayList<Object>) list.get(2);
+        Collections.shuffle(tradeList);
+        for (int i = 0; i < tradeList.size(); i++){
+            ArrayList<Object> trade = (ArrayList<Object>)tradeList.get(i);
+            int id = (int)trade.get(0);
+            User user = (User)trade.get(1);
+            Book book = (Book)trade.get(2);
 
+            //System.out.println("i: " + i + "id: " + id + "\nUser: " + user + "\nBook: " + book);
+            generalListContents.add(new GeneralListContent(id, book.getTitle(), book.getAuthorName(), book.getBookPhotoUrl()));
+
+        }
+
+        for (GeneralListContent g: generalListContents){
+           // System.out.println(g);
+        }
+
+        /*
         generalListContent.add(new GeneralListContent(1, "1984", "George Orwell", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
         generalListContent.add(new GeneralListContent(2, "Harry Potter", "J.K. Rowling", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
         generalListContent.add(new GeneralListContent(1, "Küçük Prens", "Saint-exupery", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
@@ -87,7 +115,7 @@ public class GeneralListFragment extends Fragment {
         generalListContent.add(new GeneralListContent(1, "1984", "George Orwell", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
         generalListContent.add(new GeneralListContent(2, "Harry Potter", "J.K. Rowling", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
         generalListContent.add(new GeneralListContent(1, "Küçük Prens", "Saint-exupery", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
-
+*/
     }
 
     @Override
@@ -99,9 +127,7 @@ public class GeneralListFragment extends Fragment {
         }
 
         //get items from server here
-        alertDialog = new SpotsDialog(getActivity());
-        alertDialog.show();
-        new GeneralListCreator().execute();
+        System.out.println("onCreate General List");
     }
 
     @Override
@@ -110,10 +136,13 @@ public class GeneralListFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_general_list, container, false);
         //generalListContent = new ArrayList<>();
+        alertDialog = new SpotsDialog(getActivity());
+        alertDialog.show();
+        new GeneralListCreator().execute();
 
        // populateGeneralList();
         ListView listView = view.findViewById(R.id.generalList);
-        ArrayAdapter<GeneralListContent> generalListContentArrayAdapter = new GeneralListAdapter(generalListContent, getContext());
+        ArrayAdapter<GeneralListContent> generalListContentArrayAdapter = new GeneralListAdapter(generalListContents, getContext());
         listView.setAdapter(generalListContentArrayAdapter);
 
         preferencesButton = view.findViewById(R.id.preferencesButton);
@@ -146,6 +175,8 @@ public class GeneralListFragment extends Fragment {
             mListener.onFragmentInteraction(uri);
         }
     }
+
+
 
     @Override
     public void onAttach(Context context) {
@@ -227,7 +258,9 @@ public class GeneralListFragment extends Fragment {
                 viewHolder.bookTitleTextView= (TextView)convertView.findViewById(R.id.bookTitleTextView);
                 viewHolder.bookImageButton= (ImageButton) convertView.findViewById(R.id.bookImageButton);
 
-                try {
+
+
+      /*          try {
                     ImageLoader imageLoader = new ImageLoader(getContext(), generalListContent.getBookImageURL());
                     bitmap = imageLoader.execute().get();
 
@@ -237,8 +270,8 @@ public class GeneralListFragment extends Fragment {
                     // Log.e("Error Message", e.getMessage());
                     e.printStackTrace();
                 }
-
-                viewHolder.transactionImageButton = (ImageButton) convertView.findViewById(R.id.transactionImageButton);
+*/
+           //     viewHolder.transactionImageButton = (ImageButton) convertView.findViewById(R.id.transactionImageButton);
                 result = convertView;
                 convertView.setTag(viewHolder);
 
@@ -248,15 +281,18 @@ public class GeneralListFragment extends Fragment {
                 result = convertView;
             }
 
+            Picasso.get()
+                    .load(generalListContent.getBookImageURL())
+                    .resize(300, 400)
+                    .error(R.drawable.book)
+                    .into(viewHolder.bookImageButton);
+            System.out.println(generalListContent.getBookImageURL());
+
             viewHolder.authorNameTextView.setText(generalListContent.getAuthorName());
             viewHolder.bookTitleTextView.setText(generalListContent.getBookTitle());
+           // viewHolder.transactionImageButton.setImageResource(R.drawable.ic_compare_arrows_black_24dp);
 
 
-            if (generalListContent.getTransactionType() == 2){
-                viewHolder.transactionImageButton.setImageResource(R.drawable.ic_compare_arrows_black_24dp);
-            }
-            else
-                viewHolder.transactionImageButton.setImageResource(R.drawable.ic_shopping_cart_black_24dp);
             viewHolder.bookImageButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -266,18 +302,18 @@ public class GeneralListFragment extends Fragment {
                     startActivity(intent);
                 }
             });
-            viewHolder.transactionImageButton.setOnClickListener(new View.OnClickListener() {
+
+           /* viewHolder.transactionImageButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (generalListContent.getTransactionType() == 1){
+                    if (generalListContent.getTradeID() == 1){
                         Snackbar.make(v, "Transaction Type : Sell", Snackbar.LENGTH_SHORT).show();
                     }
                     else{
-
                         Snackbar.make(v, "Transaction Type : Trade", Snackbar.LENGTH_SHORT).show();
                     }
                 }
-            });
+            });*/
 
 
 
@@ -315,26 +351,30 @@ public class GeneralListFragment extends Fragment {
 
     class GeneralListContent{
 
-        int transactionType;
+        int tradeID;
         String bookTitle;
         String authorName;
         String bookImageURL;
 
 
-        public GeneralListContent(int transactionType, String bookTitle, String authorName, String bookImageURL) {
-            this.transactionType = transactionType;
+        public GeneralListContent(int tradeID, String bookTitle, String authorName, String bookImageURL) {
+            this.tradeID = tradeID;
             this.bookTitle = bookTitle;
             this.authorName = authorName;
 
             this.bookImageURL = bookImageURL;
         }
 
-        public int getTransactionType() {
-            return transactionType;
+        public int getTradeID() {
+            return tradeID;
         }
 
-        public void setTransactionType(int transactionType) {
-            this.transactionType = transactionType;
+        public void setTradeID(int transactionType) {
+            this.tradeID = transactionType;
+        }
+
+        public String toString(){
+            return "TradeID: " + tradeID + " Book Title: " + bookTitle + " Author Name: " + authorName + " Image URL: " + bookImageURL;
         }
 
         public String getBookTitle() {

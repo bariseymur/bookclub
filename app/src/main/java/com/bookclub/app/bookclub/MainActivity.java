@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity implements MatchListFragment
         suggestionListFragment = new SuggestionListFragment();
          */
         // fm.beginTransaction().add(R.id.fragment_container, matchListFragment, MATCHLIST_ID).hide(matchListFragment).commit();
-       // fm.beginTransaction().add(R.id.fragment_container, suggestionListFragment, SUGGESTIONLIST_ID).hide(suggestionListFragment).commit();
+        // fm.beginTransaction().add(R.id.fragment_container, suggestionListFragment, SUGGESTIONLIST_ID).hide(suggestionListFragment).commit();
         fm.beginTransaction().add(R.id.fragment_container, generalListFragment, GENERALLIST_ID).commit();
 
     }
@@ -51,6 +51,11 @@ public class MainActivity extends AppCompatActivity implements MatchListFragment
     @Override
     public void onFragmentInteraction(Uri uri) {
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
@@ -107,5 +112,7 @@ public class MainActivity extends AppCompatActivity implements MatchListFragment
             return false;
         }
     };
+
+
 
 }

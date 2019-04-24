@@ -365,7 +365,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
 
         @Override
         protected Boolean doInBackground(Void... params) {
-          /*  // TODO: attempt authentication against a network service.
+            // TODO: attempt authentication against a network service.
             try {
                 // Simulate network access.
                 // Thread.sleep(1000);
@@ -382,8 +382,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             } catch (Exception e) {
                 return false;
             }
-*/
 
+/*
             //test to be commented out
             try {
                 Thread.sleep(500);
@@ -391,6 +391,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 e.printStackTrace();
             }
             return true;
+            */
         }
 
         @Override

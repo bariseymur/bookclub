@@ -6,19 +6,16 @@
     android:background="#FFFFFF"
     android:gravity="center_horizontal"
     android:orientation="vertical"
-    android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.bookclub.app.bookclub.SignupActivity">
 
     <!-- Login progress -->
 
-    <ScrollView
+    <android.support.v4.widget.NestedScrollView
         android:id="@+id/login_form"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        >
+        android:layout_height="match_parent">
 
         <LinearLayout
             android:id="@+id/email_login_form"
@@ -31,6 +28,7 @@
                 android:id="@+id/imageView7"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="100dp"
                 app:srcCompat="@mipmap/bookclub_icon" />
 
             <TextView
@@ -144,8 +142,7 @@
             <Spinner
                 android:id="@+id/spinner"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                />
+                android:layout_height="wrap_content" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -170,15 +167,51 @@
                         android:text="dd/mm/yyyy" />
                 </android.support.design.widget.TextInputLayout>
 
-                <Button
+                <ImageButton
                     android:id="@+id/changeDatePickButton"
                     android:layout_width="500px"
                     android:layout_height="200px"
                     android:layout_weight="1"
-                    android:background="@drawable/rounded_rectangle_orange"
+                    android:background="@android:color/background_light"
                     android:minWidth="200px"
                     android:padding="10px"
-                    android:text="Change Birthday" />
+                    android:text="Change Birthday"
+                    app:srcCompat="@drawable/ic_date_range_black_48dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="40px">
+
+
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1">
+
+                    <android.support.design.widget.TextInputEditText
+                        android:id="@+id/locationText"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:clickable="false"
+                        android:editable="false"
+                        android:gravity="left|center_vertical"
+                        android:hint="City"
+                        android:text="City" />
+                </android.support.design.widget.TextInputLayout>
+
+                <ImageButton
+                    android:id="@+id/getLocationButton"
+                    android:layout_width="500px"
+                    android:layout_height="200px"
+                    android:layout_weight="1"
+                    android:background="@android:color/background_light"
+                    android:minWidth="200px"
+                    android:padding="10px"
+                    android:text="Get Location"
+                    app:srcCompat="@drawable/ic_room_black_48dp" />
             </LinearLayout>
 
             <Button
@@ -186,15 +219,13 @@
                 style="?android:textAppearanceSmall"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:background="@color/buttonColor"
+                android:background="@drawable/rounded_button"
                 android:text="Sign Up"
                 android:textStyle="bold" />
 
 
-
         </LinearLayout>
-    </ScrollView>
+    </android.support.v4.widget.NestedScrollView>
 
     <ProgressBar
         android:id="@+id/login_progress"

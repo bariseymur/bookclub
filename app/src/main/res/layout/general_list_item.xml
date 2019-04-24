@@ -27,10 +27,11 @@
 
             <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
                 android:layout_marginEnd="82dp"
                 android:layout_toStartOf="@+id/bookImageButton"
+                android:layout_weight="1"
                 android:foregroundGravity="center_vertical"
                 android:gravity="center_vertical"
                 android:orientation="vertical"
@@ -38,48 +39,48 @@
 
 
                 <ImageButton
-                    android:id="@+id/transactionImageButton"
-                    android:layout_width="wrap_content"
+                    android:id="@+id/imageButton"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginRight="0dp"
-                    android:layout_weight="1"
                     android:background="@color/backgroundColor"
-                    app:srcCompat="@mipmap/ic_launcher_round"
-                    tools:layout_height="@android:dimen/app_icon_size" />
-
+                    app:srcCompat="@drawable/ic_compare_arrows_black_48dp" />
 
                 <TextView
                     android:id="@+id/bookTitleTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:autoSizeTextType="uniform"
                     android:text="TextView"
-                    android:textSize="@dimen/listBookTitleTextSize"
+                    android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/authorTextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:autoSizeTextType="uniform"
                     android:text="TextView"
                     android:textSize="@dimen/listAuthorNameTextSize" />
             </LinearLayout>
 
-            <RelativeLayout
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="400px"
+                android:layout_height="match_parent"
                 android:layout_marginRight="0dp"
+                android:layout_weight="2"
+                android:gravity="right|center_vertical"
                 android:padding="10px">
 
                 <ImageButton
                     android:id="@+id/bookImageButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
                     android:background="@color/backgroundColor"
                     android:src="@mipmap/ic_launcher" />
 
-            </RelativeLayout>
+            </LinearLayout>
         </LinearLayout>
     </android.support.v7.widget.CardView>
 

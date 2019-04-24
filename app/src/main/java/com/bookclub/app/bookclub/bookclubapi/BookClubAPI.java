@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.json.*;
@@ -20,12 +21,20 @@ import org.json.*;
  */
 public class BookClubAPI {
 
-    private static OkHttpClient client = new OkHttpClient();
-    private String serverUrl = "http://bookclub-mertdonmezyurek297604.codeanyapp.com:8000/bookclub_server/";
+    private static OkHttpClient client = new OkHttpClient.Builder()
+            .connectTimeout(120, TimeUnit.SECONDS)
+            .readTimeout(120, TimeUnit.SECONDS)
+            .writeTimeout(120, TimeUnit.SECONDS)
+            .build();
+    private String serverUrl = "http://book-mertdonmezyurek297604.codeanyapp.com:8000/bookclub_server/";
     private static String cookie = null;
 
     public BookClubAPI() {
 
+    }
+
+    public String getCookie(){
+        return cookie;
     }
 
     private String get(String url) {
@@ -45,7 +54,35 @@ public class BookClubAPI {
                         .addHeader("Cookie", this.cookie)
                         .build();
             }
+//            System.out.println("Cookie:\n" + this.cookie);
 
+            Response response = client.newCall(request).execute();
+            return response.body().string();
+
+        } catch (IOException ex) {
+            Logger.getLogger(BookClubAPI.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
+    }
+
+    public String getURL(String url, String cookie) {
+
+        try {
+            Request request = null;
+
+            if (cookie == null) {
+                request = new Request.Builder()
+                        .url(url)
+                        .get()
+                        .build();
+            } else {
+                request = new Request.Builder()
+                        .url(url)
+                        .get()
+                        .addHeader("Cookie", cookie)
+                        .build();
+            }
+//            System.out.println("Cookie:\n" + this.cookie);
             Response response = client.newCall(request).execute();
             return response.body().string();
 
@@ -169,7 +206,6 @@ public class BookClubAPI {
                     user_info_json.getString("password"),
                     user_info_json.getString("mail"),
                     user_info_json.getString("name"),
-                    user_info_json.getString("surname"),
                     user_info_json.getString("country"),
                     user_info_json.getString("phoneNumber"),
                     user_info_json.getString("profilePicture"),
@@ -254,11 +290,26 @@ public class BookClubAPI {
 
         try {
             JSONObject reader = new JSONObject(this.get("getSession/"));
-            int result = reader.getInt("session_id");
+            JSONObject user_info_json = reader.optJSONObject("session_id");
+
+            User user_info = new User(
+                    user_info_json.getInt("id"),
+                    user_info_json.getString("username"),
+                    user_info_json.getString("password"),
+                    user_info_json.getString("mail"),
+                    user_info_json.getString("name"),
+                    user_info_json.getString("country"),
+                    user_info_json.getString("phoneNumber"),
+                    user_info_json.getString("profilePicture"),
+                    user_info_json.getBoolean("onlineState"),
+                    user_info_json.getString("dateOfBirth"),
+                    user_info_json.getDouble("long"),
+                    user_info_json.getDouble("lat")
+            );
 
             arr.add("success");
             arr.add("session returned");
-            arr.add(result);
+            arr.add(user_info);
 
         } catch (JSONException e) {
             arr.add("error");
@@ -278,12 +329,14 @@ public class BookClubAPI {
             String surname,
             String country,
             String phoneNumber,
-            Date dateOfBirth
+            Date dateOfBirth,
+            double lon,
+            double lat
     ) {
 
         //Temp variables
-        String lon = "4.000";
-        String lat = "4.000";
+        lon = 4.000;
+        lat = 4.000;
         String onlineState = "0";
         String profilePicture = "default.jpg";
         ////////////
@@ -293,8 +346,7 @@ public class BookClubAPI {
                 + "\"username\": \"" + username + "\","
                 + "\"password\": \"" + password + "\","
                 + "\"mail\": \"" + mail + "\","
-                + "\"name\": \"" + name + "\","
-                + "\"surname\": \"" + surname + "\","
+                + "\"name\": \"" + name + " " + surname + "\","
                 + "\"country\": \"" + country + "\","
                 + "\"phoneNumber\": \"" + phoneNumber + "\","
                 + "\"dateOfBirth\": \"" + (new SimpleDateFormat("yyyy-MM-dd")).format(dateOfBirth) + "\","
@@ -324,7 +376,6 @@ public class BookClubAPI {
         return arr;
     }
 
-
     // result variable needs to be handled
     public ArrayList<Object> suggestionListIndex() {
 
@@ -344,6 +395,168 @@ public class BookClubAPI {
         } catch (JSONException e) {
             arr.add("error");
             arr.add("suggestionListIndex failed. JSON error.");
+            e.printStackTrace();
+            return arr;
+        }
+
+        return arr;
+    }
+
+    public ArrayList<Object> matchListIndex() {
+
+        ArrayList<Object> arr = new ArrayList<>();
+
+        try {
+            JSONObject reader = new JSONObject(this.get("matchListIndex/"));
+            String result = reader.optString("matchlistIndex");
+            String status = reader.getString("status");
+            String message = reader.getString("message");
+
+            arr.add(status);
+            arr.add(message);
+            arr.add(result);
+
+        } catch (JSONException e) {
+            arr.add("error");
+            arr.add("matchListIndex failed. JSON error.");
+            e.printStackTrace();
+            return arr;
+        }
+
+        return arr;
+    }
+
+    public ArrayList<Object> mainMenuIndex() {
+
+        ArrayList<Object> arr = new ArrayList<>();
+
+        try {
+            String a = this.get("mainMenuIndex/");
+            JSONObject reader = new JSONObject(a);
+
+            String status = reader.getString("status");
+            String message = reader.getString("message");
+            JSONArray tradeJSONArr = reader.optJSONArray("mainMenuIndex");
+
+            ArrayList<Object> tradeArray = null;
+
+            if (tradeJSONArr != null) {
+                tradeArray = new ArrayList<>();
+
+                for (int i = 0; i < tradeJSONArr.length(); i++) {
+                    ArrayList<Object> trade = new ArrayList<>();
+
+                    int tradeID = tradeJSONArr.getJSONObject(i).getJSONObject("trade_info").getInt("id");
+                    User user = new User(
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getInt("id"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getString("username"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getString("password"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getString("mail"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getString("name"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getString("country"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getString("phoneNumber"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getString("profilePicture"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getBoolean("onlineState"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getString("dateOfBirth"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getDouble("long"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getDouble("lat")
+                    );
+                    Book book = new Book(
+                            tradeJSONArr.getJSONObject(i).getJSONObject("book_info").getInt("id"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("book_info").getString("title"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("book_info").getString("authorName"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("book_info").getString("isbn"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("book_info").getString("publisher"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("book_info").getString("publishDate"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("book_info").getString("bookPhoto")
+                    );
+
+                    trade.add(tradeID);
+                    trade.add(user);
+                    trade.add(book);
+                    tradeArray.add(trade);
+                }
+
+            }
+
+            arr.add(status);
+            arr.add(message);
+            arr.add(tradeArray);
+
+        } catch (JSONException e) {
+            arr.add("error");
+            arr.add("mainMenuIndex failed. JSON error.");
+            e.printStackTrace();
+            return arr;
+        }
+
+        return arr;
+    }
+
+    public ArrayList<Object> searchIndex(String input) {
+
+        String json = "{"
+                + "\"search_query\": \"" + input + "\""
+                + "}";
+
+        ArrayList<Object> arr = new ArrayList<>();
+
+        try {
+            String a = this.post("searchIndex/", json);
+            JSONObject reader = new JSONObject(a);
+
+            String status = reader.getString("status");
+            String message = reader.getString("message");
+            JSONArray tradeJSONArr = reader.optJSONArray("searchIndex");
+
+            ArrayList<Object> tradeArray = null;
+
+            if (tradeJSONArr != null) {
+                tradeArray = new ArrayList<>();
+
+                for (int i = 0; i < tradeJSONArr.length(); i++) {
+                    ArrayList<Object> trade = new ArrayList<>();
+
+                    int tradeID = tradeJSONArr.getJSONObject(i).getJSONObject("trade_info").getInt("id");
+                    User user = new User(
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getInt("id"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getString("username"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getString("password"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getString("mail"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getString("name"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getString("country"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getString("phoneNumber"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getString("profilePicture"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getBoolean("onlineState"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getString("dateOfBirth"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getDouble("long"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("user_info").getDouble("lat")
+                    );
+                    Book book = new Book(
+                            tradeJSONArr.getJSONObject(i).getJSONObject("book_info").getInt("id"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("book_info").getString("title"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("book_info").getString("authorName"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("book_info").getString("isbn"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("book_info").getString("publisher"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("book_info").getString("publishDate"),
+                            tradeJSONArr.getJSONObject(i).getJSONObject("book_info").getString("bookPhoto")
+                    );
+
+                    trade.add(tradeID);
+                    trade.add(user);
+                    trade.add(book);
+                    tradeArray.add(trade);
+                }
+
+            }
+
+            arr.add(status);
+            arr.add(message);
+            arr.add(tradeArray);
+
+        } catch (JSONException e) {
+            arr.add("error");
+            arr.add("mainMenuIndex failed. JSON error.");
             e.printStackTrace();
             return arr;
         }

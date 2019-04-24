@@ -1,16 +1,23 @@
 package com.bookclub.app.bookclub;
 
 import android.content.Intent;
+import android.os.AsyncTask;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
+import com.bookclub.app.bookclub.bookclubapi.BookClubAPI;
+
+import dmax.dialog.SpotsDialog;
+
 public class PreferencesActivity extends AppCompatActivity {
 
-    LinearLayout accountSettings, wishList, tradeList, history;
+    LinearLayout accountSettings, wishList, tradeList, history, logout;
     ImageButton profileButton;
+    private android.app.AlertDialog alertDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +74,40 @@ public class PreferencesActivity extends AppCompatActivity {
             }
         });
 
+        alertDialog = new SpotsDialog(this);
+
+        logout = findViewById(R.id.logoutLinearLayout);
+        logout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                alertDialog.show();
+                new LogoutOperation().execute();
+
+            }
+        });
+
 
     }
+
+    public class LogoutOperation extends AsyncTask<Void, Void, Void>{
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+            BookClubAPI api = new BookClubAPI();
+
+
+            api.signout();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            alertDialog.dismiss();
+            Intent intent = new Intent(PreferencesActivity.this, WelcomeActivity.class);
+            startActivity(intent);
+        }
+    }
+
 }

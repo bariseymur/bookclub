@@ -24,6 +24,7 @@ import android.widget.Toast;
 
 import com.hudomju.swipe.SwipeToDismissTouchListener;
 import com.hudomju.swipe.adapter.ListViewAdapter;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
@@ -267,6 +268,32 @@ public class MatchListFragment extends Fragment {
 
                 result = convertView;
                 convertView.setTag(viewHolder);
+
+                //item content is defined here
+                viewHolder.user1Name.setText(matchListContent.getUserName1());
+                viewHolder.user2Name.setText(matchListContent.getUserName2());
+                viewHolder.author1Name.setText(matchListContent.getAuthorName1());
+                viewHolder.author2Name.setText(matchListContent.getAuthorName2());
+                viewHolder.book1Title.setText(matchListContent.getBookTitle1());
+                viewHolder.book2Title.setText(matchListContent.getBookTitle2());
+
+                Picasso.get()
+                        .load(matchListContent.getBook1ImageURL())
+                        .resize(300, 400)
+                        .error(R.drawable.error)
+                        .placeholder(R.drawable.loading)
+                        .into(viewHolder.book1Image);
+
+
+                Picasso.get()
+                        .load(matchListContent.getBook2ImageURL())
+                        .resize(300, 400)
+                        .error(R.drawable.error)
+                        .placeholder(R.drawable.loading)
+                        .into(viewHolder.book2Image);
+
+              //  viewHolder.book1Image.setImageBitmap(Bitmap.createScaledBitmap(matchListContent.getBook1Image(), 300, 400, false));
+               // viewHolder.book2Image.setImageBitmap(Bitmap.createScaledBitmap(matchListContent.getBook2Image(), 300, 400, false));
             }
             else{
                 viewHolder = (MatchListFragment.ViewHolder)convertView.getTag();
@@ -274,18 +301,6 @@ public class MatchListFragment extends Fragment {
             }
 
 
-            //item content is defined here
-            viewHolder.user1Name.setText(matchListContent.getUserName1());
-            viewHolder.user2Name.setText(matchListContent.getUserName2());
-            viewHolder.author1Name.setText(matchListContent.getAuthorName1());
-            viewHolder.author2Name.setText(matchListContent.getAuthorName2());
-            viewHolder.book1Title.setText(matchListContent.getBookTitle1());
-            viewHolder.book2Title.setText(matchListContent.getBookTitle2());
-
-
-
-            viewHolder.book1Image.setImageBitmap(Bitmap.createScaledBitmap(matchListContent.getBook1Image(), 300, 400, false));
-            viewHolder.book2Image.setImageBitmap(Bitmap.createScaledBitmap(matchListContent.getBook2Image(), 300, 400, false));
 
 
 
@@ -343,7 +358,7 @@ public class MatchListFragment extends Fragment {
             this.matchID = matchID;
 
 
-                try {
+       /*         try {
 
                     ImageLoader imageLoader = new ImageLoader(getContext(), book1ImageURL);
                     book1Image = imageLoader.execute().get();
@@ -354,7 +369,7 @@ public class MatchListFragment extends Fragment {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-
+*/
 
         }
 

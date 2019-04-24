@@ -17,6 +17,7 @@ import android.widget.TextView;
 
 import com.hudomju.swipe.SwipeToDismissTouchListener;
 import com.hudomju.swipe.adapter.ListViewAdapter;
+import com.squareup.picasso.Picasso;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -104,30 +105,41 @@ public class HistoryActivity extends AppCompatActivity {
                 viewHolder.bookTitle= convertView.findViewById(R.id.bookTitle);
                 viewHolder.author= convertView.findViewById(R.id.authorName);
                 viewHolder.date = convertView.findViewById(R.id.dateText);
+
                 //Image View
                 viewHolder.state = convertView.findViewById(R.id.stateImage);
+
                 //Image Button
                 viewHolder.bookImage = convertView.findViewById(R.id.bookImage);
                 result = convertView;
+
+                viewHolder.username.setText(historyListContent.getUserName());
+                viewHolder.bookTitle.setText(historyListContent.getBookTitle());
+                viewHolder.author.setText(historyListContent.getAuthorName());
+                SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy");
+                viewHolder.date.setText(sdf.format(historyListContent.getDate()));
+
+                Picasso.get()
+                        .load(historyListContent.getBookImageURL())
+                        .resize(300, 400)
+                        .error(R.drawable.error)
+                        .placeholder(R.drawable.loading)
+                        .into(viewHolder.bookImage);
+
+                //viewHolder.bookImage.setImageBitmap(Bitmap.createScaledBitmap(historyListContent.getBookImage(), 300, 300, false));
+
                 convertView.setTag(viewHolder);
+                if (historyListContent.isAccepted()){
+                    viewHolder.state.setImageResource(R.drawable.thumb_up_green);
+                }
+                else{
+                    viewHolder.state.setImageResource(R.drawable.thumb_down);
+                }
             } else {
                 viewHolder = (ViewHolder) convertView.getTag();
                 result = convertView;
             }
 
-            viewHolder.username.setText(historyListContent.getUserName());
-            viewHolder.bookTitle.setText(historyListContent.getBookTitle());
-            viewHolder.author.setText(historyListContent.getAuthorName());
-            SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy");
-            viewHolder.date.setText(sdf.format(historyListContent.getDate()));
-            viewHolder.bookImage.setImageBitmap(Bitmap.createScaledBitmap(historyListContent.getBookImage(), 300, 300, false));
-
-            if (historyListContent.isAccepted()){
-                viewHolder.state.setImageResource(R.drawable.thumb_up_green);
-            }
-            else{
-                viewHolder.state.setImageResource(R.drawable.thumb_down);
-            }
 
             return convertView;
         }
@@ -145,6 +157,7 @@ public class HistoryActivity extends AppCompatActivity {
         String userName, bookTitle, authorName;
         boolean accepted;
         Date date;
+        String bookImageURL;
 
         public HistoryListContent(String userName, String bookTitle, String authorName, String bookImageURL, boolean accepted, Date date) {
             this.userName = userName;
@@ -152,8 +165,9 @@ public class HistoryActivity extends AppCompatActivity {
             this.authorName = authorName;
             this.accepted = accepted;
             this.date = date;
+            this.bookImageURL = bookImageURL;
 
-
+/*
             try {
 
                 ImageLoader imageLoader = new ImageLoader(HistoryActivity.this, bookImageURL);
@@ -163,8 +177,16 @@ public class HistoryActivity extends AppCompatActivity {
                 e.printStackTrace();
             } catch (InterruptedException e) {
                 e.printStackTrace();
-            }
+            }*/
 
+        }
+
+        public String getBookImageURL() {
+            return bookImageURL;
+        }
+
+        public void setBookImageURL(String bookImageURL) {
+            this.bookImageURL = bookImageURL;
         }
 
         public Bitmap getBookImage() {

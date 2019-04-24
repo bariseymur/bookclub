@@ -11,8 +11,6 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import bookclubapi.*;
-
 /**
  *
  * @author mosma
@@ -24,7 +22,6 @@ public class User {
             password,
             mail,
             name,
-            surname,
             country,
             phoneNumber,
             profilePicture;
@@ -39,7 +36,6 @@ public class User {
             String password,
             String mail,
             String name,
-            String surname,
             String country,
             String phoneNumber,
             String profilePicture,
@@ -53,7 +49,6 @@ public class User {
         this.password = password;
         this.mail = mail;
         this.name = name;
-        this.surname = surname;
         this.country = country;
         this.phoneNumber = phoneNumber;
         this.profilePicture = profilePicture;
@@ -62,9 +57,9 @@ public class User {
         this.lon = lon;
         this.lat = lat;
     }
-    
+
     public User() {
-        
+
     }
 
     public int getId() {
@@ -105,14 +100,6 @@ public class User {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public String getSurname() {
-        return this.surname;
-    }
-
-    public void setSurname(String surname) {
-        this.surname = surname;
     }
 
     public String getCountry() {
@@ -173,8 +160,23 @@ public class User {
         try {
             this.dateOfBirth = new SimpleDateFormat("yyyy-MM-dd").parse(dateOfBirth);
         } catch (ParseException ex) {
-            Logger.getLogger(bookclubapi.Book.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Book.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    public String toString() {
+        return "\nid: " + this.id
+                + "\nusername: " + this.username
+                + "\npassword: " + this.password
+                + "\nmail: " + this.mail
+                + "\nname: " + this.name
+                + "\ncountry: " + this.country
+                + "\nphoneNumber: " + this.phoneNumber
+                + "\nprofilePicture: " + this.profilePicture
+                + "\nonlineState: " + this.onlineState
+                + "\ndateOfBirth: " + this.dateOfBirth
+                + "\nlong: " + this.lon
+                + "\nlat: " + this.lat;
     }
 
 }
