@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path, include
-from . import chatservice, usercontroller, wishlistcontroller, accountsettingscontroller, tradelistcontroller, historycontroller, messagecontroller, chatcontroller
+from . import algorithm, chatservice, usercontroller, wishlistcontroller, accountsettingscontroller, tradelistcontroller, historycontroller, messagecontroller, chatcontroller
 urlpatterns = [
 
     # usercontroller
@@ -9,21 +9,26 @@ urlpatterns = [
     path('forgotPassword/', usercontroller.forgot_password),
     path('signout/', usercontroller.sign_out),
     path('getSession/', usercontroller.get_session),
-    path('confirmMatch/', usercontroller.confirm_match),
-    path('rejectMatch/', usercontroller.reject_match),
+    path('actionOnMatch/', usercontroller.action_on_match),
     path('seeOtherUserProfile/', usercontroller.see_other_user_profile),
     path('matchListIndex/', usercontroller.match_list_index),
     path('suggestionListIndex/', usercontroller.suggestion_list_index),
     path('mainMenuIndex/', usercontroller.main_menu_index),
     path('searchIndex/', usercontroller.search_index),
     path('getUserProfile/', usercontroller.get_user_profile),
+    path('rate/', usercontroller.rate_user),
+    path('getBook/', usercontroller.get_book),
+    # path('ekle/', usercontroller.add_books),
+    # path('seed_user/', usercontroller.seed_user),
+    # path('seed_wishlist/', usercontroller.seed_wishlist),
+    # path('seed_tradelist/', usercontroller.seed_wishlist),
+    # path('seed_userrating/', usercontroller.seed_userrating),
 
     # wishlistcontroller
     path('wishlist/index/', wishlistcontroller.index),
     path('wishlist/delete/', wishlistcontroller.delete),
     path('wishlist/add/', wishlistcontroller.add),
-    # wishlist/update olacak mi?
-    # wishlist/drag olacak mi?
+    path('wishlist/drag/', wishlistcontroller.drag),
 
     # accountsettingscontroller
     path('accountSettings/index/', accountsettingscontroller.index),
@@ -42,7 +47,7 @@ urlpatterns = [
     path('tradelist/index/', tradelistcontroller.index),
     path('tradelist/delete/', tradelistcontroller.delete),
     path('tradelist/add/', tradelistcontroller.add),
-    path('tradelist/update/', tradelistcontroller.update),
+    # path('tradelist/update/', tradelistcontroller.update),
 
     # historycontroller
     path('history/index/', historycontroller.index),
@@ -50,13 +55,15 @@ urlpatterns = [
 
     # chatcontroller
     path('chat/index/', chatcontroller.index),
-    path('chat/delete/', chatcontroller.delete),
+    # chatservice methods
+    path('chat/messageList/', chatservice.message_list),
+    path('chat/send/', chatservice.send),
+    path('chat/read/', chatservice.read),
 
     # messagecontroller
     path('message/index/', messagecontroller.index),
-    path('message/delete/', messagecontroller.delete),
 
-    # chatservice
-    path('chatservice/messageList/', chatservice.message_list),
-    path('chatservice/send/', chatservice.send)
+    # algorithm
+    path('algo/match_algo/', algorithm.match_algorithm),
+
 ]

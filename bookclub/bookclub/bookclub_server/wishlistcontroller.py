@@ -19,9 +19,13 @@ def index(request):
         if wishlist.exists():
             status = "success"
             message = "here is the wishlist"
+            index = 0
             for book in wishlist:
+                index += 1
                 wishlist_index.append({"wishlist_info": model_to_dict(book),
                                        "book_info": model_to_dict(book.book_id)})
+                if index > 50:
+                    break
         else:
             status = "error"
             message = "you do not have anything in the wishlist"
@@ -63,10 +67,38 @@ def add(request):
             status = 'error'
             message = 'this book is already in your wishlist'
         else:
-            new_row = WishList(id=None, book_id=Book.objects.get(id=user_data['book_id']), user_id=User.objects.get(id=request.session['user']))
+            count = WishList.objects.filter(Q(user_id=request.session['user'])).count()
+            new_row = WishList(id=None, book_id=Book.objects.get(id=user_data['book_id']), user_id=User.objects.get(id=request.session['user']), order=count+1)
             new_row.save()
             status = 'success'
             message = 'the book was succesfully added to the wishlist'
+    else:
+        status = 'error'
+        message = 'you should login first'
+
+    json_data = {"status": status, "message": message}
+    return JsonResponse(json_data)
+
+
+@api_view(['POST'])
+def drag(request):
+    user_data = json.loads(request.body) # {"action":"up", "wishlist_id":"1" (+1) or "action":"down", "wishlist_id":"1" (-1)}
+    if "user" in request.session:
+        if WishList.objects.filter(Q(id=user_data['wishlist_id']) & Q(user_id=request.session['user'])).exists():
+            wishlist = WishList.objects.get(Q(id=user_data['wishlist_id']) & Q(user_id=request.session['user']))
+            if user_data['action'] == 'up':
+                status = 'success'
+                message = 'the book was succesfully dragged up'
+                wishlist.order = wishlist.order - 1
+                wishlist.save()
+            elif user_data['action'] == 'down':
+                status = 'success'
+                message = 'the book was succesfully dragged down'
+                wishlist.order = wishlist.order + 1
+                wishlist.save()
+        else:
+            status = 'error'
+            message = 'this wishlist entry does not exist'
     else:
         status = 'error'
         message = 'you should login first'

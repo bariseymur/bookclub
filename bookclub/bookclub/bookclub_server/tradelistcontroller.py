@@ -15,14 +15,18 @@ def index(request):
     tradelist_index = []
     if "user" in request.session:
         tradelist = TradeList.objects.filter(Q(user_id=request.session['user'])).select_related(
-            "givingBook_id" or "wantedBook_id")
+            "givingBook_id")
         if tradelist.exists():
             status = "success"
             message = "Tradelist will be displayed"
+            index = 0
             for book in tradelist:
+                index += 1
                 tradelist_index.append({"tradelist_info": model_to_dict(book),
-                                        "giving_book_info": model_to_dict(book.givingBook_id),
-                                        "wanted_book_info": model_to_dict(book.wantedBook_id)})
+                                        "giving_book_info": model_to_dict(book.givingBook_id)
+                                        })
+                if index > 50:
+                    break
         else:
             status = "error"
             message = "you do not have anything in the tradelist"
@@ -61,7 +65,6 @@ def add(request):
     user_data = json.loads(request.body)  # {"givingBook_id":1, "wantedBook_id":2, "user_id":1 }
     if "user" in request.session:
         if TradeList.objects.filter(Q(givingBook_id=user_data['givingBook_id']) &
-                                    Q(wantedBook_id=user_data['wantedBook_id']) &
                                     Q(user_id=request.session['user'])).exists():
             status = 'error'
             message = 'this trade already exists'
@@ -69,7 +72,6 @@ def add(request):
             if request.session['user'] == user_data['user_id']:
                 if user_data['givingBook_id'] != user_data['wantedBook_id']:
                     new_row = TradeList(id=None, givingBook_id=Book.objects.get(id=user_data['givingBook_id']),
-                                        wantedBook_id=Book.objects.get(id=user_data['wantedBook_id']),
                                         user_id=User.objects.get(id=request.session['user']))
                     new_row.save()
                     status = 'success'
@@ -88,36 +90,34 @@ def add(request):
     return JsonResponse(json_data)
 
 
-@api_view(['POST'])
-def update(request):
-    user_data = json.loads(request.body)  # {"tradelist_id":1, "wantedBook_id":2, "givingBook_id":1, "user_id": 2 }
-    if "user" in request.session:
-        if TradeList.objects.filter(Q(id=user_data['tradelist_id']) &
-                                    Q(user_id=request.session['user'])).exists():
-            row = TradeList.objects.get(id=user_data['tradelist_id'])
-            if row.wantedBook_id_id != user_data['wantedBook_id'] or row.givingBook_id_id != user_data['givingBook_id']:
-                if user_data['wantedBook_id'] != user_data['givingBook_id']:
-                    row.wantedBook_id_id = user_data['wantedBook_id']
-                    row.givingBook_id_id = user_data['givingBook_id']
-                    row.save()
-                    status = 'success'
-                    message = 'tradelist is updated successfully'
-                else:
-                    status = 'error'
-                    message = 'you cannot give and take the same book in a trade'
-            else:
-                status = 'error'
-                message = 'this trade already exists in your tradelist'
-        else:
-            if user_data['user_id'] != request.session['user']:
-                status = 'error'
-                message = 'you cannot update trade of another user'
-            else:
-                status = 'error'
-                message = 'this trade does not exist'
-    else:
-        status = 'error'
-        message = 'you should login first'
+# @api_view(['POST'])
+# def update(request):
+#     user_data = json.loads(request.body)  # {"tradelist_id":1, "givingBook_id":1, "user_id": 2 }
+#     if "user" in request.session:
+#         if TradeList.objects.filter(Q(id=user_data['tradelist_id']) &
+#                                     Q(user_id=request.session['user'])).exists():
+#             row = TradeList.objects.get(id=user_data['tradelist_id'])
+#             if row.givingBook_id_id != user_data['givingBook_id']:
+#                     row.givingBook_id_id = user_data['givingBook_id']
+#                     row.save()
+#                     status = 'success'
+#                     message = 'tradelist is updated successfully'
+#                 else:
+#                     status = 'error'
+#                     message = 'you cannot give and take the same book in a trade'
+#             else:
+#                 status = 'error'
+#                 message = 'this trade already exists in your tradelist'
+#         else:
+#             if user_data['user_id'] != request.session['user']:
+#                 status = 'error'
+#                 message = 'you cannot update trade of another user'
+#             else:
+#                 status = 'error'
+#                 message = 'this trade does not exist'
+#     else:
+#         status = 'error'
+#         message = 'you should login first'
 
-    json_data = {"status": status, "message": message}
-    return JsonResponse(json_data)
+#     json_data = {"status": status, "message": message}
+#     return JsonResponse(json_data)

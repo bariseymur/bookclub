@@ -6,7 +6,7 @@ from django.db import models
 # User table
 class User(models.Model):
     name = models.CharField(max_length=100)
-    surname = models.CharField(max_length=100)
+    # surname = models.CharField(max_length=100)
     country = models.CharField(max_length=100)
     mail = models.CharField(max_length=250)
     phoneNumber = models.CharField(max_length=100, blank=True, null=True)
@@ -32,20 +32,20 @@ class Book(models.Model):
     authorName = models.CharField(max_length=250)
     isbn = models.CharField(max_length=100)
     publisher = models.CharField(max_length=250)
-    originalPrice = models.DecimalField(max_digits=8, decimal_places=2)
-    publishDate = models.DateField(blank=False)
-    edition = models.CharField(max_length=100)
+    # originalPrice = models.DecimalField(max_digits=8, decimal_places=2, default=30)
+    publishDate = models.CharField(max_length=250)
     bookPhoto = models.CharField(default="defaultBook.jpg", max_length=250)
 
 
 # Match Table
 class Match(models.Model):
-    user_id1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_id1')
-    user_id2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_id2')
-    matchInformation = models.CharField(max_length=250)
-    book_id = models.ForeignKey(Book, on_delete=models.CASCADE)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_id', default=1)
+    matched_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='matched_user', default=1)
+    match_score = models.IntegerField(default=0)
+    giving_book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='giving_book', default=1)
+    wanted_book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='wanted_book', default=1)
     state = models.CharField(max_length=250, default="nothing")
-    matchDate = models.DateField(blank=False)
+    match_date = models.DateField(blank=False)
 
 
 # Suggestion Table
@@ -54,12 +54,15 @@ class Suggestion(models.Model):
     suggestionInformation = models.CharField(max_length=250)
     book_id = models.ForeignKey(Book, on_delete=models.CASCADE)
     suggestionDate = models.DateField(blank=False)
+    recommendation_score = models.IntegerField(default=0)
 
 
 # Chat Table
 class Chat(models.Model):
     user_id_1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_id_1')
     user_id_2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_id_2')
+    state_1 = models.CharField(max_length=250, default="nothing") # iksi de confirmed olmayinca chat kapanmiyor ve puanlanmiyor
+    state_2 = models.CharField(max_length=250, default="nothing")
 
 # Message Table
 class Message(models.Model):
@@ -73,7 +76,6 @@ class Message(models.Model):
 # TradeList Table
 class TradeList(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    wantedBook_id = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='wantedBook_id')
     givingBook_id = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='givingBook_id')
 
 
@@ -81,11 +83,24 @@ class TradeList(models.Model):
 class WishList(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     book_id = models.ForeignKey(Book, on_delete=models.CASCADE)
+    order = models.IntegerField(default=1)
 
 
 # History Table
 class History(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    matchConfirmation_id = models.ForeignKey(Match, on_delete=models.CASCADE, null=True, related_name='matchConfirmation_id')
-    matchRejection_id = models.ForeignKey(Match, on_delete=models.CASCADE, null=True, related_name='matchRejection_id')
+    match_id = models.ForeignKey(Match, on_delete=models.CASCADE, null=True, related_name='match_id')
+    state = models.CharField(max_length=250, default="nothing") # should be confirmed both
     dateOfAction = models.DateField(blank=False)
+
+# BookRating Table
+class BookRating(models.Model):
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    book_isbn = models.ForeignKey(Book, on_delete=models.CASCADE)
+    raiting = models.IntegerField(default=0)
+
+# UserRating Table
+class UserRating(models.Model):
+    rating_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='rating_user')
+    rated_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='rated_user')
+    rating = models.IntegerField(default=0)
