@@ -114,7 +114,7 @@ def sign_out(request):
     json_data = {"status": status, "message": message}
     return JsonResponse(json_data)
 
-
+"""
 @api_view(['POST'])
 def action_on_match(request):
     # check if there is a user in the session
@@ -179,7 +179,7 @@ def action_on_match(request):
 
     json_data = {"status": status, "message": message}
     return JsonResponse(json_data)
-
+"""
 
 @api_view(['POST'])
 def see_other_user_profile(request):
@@ -212,7 +212,7 @@ def get_user_profile(request):
 
     return JsonResponse(json_data)
 
-    
+"""   
 # confirm ve reject matchde serializible eklemeliyiz ???(discuss)
 # this function is used to obtain match list index of a user
 @api_view(['GET'])
@@ -242,7 +242,7 @@ def match_list_index(request):
 
     json_data = {"status": status, "message": message, "matchlistIndex": matchlistIndex}
     return JsonResponse(json_data)
-
+"""
 
 @api_view(['GET'])
 def suggestion_list_index(request):
