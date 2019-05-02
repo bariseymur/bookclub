@@ -15,7 +15,7 @@ from faker import Factory
 import factory
 import factory.django
 
-
+   
 @api_view(['GET'])
 def get_session(request):
     # this method returns the id of the user who is in the session, 
@@ -121,55 +121,87 @@ def action_on_match(request):
     if "user" in request.session:
         # load user data: {"match_id":1, "state":'confirmed'}
         user_data = json.loads(request.body)
-
         # find that match row in the match list
         match = Match.objects.filter(id=user_data['match_id'])
-
         # if there is such match
         if match.exists():
             match = Match.objects.get(id=user_data['match_id'])
-            # check if the user in the session has a previlege for proceeding and action
+            # check if the user in the session has a privilege for proceeding and action
             if match.user_id.id == request.session['user']:
-                other_users_match = Match.objects.get(user_id=match.matched_user)
+                other_users_match = Match.objects.filter((Q(user_id=match.matched_user) & Q(matched_user=match.user_id)) & (Q(wanted_book=match.giving_book) & Q(giving_book=match.wanted_book)))
                 date = datetime.datetime.now().strftime("%Y-%m-%d")
-                # if session user confirmed the match
-                if user_data['state'] == 'confirmed':
-                    if other_users_match.state == 'confirmed':
-                        match.state = confirmed
-                        match.save()
-                        new_history_row = History(id=None, user_id=match.user_id, match_id=match, state='confirmed', dateOfAction=date)
-                        new_history_row.save()
-                        new_chat = Chat(id=None, state_1='not_confirmed', state_2='not_confirmed', user_id_1=match.user_id, user_id_2=match.matched_user)
-                        new_chat.save()
-                        status = 'success'
-                        message = 'the match was confirmed from both sides'
-                    if other_users_match.state == 'rejected':
+                if other_users_match.exists():
+                    other_users_match = Match.objects.get((Q(user_id=match.matched_user) & Q(matched_user=match.user_id)) & (Q(wanted_book=match.giving_book) & Q(giving_book=match.wanted_book)))
+                    # if session user confirmed the match
+                    if user_data['state'] == 'confirmed':
+                        if other_users_match.state == 'confirmed':
+                            if match.state == 'pending':
+                                match.state = 'confirmed'
+                                match.save()
+                                new_history_row = History(id=None, user_id=match.user_id, match_id=match, suggestion_id=None, state='confirmed', dateOfAction=date)
+                                new_history_row.save()
+                                new_chat = Chat(id=None, state_1='not_confirmed', state_2='not_confirmed', user_id_1=match.user_id, user_id_2=match.matched_user, match_id=match, suggestion_id=None)
+                                new_chat.save()
+                                status = 'success'
+                                message = 'the match was confirmed from both sides'
+                            else:
+                                status = 'error'
+                                message = 'this match is not active'
+                        if other_users_match.state == 'rejected':
+                            match.state = 'rejected'
+                            match.save()
+                            new_history_row = History(id=None, user_id=match.user_id, match_id=match, suggestion_id=None, state='rejected', dateOfAction=date)
+                            new_history_row.save()
+                            status = 'error'
+                            message = 'the match could not be confirmed, because it was rejected by the other user'
+                        if other_users_match.state == 'pending':
+                            if match.state == 'pending':
+                                match.state = 'confirmed'
+                                match.save()
+                                new_history_row = History(id=None, user_id=match.user_id, match_id=match, suggestion_id=None, state='confirmed', dateOfAction=date)
+                                new_history_row.save()
+                                status = 'success'
+                                message = 'the match was confirmed'
+                            else:
+                                status = 'error'
+                                message = 'this match is not active'
+                    # if session user rejected the match
+                    elif user_data['state'] == 'rejected':
                         match.state = 'rejected'
                         match.save()
-                        new_history_row = History(id=None, user_id=match.user_id, match_id=match, state='rejected', dateOfAction=date)
-                        new_history_row.save()
-                        status = 'error'
-                        message = 'the match could not be confirmed, because it was rejected by the other user'
-                    if other_users_match.state == 'pending':
-                        match.state = 'confirmed'
-                        match.save()
-                        new_history_row = History(id=None, user_id=match.user_id, match_id=match, state='confirmed', dateOfAction=date)
+                        other_users_match.state = 'rejected'
+                        other_users_match.save()
+                        new_history_row = History(id=None, user_id=match.user_id, match_id=match, suggestion_id=None, state='rejected', dateOfAction=date)
                         new_history_row.save()
                         status = 'success'
-                        message = 'the match was confirmed'
-                # if session user rejected the match
-                elif user_data['state'] == 'rejected':
-                    match.state = 'rejected'
-                    match.save()
-                    other_users_match.state = 'rejected'
-                    other_users_match.save()
-                    new_history_row = History(id=None, user_id=match.user_id, match_id=match, state='rejected', dateOfAction=date)
-                    new_history_row.save()
-                    status = 'success'
-                    message = 'the match was rejected'
+                        message = 'the match was rejected'
+                else:
+                    if user_data['state'] == 'confirmed':
+                        if match.state == 'pending':
+                            match.state = 'confirmed'
+                            match.save()
+                            new_history_row = History(id=None, user_id=match.user_id, match_id=match, suggestion_id=None, state='confirmed', dateOfAction=date)
+                            new_history_row.save()
+                            status = 'success'
+                            message = 'the match was confirmed only by you for now'
+                        else:
+                            status = 'error'
+                            message = 'this match is not active'
+                    # if session user rejected the match
+                    elif user_data['state'] == 'rejected':
+                        if match.state == 'pending':
+                            match.state = 'rejected'
+                            match.save()
+                            new_history_row = History(id=None, user_id=match.user_id, match_id=match, suggestion_id=None, state='rejected', dateOfAction=date)
+                            new_history_row.save()
+                            status = 'success'
+                            message = 'the match was rejected'
+                        else:
+                            status = 'error'
+                            message = 'this match is not active'
             else:
                 status = 'error'
-                message = 'you do not have a previlege to do this action'
+                message = 'you do not have a privilege to do this action'
         else:
             status = 'error'
             message = 'this match does not exist'
@@ -197,6 +229,7 @@ def see_other_user_profile(request):
 
     return JsonResponse(json_data)
 
+
 @api_view(['POST'])
 def get_user_profile(request):
     # returns the profile of a user in the session
@@ -213,8 +246,6 @@ def get_user_profile(request):
     return JsonResponse(json_data)
 
     
-# confirm ve reject matchde serializible eklemeliyiz ???(discuss)
-# this function is used to obtain match list index of a user
 @api_view(['GET'])
 def match_list_index(request):
     # does not need any json loading because checking with session already
@@ -356,13 +387,13 @@ def search_index(request):
 
 @api_view(['POST'])
 def rate_user(request):
-    data = json.loads(request.body) # {"user_id":"1", "rating":"10"}
+    data = json.loads(request.body) # {"user_id":"1", "rating":"5"}
     test = UserRating.objects.filter(rating_user=User.objects.get(id=request.session['user']), rated_user=User.objects.get(id=data['user_id']), rating=data['rating'])
     if 'user' in request.session:
         if Chat.objects.filter((Q(user_id_1=request.session['user']) & Q(user_id_2=data['user_id'])) | (Q(user_id_2=request.session['user']) & Q(user_id_1=data['user_id']))).exists():
             chat = Chat.objects.get((Q(user_id_1=request.session['user']) & Q(user_id_2=data['user_id'])) | (Q(user_id_2=request.session['user']) & Q(user_id_1=data['user_id'])))
             if chat.state_1 == 'confirmed' and chat.state_2 == 'confirmed':
-                if data['rating'] > 5 or data['rating'] <= 0:
+                if data['rating'] > 5 or data['rating'] < 1:
                     status = 'error'
                     message = 'the rating input is invalid'
                 elif test.exists():
@@ -383,13 +414,14 @@ def rate_user(request):
     json_data = {"status": status, "message": message}
     return JsonResponse(json_data)
 
+
 @api_view(['POST'])
 def get_book(request):
     data = json.loads(request.body)  # json = { "search_query":"something" }
     if Book.objects.filter(id=data['book_id']).exists():
         book = Book.objects.get(id=data['book_id'])
         status = 'success'
-        message = 'other user data send successfully'
+        message = 'book data send successfully'
         json_data = {"status": status, "message": message, "book_info": model_to_dict(book)}
     else:
         status = 'error'
@@ -399,98 +431,322 @@ def get_book(request):
     return JsonResponse(json_data)
 
 
+@api_view(['POST'])
+def confirm_trade(request):
+    user_data = json.loads(request.body)  # {"chat_id":"1"}
+    # check if user is logged in
+    if "user" in request.session:
+        # if this chat exists
+        chat = Chat.objects.filter(id=user_data['chat_id'])
+        if chat.exists():
+            chat = Chat.objects.get(id=user_data['chat_id'])
+            # check if the user have privilige
+            if chat.user_id_1.id == request.session['user']:
+                if chat.state_1 == 'not_confirmed' and chat.state_2 == 'confirmed':
+                    chat.state_1 = 'confirmed'
+                    chat.save()
+                    # both confirmed should do rating and delete from tradelist, wishlist and chat
+                    # delete from tradelist and wishlist for user_id
+                    if chat.suggestion_id == None:
+                        user_id_giving_book = TradeList.objects.get(Q(givingBook_id=chat.match_id.giving_book) & Q(user_id=chat.match_id.user_id))
+                        user_id_giving_book.delete()
+                        user_id_wanted_book = WishList.objects.get(Q(book_id=chat.match_id.wanted_book) & Q(user_id=chat.match_id.user_id))
+                        user_id_wanted_book.delete()
+                        # delete from tradelist and wishlist for matched_user
+                        matched_user_id_giving_book = WishList.objects.get(Q(book_id=chat.match_id.giving_book) & Q(user_id=chat.match_id.matched_user))
+                        matched_user_id_giving_book.delete()
+                        matched_user_id_wanted_book = TradeList.objects.get(Q(givingBook_id=chat.match_id.wanted_book) & Q(user_id=chat.match_id.matched_user))
+                        matched_user_id_wanted_book.delete()
+
+                        # delete the matches where wanted_book of the users and givingbooks exist
+                        matches_1 = Match.objects.filter(Q(user_id=chat.match_id.user_id) & Q(giving_book=chat.match_id.giving_book))
+                        if matches_1.exists():
+                            for match_1 in matches_1:
+                                match_1.delete()
+
+                        matches_2 = Match.objects.filter(Q(user_id=chat.match_id.matched_user) & Q(giving_book=chat.match_id.wanted_book))
+                        if matches_2.exists():
+                            for match_2 in matches_2:
+                                match_2.delete()
+                        # delete chat
+                        chat.delete()
+                    # elif chat.match_id == None:
+                    #     user_id_giving_book = TradeList.objects.get(Q(givingBook_id=chat.suggestion_id.giving_book) & Q(user_id=chat.match_id.user_id))
+                    #     user_id_giving_book.delete()
+                    #     user_id_wanted_book = WishList.objects.get(Q(book_id=chat.match_id.wanted_book) & Q(user_id=chat.match_id.user_id))
+                    #     user_id_wanted_book.delete()
+                    #     # delete from tradelist and wishlist for matched_user
+                    #     matched_user_id_giving_book = WishList.objects.get(Q(book_id=chat.match_id.giving_book) & Q(user_id=chat.match_id.matched_user))
+                    #     matched_user_id_giving_book.delete()
+                    #     matched_user_id_wanted_book = TradeList.objects.get(Q(givingBook_id=chat.match_id.wanted_book) & Q(user_id=chat.match_id.matched_user))
+                    #     matched_user_id_wanted_book.delete()
+
+                    #     # delete the matches where wanted_book of the users and givingbooks exist
+                    #     matches_1 = Match.objects.filter(Q(user_id=chat.match_id.user_id) & Q(giving_book=chat.match_id.giving_book))
+                    #     if matches_1.exists():
+                    #         for match_1 in matches_1:
+                    #             match_1.delete()
+
+                    #     matches_2 = Match.objects.filter(Q(user_id=chat.match_id.matched_user) & Q(giving_book=chat.match_id.wanted_book))
+                    #     if matches_2.exists():
+                    #         for match_2 in matches_2:
+                    #             match_2.delete()
+                    #     # delete chat
+                    #     chat.delete()
+
+                    status = 'success'
+                    message = 'the trade was confirmed succesfully, please rate the user'
+
+                elif chat.state_1 == 'confirmed':
+                    status = 'error'
+                    message = 'the trade is already confirmed by you'
+
+            elif chat.user_id_2.id == request.session['user']:
+                if chat.state_2 == 'not_confirmed':
+                    chat.state_2 = 'confirmed'
+                    chat.save()
+
+                    # both confirmed should do rating and delete from tradelist, wishlist and chat
+                    # delete from tradelist and wishlist for user_id
+                    if chat.suggestion_id == None:
+                        user_id_giving_book = TradeList.objects.get(Q(givingBook_id=chat.match_id.giving_book) & Q(user_id=chat.match_id.user_id))
+                        user_id_giving_book.delete()
+                        user_id_wanted_book = WishList.objects.get(Q(book_id=chat.match_id.wanted_book) & Q(user_id=chat.match_id.user_id))
+                        user_id_wanted_book.delete()
+                        # delete from tradelist and wishlist for matched_user
+                        matched_user_id_giving_book = WishList.objects.get(Q(book_id=chat.match_id.giving_book) & Q(user_id=chat.match_id.matched_user))
+                        matched_user_id_giving_book.delete()
+                        matched_user_id_wanted_book = TradeList.objects.get(Q(givingBook_id=chat.match_id.wanted_book) & Q(user_id=chat.match_id.matched_user))
+                        matched_user_id_wanted_book.delete()
+
+                        # delete the matches where wanted_book of the users and givingbooks exist
+                        matches_1 = Match.objects.filter(Q(user_id=chat.match_id.user_id) & Q(giving_book=chat.match_id.giving_book))
+                        if matches_1.exists():
+                            for match_1 in matches_1:
+                                match_1.delete()
+
+                        matches_2 = Match.objects.filter(Q(user_id=chat.match_id.matched_user) & Q(giving_book=chat.match_id.wanted_book))
+                        if matches_2.exists():
+                            for match_2 in matches_2:
+                                match_2.delete()
+                        # delete chat
+                        chat.delete()
+                    # elif chat.match_id == None:
+                    #     user_id_giving_book = TradeList.objects.get(Q(givingBook_id=chat.match_id.giving_book) & Q(user_id=chat.match_id.user_id))
+                    #     user_id_giving_book.delete()
+                    #     user_id_wanted_book = WishList.objects.get(Q(book_id=chat.match_id.wanted_book) & Q(user_id=chat.match_id.user_id))
+                    #     user_id_wanted_book.delete()
+                    #     # delete from tradelist and wishlist for matched_user
+                    #     matched_user_id_giving_book = WishList.objects.get(Q(book_id=chat.match_id.giving_book) & Q(user_id=chat.match_id.matched_user))
+                    #     matched_user_id_giving_book.delete()
+                    #     matched_user_id_wanted_book = TradeList.objects.get(Q(givingBook_id=chat.match_id.wanted_book) & Q(user_id=chat.match_id.matched_user))
+                    #     matched_user_id_wanted_book.delete()
+
+                    #     # delete the matches where wanted_book of the users and givingbooks exist
+                    #     matches_1 = Match.objects.filter(Q(user_id=chat.match_id.user_id) & Q(giving_book=chat.match_id.giving_book))
+                    #     if matches_1.exists():
+                    #         for match_1 in matches_1:
+                    #             match_1.delete()
+
+                    #     matches_2 = Match.objects.filter(Q(user_id=chat.match_id.matched_user) & Q(giving_book=chat.match_id.wanted_book))
+                    #     if matches_2.exists():
+                    #         for match_2 in matches_2:
+                    #             match_2.delete()
+                    #     # delete chat
+                    #     chat.delete()
+
+                    status = 'success'
+                    message = 'the trade was confirmed succesfully, please rate the user'
+                elif chat.state_2 == 'confirmed':
+                    status = 'error'
+                    message = 'the trade is already confirmed by you'
+            else:
+                status = 'error'
+                message = 'you do not have a privilege to do this action'
+        else:
+            status = 'error'
+            message = 'this chat does not exist'
+    else:
+        status = 'error'
+        message = 'you should login first'
+
+    json_data = {"status": status, "message": message}
+    return JsonResponse(json_data)
 
 
+@api_view(['POST'])
+def action_on_suggestion(request):
+    # check if there is a user in the session
+    if "user" in request.session:
+        # load user data: {"suggestion_id":1, "state":'confirmed'}
+        user_data = json.loads(request.body)
+        # find that match row in the match list
+        suggestion = Suggestion.objects.filter(id=user_data['suggestion_id'])
+        # if there is such match
+        if suggestion.exists():
+            suggestion = Suggestion.objects.get(id=user_data['suggestion_id'])
+            # check if the user in the session has a privilege for proceeding and action
+            if suggestion.user_id.id == request.session['user']:
+                other_users_suggestion = Suggestion.objects.filter((Q(user_id=suggestion.suggested_user) & Q(suggested_user=suggestion.user_id)) & (Q(suggested_book_id=suggestion.giving_book) & Q(giving_book=suggestion.suggested_book_id)))
+                date = datetime.datetime.now().strftime("%Y-%m-%d")
+                if other_users_suggestion.exists():
+                    other_users_suggestion = Suggestion.objects.get((Q(user_id=suggestion.suggested_user) & Q(suggested_user=suggestion.user_id)) & (Q(suggested_book_id=suggestion.giving_book) & Q(giving_book=suggestion.suggested_book_id)))
+                    # if session user confirmed the match
+                    if user_data['state'] == 'confirmed':
+                        if other_users_suggestion.state == 'confirmed':
+                            if suggestion.state == 'pending':
+                                suggestion.state = 'confirmed'
+                                suggestion.save()
+                                new_history_row = History(id=None, user_id=suggestion.user_id, match_id=None, suggestion_id=suggestion, state='confirmed', dateOfAction=date)
+                                new_history_row.save()
+                                new_chat = Chat(id=None, state_1='not_confirmed', state_2='not_confirmed', user_id_1=match.user_id, user_id_2=match.matched_user, match_id=None, suggestion_id=suggestion)
+                                new_chat.save()
+                                status = 'success'
+                                message = 'the match was confirmed from both sides'
+                            else:
+                                status = 'error'
+                                message = 'this match is not active'
+                        if other_users_suggestion.state == 'rejected':
+                            suggestion.state = 'rejected'
+                            suggestion.save()
+                            new_history_row = History(id=None, user_id=match.user_id, match_id=None, suggestion_id=suggestion, state='rejected', dateOfAction=date)
+                            new_history_row.save()
+                            status = 'error'
+                            message = 'the match could not be confirmed, because it was rejected by the other user'
+                        if other_users_suggestion.state == 'pending':
+                            if suggestion.state == 'pending':
+                                suggestion.state = 'confirmed'
+                                suggestion.save()
+                                new_history_row = History(id=None, user_id=match.user_id, match_id=None, suggestion_id=suggestion, state='confirmed', dateOfAction=date)
+                                new_history_row.save()
+                                status = 'success'
+                                message = 'the match was confirmed'
+                            else:
+                                status = 'error'
+                                message = 'this match is not active'
+                    # if session user rejected the match
+                    elif user_data['state'] == 'rejected':
+                        suggestion.state = 'rejected'
+                        suggestion.save()
+                        other_users_suggestion.state = 'rejected'
+                        other_users_suggestion.save()
+                        new_history_row = History(id=None, user_id=match.user_id, match_id=None, suggestion_id=suggestion, state='rejected', dateOfAction=date)
+                        new_history_row.save()
+                        status = 'success'
+                        message = 'the match was rejected'
+                else:
+                    if user_data['state'] == 'confirmed':
+                        if suggestion.state == 'pending':
+                            suggestion.state = 'confirmed'
+                            suggestion.save()
+                            new_history_row = History(id=None, user_id=match.user_id, match_id=None, suggestion_id=suggestion, state='confirmed', dateOfAction=date)
+                            new_history_row.save()
+                            status = 'success'
+                            message = 'the match was confirmed only by you for now'
+                        else:
+                            status = 'error'
+                            message = 'this match is not active'
+                    # if session user rejected the match
+                    elif user_data['state'] == 'rejected':
+                        if suggestion.state == 'pending':
+                            suggestion.state = 'rejected'
+                            suggestion.save()
+                            new_history_row = History(id=None, user_id=match.user_id, match_id=None, suggestion_id=suggestion, state='rejected', dateOfAction=date)
+                            new_history_row.save()
+                            status = 'success'
+                            message = 'the match was rejected'
+                        else:
+                            status = 'error'
+                            message = 'this match is not active'
+            else:
+                status = 'error'
+                message = 'you do not have a privilege to do this action'
+        else:
+            status = 'error'
+            message = 'this match does not exist'
+    else:
+        status = 'error'
+        message = 'you should login first'
 
+    json_data = {"status": status, "message": message}
+    return JsonResponse(json_data)
 
+"""
+------------------------------------------------------SEEDING AREA, DO NOT ENTER-----------------------------------------------
+@api_view(['POST'])
+def add_books(request):
+    with open('C:\\Users\\Mehin\\Desktop\\book\\bookclub\\bookclub\\bookclub_server\\datasets\\BX-Books.csv') as csvfile:
+        reader = csv.DictReader(csvfile, delimiter=';')
+        for row in reader:
+            p = Book(isbn=row['isbn'], title=row['title'], authorName=row['authorName'], publishDate=row['publishDate'], publisher=row['publisher'], bookPhoto=row['bookPhoto'])
+            p.save()
+    return JsonResponse({'success':'yes'})
 
+@api_view(['POST'])
+def seed_user(request):
+    i = 0
+    while i < 500:
+        faker = Factory.create('tr_TR')
+        name = faker.name()
+        country = 'Turkey'
+        mail = faker.email()
+        phoneNumber = faker.phone_number()
+        dateOfBirth = faker.date_of_birth(minimum_age=18, maximum_age=100)
+        username = faker.user_name()
+        password = faker.password(length=6, special_chars=False, digits=False, upper_case=False, lower_case=True)
+        longitude = random.uniform(36, 42) 
+        latitude = random.uniform(26,45)
 
+        user = User(name=name, country=country, mail=mail, phoneNumber=phoneNumber, dateOfBirth=dateOfBirth, username=username, password=password,
+                    long=longitude, lat=latitude, onlineState=1, profilePicture='noimage.jpg')
 
+        user.save()
+        user_settings = AccountSettings(user_id=user)
+        user_settings.save()
+        i += 1
+    return JsonResponse({'success': 'yes'})
 
+@api_view(['POST'])
+def seed_wishlist(request):
+    i = 1
+    while i <= 489:
+        wishlistSize = random.randint(0, 10)
+        # print(tradelistSize)
+        index = 0
+        while index < wishlistSize:
+            if i <= 50:
+                book_id = random.randint(1, 30)
+            else:
+                book_id = random.randint(1, 25665)
+            if WishList.objects.filter(book_id_id=book_id, user_id_id=i).count() == 1:
+                continue
+            else:
+                wishlistRow = WishList(book_id_id=book_id, user_id_id=i, order=(index+1))
+                wishlistRow.save()
+            index = index + 1
+        i = i + 1
+    return JsonResponse({'success': 'yes'})
 
+@api_view(['POST'])
+def seed_tradelist(request):
+    i = 1
+    while i <= 489:
+        tradelistSize = random.randint(0, 10)
+       # print(tradelistSize)
+        index = 0
+        while index < tradelistSize:
+            if i <= 50:
+                add_book_id = random.randint(1, 30)
+            else:
+                add_book_id = random.randint(1, 25665)
+            wishlistRow = WishList.objects.filter(Q(user_id=i) & Q(book_id=add_book_id))
+            if (wishlistRow.exists()) or (TradeList.objects.filter(givingBook_id_id=add_book_id, user_id_id=i).count() == 1):
+                continue
+            else:
+                tradelistRow = TradeList(givingBook_id_id=add_book_id, user_id_id=i)
+                tradelistRow.save()
+            index = index + 1
+        i = i + 1
+    return JsonResponse({'success': 'yes'})
 
-
-
-
-
-
-
-
-
-
-
-# @api_view(['POST'])
-# def add_books(request):
-#     with open('C:\\Users\\Mehin\\Desktop\\book\\bookclub\\bookclub\\bookclub_server\\datasets\\BX-Books.csv') as csvfile:
-#         reader = csv.DictReader(csvfile, delimiter=';')
-#         for row in reader:
-#             p = Book(isbn=row['isbn'], title=row['title'], authorName=row['authorName'], publishDate=row['publishDate'], publisher=row['publisher'], bookPhoto=row['bookPhoto'])
-#             p.save()
-#     return JsonResponse({'success':'yes'})
-
-# @api_view(['POST'])
-# def seed_user(request):
-#     i = 0
-#     while i < 500:
-#         faker = Factory.create('tr_TR')
-#         name = faker.name()
-#         country = 'Turkey'
-#         mail = faker.email()
-#         phoneNumber = faker.phone_number()
-#         dateOfBirth = faker.date_of_birth(minimum_age=18, maximum_age=100)
-#         username = faker.user_name()
-#         password = faker.password(length=6, special_chars=False, digits=False, upper_case=False, lower_case=True)
-#         longitude = random.uniform(36, 42) 
-#         latitude = random.uniform(26,45)
-
-#         user = User(name=name, country=country, mail=mail, phoneNumber=phoneNumber, dateOfBirth=dateOfBirth, username=username, password=password,
-#                     long=longitude, lat=latitude, onlineState=1, profilePicture='noimage.jpg')
-
-#         user.save()
-#         user_settings = AccountSettings(user_id=user)
-#         user_settings.save()
-#         i += 1
-#     return JsonResponse({'success': 'yes'})
-
-# @api_view(['POST'])
-# def seed_wishlist(request):
-#     i = 1
-#     while i <= 489:
-#         wishlistSize = random.randint(0, 10)
-#         # print(tradelistSize)
-#         index = 0
-#         while index < wishlistSize:
-#             if i <= 50:
-#                 book_id = random.randint(1, 30)
-#             else:
-#                 book_id = random.randint(1, 25665)
-#             if WishList.objects.filter(book_id_id=book_id, user_id_id=i).count() == 1:
-#                 continue
-#             else:
-#                 wishlistRow = WishList(book_id_id=book_id, user_id_id=i, order=(index+1))
-#                 wishlistRow.save()
-#             index = index + 1
-#         i = i + 1
-#     return JsonResponse({'success': 'yes'})
-
-# @api_view(['POST'])
-# def seed_tradelist(request):
-#     i = 1
-#     while i <= 489:
-#         tradelistSize = random.randint(0, 10)
-#        # print(tradelistSize)
-#         index = 0
-#         while index < tradelistSize:
-#             if i <= 50:
-#                 add_book_id = random.randint(1, 30)
-#             else:
-#                 add_book_id = random.randint(1, 25665)
-#             wishlistRow = WishList.objects.filter(Q(user_id=i) & Q(book_id=add_book_id))
-#             if (wishlistRow.exists()) or (TradeList.objects.filter(givingBook_id_id=add_book_id, user_id_id=i).count() == 1):
-#                 continue
-#             else:
-#                 tradelistRow = TradeList(givingBook_id_id=add_book_id, user_id_id=i)
-#                 tradelistRow.save()
-#             index = index + 1
-#         i = i + 1
-#     return JsonResponse({'success': 'yes'})
+"""

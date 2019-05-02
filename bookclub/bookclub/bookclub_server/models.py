@@ -26,6 +26,7 @@ class AccountSettings(models.Model):
     userMessagable = models.BooleanField(default=True)
     lastSeen = models.BooleanField(default=True)
 
+
 # Book Table
 class Book(models.Model):
     title = models.CharField(max_length=250)
@@ -37,6 +38,17 @@ class Book(models.Model):
     bookPhoto = models.CharField(default="defaultBook.jpg", max_length=250)
 
 
+# Suggestion Table
+class Suggestion(models.Model):
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_id_suggestion', default=1)
+    suggested_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='suggested_user', default=1)
+    recommendation_score = models.IntegerField(default=0)
+    giving_book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='giving_book_suggestion', default=1)
+    wanted_book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='wanted_book_suggestion', default=1)
+    state = models.CharField(max_length=250, default="nothing")
+    suggestion_date = models.DateField(blank=False)
+    suggested_book_id = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='suggested_book', default=1)
+
 # Match Table
 class Match(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_id', default=1)
@@ -47,22 +59,15 @@ class Match(models.Model):
     state = models.CharField(max_length=250, default="nothing")
     match_date = models.DateField(blank=False)
 
-
-# Suggestion Table
-class Suggestion(models.Model):
-    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    suggestionInformation = models.CharField(max_length=250)
-    book_id = models.ForeignKey(Book, on_delete=models.CASCADE)
-    suggestionDate = models.DateField(blank=False)
-    recommendation_score = models.IntegerField(default=0)
-
-
 # Chat Table
 class Chat(models.Model):
     user_id_1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_id_1')
     user_id_2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_id_2')
     state_1 = models.CharField(max_length=250, default="nothing") # iksi de confirmed olmayinca chat kapanmiyor ve puanlanmiyor
     state_2 = models.CharField(max_length=250, default="nothing")
+    match_id = models.ForeignKey(Match, on_delete=models.CASCADE, null=True, default=None)
+    suggestion_id = models.ForeignKey(Suggestion, on_delete=models.CASCADE, null=True, default=None)
+
 
 # Message Table
 class Message(models.Model):
@@ -89,15 +94,18 @@ class WishList(models.Model):
 # History Table
 class History(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
-    match_id = models.ForeignKey(Match, on_delete=models.CASCADE, null=True, related_name='match_id')
+    match_id = models.ForeignKey(Match, on_delete=models.CASCADE, null=True, related_name='match_id', default=None)
+    suggestion_id = models.ForeignKey(Suggestion, on_delete=models.CASCADE, null=True, related_name='suggestion_id', default=None)
     state = models.CharField(max_length=250, default="nothing") # should be confirmed both
     dateOfAction = models.DateField(blank=False)
+
 
 # BookRating Table
 class BookRating(models.Model):
     user_id = models.ForeignKey(User, on_delete=models.CASCADE)
     book_isbn = models.ForeignKey(Book, on_delete=models.CASCADE)
     raiting = models.IntegerField(default=0)
+
 
 # UserRating Table
 class UserRating(models.Model):

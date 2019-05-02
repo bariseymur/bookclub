@@ -10,6 +10,7 @@ urlpatterns = [
     path('signout/', usercontroller.sign_out),
     path('getSession/', usercontroller.get_session),
     path('actionOnMatch/', usercontroller.action_on_match),
+    path('actionOnSuggestion/', usercontroller.action_on_suggestion),
     path('seeOtherUserProfile/', usercontroller.see_other_user_profile),
     path('matchListIndex/', usercontroller.match_list_index),
     path('suggestionListIndex/', usercontroller.suggestion_list_index),
@@ -18,6 +19,7 @@ urlpatterns = [
     path('getUserProfile/', usercontroller.get_user_profile),
     path('rate/', usercontroller.rate_user),
     path('getBook/', usercontroller.get_book),
+    path('confirmTrade/', usercontroller.confirm_trade),
     # path('ekle/', usercontroller.add_books),
     # path('seed_user/', usercontroller.seed_user),
     # path('seed_wishlist/', usercontroller.seed_wishlist),
@@ -64,5 +66,6 @@ urlpatterns = [
 
     # algorithm
     path('algo/match_algo/', algorithm.match_algorithm),
+    path('algo/suggestion_algo/', algorithm.suggestion_algorithm)
 
 ]

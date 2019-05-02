@@ -6,7 +6,6 @@ from rest_framework.utils import json
 
 # in settings.py, find MIDDLEWARE_CLASSES and remove 'django.middleware.csrf.CsrfViewMiddleware'
 
-
 def signup_email(request):
     user_data = json.loads(request.body)
     subject = 'Welcome to BookClub ' + user_data['username'] + '!'
