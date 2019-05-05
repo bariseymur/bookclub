@@ -86,16 +86,24 @@ def drag(request):
     if "user" in request.session:
         if WishList.objects.filter(Q(id=user_data['wishlist_id']) & Q(user_id=request.session['user'])).exists():
             wishlist = WishList.objects.get(Q(id=user_data['wishlist_id']) & Q(user_id=request.session['user']))
+            ord=wishlist.order
+
             if user_data['action'] == 'up':
+                wishlist2 = WishList.objects.get(Q(order=ord - 1) & Q(user_id=request.session['user']))
                 status = 'success'
                 message = 'the book was succesfully dragged up'
                 wishlist.order = wishlist.order - 1
+                wishlist2.order= wishlist2.order + 1
                 wishlist.save()
+                wishlist2.save()
             elif user_data['action'] == 'down':
+                wishlist2 = WishList.objects.get(Q(order=ord + 1) & Q(user_id=request.session['user']))
                 status = 'success'
                 message = 'the book was succesfully dragged down'
                 wishlist.order = wishlist.order + 1
+                wishlist2.order = wishlist2.order - 1
                 wishlist.save()
+                wishlist2.save()
         else:
             status = 'error'
             message = 'this wishlist entry does not exist'
