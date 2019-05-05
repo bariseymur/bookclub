@@ -30,5 +30,3 @@ def index(request):
 
     json_data = {"status": status, "message": message, "chat_info": chat_list}
     return JsonResponse(json_data)
-
-

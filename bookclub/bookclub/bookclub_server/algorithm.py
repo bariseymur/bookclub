@@ -49,6 +49,22 @@ def locate_near_users(user):
     return user_ids
 
 
+def locate_near_3_users(user):
+    near_user_ids = locate_near_users(user)
+    if len(near_user_ids) > 3:
+        user_ratings = []
+        for near_id in near_user_ids:
+            user_rating = calc_user_rating(near_id)
+            user_ratings.append([near_id, user_rating])
+        user_ratings = sorted(user_ratings, key=lambda x: x[1], reverse=True)
+        print("sorted user ratings: " + str(user_ratings))
+        users_to_return = [user_ratings[0][0], user_ratings[1][0], user_ratings[2][0]]
+        print("users_to_return: " + str(users_to_return))
+        return users_to_return
+    else:
+        return near_user_ids
+
+
 def calc_user_rating(matched_id):
     matched = UserRating.objects.filter(rated_user_id=matched_id)
     rate_sum = 0
@@ -211,6 +227,129 @@ def match_algorithm(request):
 @api_view(['GET'])
 def suggestion_algorithm(request):
     user = User.objects.get(id=request.session['user'])
+    user_ids = locate_near_3_users(user)
+    print(user_ids)
+    user_wishlist = WishList.objects.filter(user_id=user.id)
+    df2 = read_frame(user_wishlist)
+    user_desired_books = []
+    books = df2.loc[:, 'book_id'].to_dict()
+    for i in books:
+        user_desired_books.append(re.findall('\d+', books[i]))
+    first_suggestion_scores = []
+  #  user_ids_3 = [user_ids[0], user_ids[1], user_ids[2]]
+    for other_user_id in user_ids:
+        if other_user_id != user.id:
+            other_user_tradelist = TradeList.objects.filter(user_id=other_user_id)
+            df3 = read_frame(other_user_tradelist)
+            other_user_giving_books = []
+            books = df3.loc[:, 'givingBook_id'].to_dict()
+            for i in books:
+                other_user_giving_books.append(re.findall('\d+', books[i]))
+            rating_point = calc_user_rating(other_user_id)
+            distance_point = calc_user_distance_point(other_user_id, user)
+            rating_point = 5 * rating_point
+            print("user rating point" + str(rating_point))
+            distance_point = distance_point / 2
+            print("distance point" + str(distance_point))
+            for giving_book in other_user_giving_books:
+                for wanted_book in user_desired_books:
+                    if wanted_book != giving_book:
+                        # first suggestion scorelar hesaplanacak
+                        book_attr_point = calc_book_attribute_point(int(wanted_book[0]), int(giving_book[0]))
+                        wishlist_sim_point = calc_wishlist_sim(int(wanted_book[0]), int(giving_book[0]), user.id)
+                        book_attr_point = (3 * book_attr_point) / 5
+                        print("book_attr_point" + str(book_attr_point))
+                        wishlist_sim_point = 2 * wishlist_sim_point
+                        print("wishlist_sim_point" + str(wishlist_sim_point))
+                        suggestion_score = rating_point + distance_point + book_attr_point + wishlist_sim_point
+                        if suggestion_score >= 50:
+                            first_suggestion_scores.append(
+                                [other_user_id, int(giving_book[0]), int(wanted_book[0]), suggestion_score])
+                        # appends other user's id, the book that is suggested, the book I wanted in my wishlist and score
+
+    user_tradelist = TradeList.objects.filter(user_id=user.id)
+    df2 = read_frame(user_tradelist)
+    user_giving_books = []
+    books = df2.loc[:, 'givingBook_id'].to_dict()
+    for i in books:
+        user_giving_books.append(re.findall('\d+', books[i]))  # userin vermek istedigi kitaplarin idsi
+    second_suggestion_scores = []
+    for other_user_id in user_ids:
+        if other_user_id != user.id:
+            other_user_wishlist = WishList.objects.filter(user_id=other_user_id)
+            df3 = read_frame(other_user_wishlist)
+            other_user_wanted_books = []
+            books = df3.loc[:, 'book_id'].to_dict()
+            for i in books:
+                other_user_wanted_books.append(re.findall('\d+', books[i]))
+            rating_point = calc_user_rating(other_user_id)
+            distance_point = calc_user_distance_point(other_user_id, user)
+            rating_point = 5 * rating_point
+            #  print("user rating point" + str(rating_point))
+            distance_point = distance_point / 2
+            # print("distance point" + str(distance_point))
+            for wanted_book in other_user_wanted_books:
+                for giving_book in user_giving_books:
+                    if wanted_book != giving_book:
+                        # second suggestion scorelar hesaplanacak
+                        book_attr_point = calc_book_attribute_point(int(wanted_book[0]), int(giving_book[0]))
+                        wishlist_sim_point = calc_wishlist_sim(int(wanted_book[0]), int(giving_book[0]), user.id)
+                        book_attr_point = 3 * book_attr_point / 5
+                        # print("book_attr_point" + str(book_attr_point))
+                        wishlist_sim_point = 2 * wishlist_sim_point
+                        # print("wishlist_sim_point" + str(wishlist_sim_point))
+                        suggestion_score = rating_point + distance_point + book_attr_point + wishlist_sim_point
+                        if suggestion_score >= 50:
+                            second_suggestion_scores.append([other_user_id, int(giving_book[0]), suggestion_score])
+                        # appends other user's id, the book I am giving and score
+    final_suggestions = []
+    suggestion_count = 0
+    for i in range(len(first_suggestion_scores)):
+        for j in range(len(second_suggestion_scores)):
+            if (first_suggestion_scores[i])[0] == (second_suggestion_scores[j])[0]:
+                if suggestion_count < 5:
+                    final_suggestion_row = [(first_suggestion_scores[i])[0], (first_suggestion_scores[i])[1],
+                                            (second_suggestion_scores[j])[1], (first_suggestion_scores[i])[2],
+                                            int(((first_suggestion_scores[i])[3] + (second_suggestion_scores[j])[
+                                                2]) / 2)]
+                    if final_suggestion_row not in final_suggestions:
+                        final_suggestions.append(final_suggestion_row)
+                        suggestion_count = suggestion_count + 1
+                else:
+                    break
+        if suggestion_count >= 5:
+            break
+            # appends other user's id, the book that is suggested, the book I am giving, the book I wanted in my wishlist,
+            # the average of 2 suggestion scores
+    for j in range(len(final_suggestions)):
+        other_user_id = final_suggestions[j][0]
+        giving_book_id = final_suggestions[j][2]
+        wanted_book_id = final_suggestions[j][3]
+        suggested_book_id = final_suggestions[j][1]
+        suggestion_score = int(final_suggestions[j][4])
+        print("suggestion score: " + str(suggestion_score), "other_user_id: " + str(other_user_id),
+              "giving_book_id: " + str(giving_book_id), "suggested_book_id: " + str(suggested_book_id))
+        suggestion_table_row = Suggestion.objects.filter(giving_book_id=giving_book_id, suggested_user_id=other_user_id,
+                                                         user_id_id=user.id,
+                                                         suggested_book_id_id=suggested_book_id,
+                                                         wanted_book_id=wanted_book_id)
+        if suggestion_table_row.exists():
+            continue
+        elif suggestion_score >= 50:
+            suggestion_table_row = Suggestion(suggestion_date=datetime.datetime.now().strftime("%Y-%m-%d"),
+                                              recommendation_score=suggestion_score,
+                                              user_id_id=user.id, giving_book_id=giving_book_id, state="pending",
+                                              suggested_user_id=other_user_id,
+                                              wanted_book_id=wanted_book_id, suggested_book_id_id=suggested_book_id)
+            suggestion_table_row.save()
+    return JsonResponse({"size_before": 'yes'})
+
+
+"""
+# old inefficient suggestion algo
+@api_view(['GET'])
+def suggestion_algorithm(request):
+    user = User.objects.get(id=request.session['user'])
     user_ids = locate_near_users(user)
     print(user_ids)
     user_wishlist = WishList.objects.filter(user_id=user.id)
@@ -308,70 +447,4 @@ def suggestion_algorithm(request):
             suggestion_table_row.save()
     return JsonResponse({"size_before": 'yes'})
 
-# @api_view(['GET'])
-# def suggestion_algorithm(request):
-
-
-# @api_view(['GET'])
-# def match_algorithm(request):
-#     # books = pd.read_csv('datasets/BX-Books.csv', sep = ';',error_bad_lines=False,  encoding='latin-1')
-#     # books = books.loc[0:25663, :]
-#     # 1. select the users whose loc is in only 15 km from the session user's loc
-#     # 2. from the filtered df, find the users whose tradelist books are matched with the ses
-#     # latitude: 0.135 = 15 km
-#     # longitude: 0.35 = 15 km
-#     # get the user in the session
-#     user = User.objects.get(id=request.session['user'])
-#     # user's lat and long
-#     user_lat = user.lat
-#     user_long = user.long
-#     # radius for lat and long - will be a while loop in the end
-#     # do we need to add point section into match or will be ordered in decreasing order anyway?
-#     radius_lat_gt = user_lat + 0.5
-#     radius_long_gt = user_long + 1.1
-#     radius_lat_lt = user_lat - 0.5
-#     radius_long_lt = user_long - 1.1
-#     # get the users that are in the radius
-#     qs = User.objects.filter(
-#         (Q(lat__gte=user_lat) & Q(long__gte=user_long) & Q(lat__lte=radius_lat_gt) & Q(long__lte=radius_long_gt)) |
-#         (Q(lat__lte=user_lat) & Q(long__lte=user_long) & Q(lat__gte=radius_lat_lt) & Q(long__gte=radius_long_lt)))
-#     df = read_frame(qs)
-#     user_ids = []
-#     ids = df.loc[:, 'id'].to_dict()
-
-#     for index in ids:
-#         if ids[index] != user.id:
-#             user_ids.append(ids[index])
-
-#     # wishlist= WishList.objects.filter(user_id=request.session['user'])
-#     # wish_df= read_frame(wishlist)
-#     # wish_ids = wish_df.loc[:, 'book_id']
-#     # item_ids = []
-#     # for index in user_ids:
-#     #     fr = TradeList.objects.filter(user_id=index)
-#     #     fr_df = read_frame(fr)
-#     #     fr_ids = fr_df.loc[:, 'givingBook_id']
-
-#     #     for item in wish_ids:
-#     #         matches= fr_ids.isin([item])
-#     #         if not matches.empty:
-#     #             print(item)
-#     #             print(index)
-#     #             item_ids.append(item)
-
-
-#     # book_ids = []
-#     # matched_users = []
-#     # for i in user_ids:
-
-#     # coords = df.as_matrix(columns=['lat', 'long'])
-#     # kms_per_radian = 6371.0088
-#     # epsilon = 15 / kms_per_radian
-#     # db = DBSCAN(eps=epsilon, min_samples=1, algorithm='ball_tree', metric='haversine').fit(np.radians(coords))
-#     # cluster_labels = db.labels_
-#     # num_clusters = len(set(cluster_labels))
-#     # clusters = pd.Series([coords[cluster_labels == n] for n in range(num_clusters)])
-#     # print('Number of clusters: {}'.format(num_clusters))
-
-
-#     return JsonResponse({"number_of_close_users": user_ids})
+"""

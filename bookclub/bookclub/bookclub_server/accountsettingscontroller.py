@@ -192,6 +192,7 @@ def change_email(request):
     json_data = {"status": status, "message": message}
     return JsonResponse(json_data)
 
+
 @api_view(['POST'])
 def change_password(request):
     # gps will be added (discussed)
@@ -208,5 +209,3 @@ def change_password(request):
 
     json_data = {"status": status, "message": message}
     return JsonResponse(json_data)
-
-# i may later merge all functions together, also optional. for now everything is ok

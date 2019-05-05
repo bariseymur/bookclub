@@ -70,15 +70,11 @@ def add(request):
             message = 'this trade already exists'
         else:
             if request.session['user'] == user_data['user_id']:
-                if user_data['givingBook_id'] != user_data['wantedBook_id']:
-                    new_row = TradeList(id=None, givingBook_id=Book.objects.get(id=user_data['givingBook_id']),
-                                        user_id=User.objects.get(id=request.session['user']))
-                    new_row.save()
-                    status = 'success'
-                    message = 'the trade was successfully added to the tradelist'
-                else:
-                    status = 'error'
-                    message = 'you cannot give and take the same book in a trade'
+                new_row = TradeList(id=None, givingBook_id=Book.objects.get(id=user_data['givingBook_id']),
+                                    user_id=User.objects.get(id=request.session['user']))
+                new_row.save()
+                status = 'success'
+                message = 'the trade was successfully added to the tradelist'
             else:
                 status = 'error'
                 message = 'you cannot add a trade for another user'
