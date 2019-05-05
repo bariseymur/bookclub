@@ -246,7 +246,7 @@ def suggestion_algorithm(request):
             if other_user_tradelist.empty:
                 continue
             books = other_user_tradelist.loc[:, 'givingBook_id_id']
-            for i in books.iterrows():
+            for i in books:
                 other_user_giving_books.append(i)
             rating_point = calc_user_rating(other_user_id)
             distance_point = calc_user_distance_point(other_user_id, user)
