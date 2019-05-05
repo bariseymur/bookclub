@@ -7,7 +7,7 @@ from django.db.models import Q
 
 
 @api_view(['GET'])
-def index(request):
+def index(request): # WORKS
     # does not need any json loading
     # returns whatsapp chat list
     if "user" in request.session:

@@ -17,7 +17,7 @@ import factory.django
 
    
 @api_view(['GET'])
-def get_session(request):
+def get_session(request): # WORKS
     # this method returns the id of the user who is in the session, 
     # if there is no user in the session it returns -1
     if "user" in request.session:
@@ -27,7 +27,7 @@ def get_session(request):
 
 
 @api_view(['POST'])
-def login(request):
+def login(request): # WORKS
     # this method logs in the user whose cridentials are correct and opens up a new session
     # the session is not closed until the user logs out
     user_data = json.loads(request.body)
@@ -49,7 +49,7 @@ def login(request):
 
 
 @api_view(['POST'])
-def signup(request): 
+def signup(request): # WORKS
     # this method signs up the user and opens a session for them
     # it also adds the user's account settings into the accountsettings table
     user_data = json.loads(request.body)
@@ -75,7 +75,7 @@ def signup(request):
 
 
 @api_view(['POST'])
-def forgot_password(request):
+def forgot_password(request): # WORKS
     # this method is for resetting the password if it is forgotten
     data = json.loads(request.body)
     user_row = User.objects.filter((Q(username=data['username']) | Q(mail=data['mail'])))
@@ -101,7 +101,7 @@ def forgot_password(request):
 
 
 @api_view(['GET'])
-def sign_out(request):
+def sign_out(request): # WORKS
     # this method signs out the user and closes session
     if "user" in request.session:
         del request.session['user'] # session is closed
@@ -116,7 +116,198 @@ def sign_out(request):
 
 
 @api_view(['POST'])
-def action_on_match(request):
+def see_other_user_profile(request): # WORKS
+    # returns the profile of a user
+    data = json.loads(request.body)
+    if User.objects.filter(username=data['username']).exists():
+        user = User.objects.get(username=data['username'])
+        status = 'success'
+        message = 'other user data send successfully'
+        json_data = {"status": status, "message": message, "user_info": model_to_dict(user)}
+    else:
+        status = 'error'
+        message = 'there is no user with this name'
+        json_data = {"status": status, "message": message}
+
+    return JsonResponse(json_data)
+
+
+@api_view(['GET'])
+def get_user_profile(request): # WORKS
+    # returns the profile of a user in the session
+    if "user" in request.session:
+        status = 'success'
+        message = 'other user data send successfully'
+        user = User.objects.get(id=request.session['user'])
+        json_data = {"status": status, "message": message, "user_info": model_to_dict(user)}
+    else:
+        status = 'error'
+        message = 'there is no user with this name'
+        json_data = {"status": status, "message": message}
+
+    return JsonResponse(json_data)
+
+    
+@api_view(['GET'])
+def match_list_index(request): # WORKS
+    # does not need any json loading because checking with session already
+    if "user" in request.session:
+        matchlistIndex = []
+        matchlistRows = Match.objects.filter(Q(user_id=request.session['user']) & Q(state='pending'))
+        if matchlistRows.exists():
+            status = 'success'
+            message = 'Match list will be displayed'
+            index = 0
+            for match in matchlistRows:
+                index += 1
+                matchlistIndex.append({"matchlist_info": model_to_dict(match),
+                                       "givingBook_info": model_to_dict(match.giving_book),
+                                       "wantedBook_info": model_to_dict(match.wanted_book)})
+                if index > 50: # limited for 50 matches only - no randomizing
+                    break
+        else:
+            status = "error"
+            message = "there is no match list to display"
+            matchlistIndex = None
+    else:
+        status = 'error'
+        message = 'you should login first'
+        matchlistIndex = None
+
+    json_data = {"status": status, "message": message, "matchlistIndex": matchlistIndex}
+    return JsonResponse(json_data)
+
+
+@api_view(['GET'])
+def suggestion_list_index(request): # WORKS
+    # does not need any json loading
+    if "user" in request.session:
+        suggests = Suggestion.objects.filter(user_id=request.session['user'])
+        if suggests.exists():
+            suggest_list = []
+            index = 0
+            for suggest in suggests:
+                index += 1
+                suggest_list.append({
+                    "suggest_info": model_to_dict(suggest),
+                    "giving_book_info": model_to_dict(suggest.giving_book),
+                    "wanted_book_info": model_to_dict(suggest.wanted_book),
+                    "suggested_book_info": model_to_dict(suggest.suggested_book_id)
+                })
+                if index > 50: # limited for 50 suggestions only - no randomizing
+                    break
+            status = 'success'
+            message = 'suggestion data sent successfully'
+        else:
+            status = 'error'
+            message = 'no suggestion for this user'
+            suggest_list = None
+    else:
+        status = 'error'
+        message = 'you should login first'
+        suggest_list = None
+
+    json_data = {"status": status, "message": message, "suggestionList": suggest_list}
+    return JsonResponse(json_data)
+
+
+@api_view(['GET'])
+def main_menu_index(request): # WORKS
+    # this function returns the books from the menu screen of the user
+    # user_data = json.loads(request.body) # json = { "action":"main_menu" } it is optional is not needed actually
+    # if there is a user in the session
+    menu_index = []
+    if "user" in request.session:
+        tradelist = TradeList.objects.filter(~Q(user_id=request.session['user']))
+        if tradelist.exists():
+            status = "success"
+            message = "here are the books for your main menu"
+        else:
+            status = "error"
+            message = "there is nothing to show for the main menu"
+            menu_index = None
+    else:
+        tradelist = TradeList.objects.all()
+        if tradelist.exists():
+            status = "success"
+            message = "here are the books for your main menu"
+        else:
+            status = "error"
+            message = "there is nothing to show for the main menu"
+            menu_index = None
+    index = 0
+    for trade in tradelist:
+        index += 1
+        menu_index.append({
+            "trade_info": model_to_dict(trade),
+            "book_info": model_to_dict(trade.givingBook_id),
+            "user_info": model_to_dict(trade.user_id)
+        })
+        if index > 50:
+            break
+
+    json_data = {"status": status, "message": message, "mainMenuIndex": menu_index}
+    return JsonResponse(json_data, safe=False)
+
+
+@api_view(['POST'])
+def search_index(request): # WORKS
+    user_data = json.loads(request.body)  # json = { "search_query":"something" }
+    search_index = []
+    if "user" in request.session:
+        tradelist = TradeList.objects.filter(~Q(user_id=request.session['user'])).select_related(
+            "givingBook_id").filter(givingBook_id__title__icontains=user_data['search_query'])
+        if tradelist.exists():
+            status = "success"
+            message = "the search query is found successfully"
+        else:
+            status = "error"
+            message = "nothing was found for this search query"
+            search_index = None
+    else:
+        tradelist = TradeList.objects.all().select_related("givingBook_id").filter(
+            givingBook_id__title__icontains=user_data['search_query'])
+        if tradelist.exists():
+            status = "success"
+            message = "the search query is found successfully"
+        else:
+            status = "error"
+            message = "nothing was found for this search query"
+            search_index = None
+
+    index = 0
+    for trade in tradelist:
+        index += 1
+        search_index.append({
+            "trade_info": model_to_dict(trade),
+            "book_info": model_to_dict(trade.givingBook_id),
+            "user_info": model_to_dict(trade.user_id)
+        })
+        if index > 50:
+            break
+
+    json_data = {"status": status, "message": message, "searchIndex": search_index}
+    return JsonResponse(json_data, safe=False)
+
+
+@api_view(['POST'])
+def get_book(request): # WORKS
+    data = json.loads(request.body)  # json = { "book_id":"2" }
+    if Book.objects.filter(id=data['book_id']).exists():
+        book = Book.objects.get(id=data['book_id'])
+        status = 'success'
+        message = 'book data send successfully'
+        json_data = {"status": status, "message": message, "book_info": model_to_dict(book)}
+    else:
+        status = 'error'
+        message = 'there is no book with this id'
+        json_data = {"status": status, "message": message}
+
+    return JsonResponse(json_data)
+
+
+@api_view(['POST'])
+def action_on_match(request): # WORKS
     # check if there is a user in the session
     if "user" in request.session:
         # load user data: {"match_id":1, "state":'confirmed'}
@@ -214,202 +405,95 @@ def action_on_match(request):
 
 
 @api_view(['POST'])
-def see_other_user_profile(request):
-    # returns the profile of a user
-    data = json.loads(request.body)
-    if User.objects.filter(username=data['username']).exists():
-        user = User.objects.get(username=data['username'])
-        status = 'success'
-        message = 'other user data send successfully'
-        json_data = {"status": status, "message": message, "user_info": model_to_dict(user)}
-    else:
-        status = 'error'
-        message = 'there is no user with this name'
-        json_data = {"status": status, "message": message}
-
-    return JsonResponse(json_data)
-
-
-@api_view(['POST'])
-def get_user_profile(request):
-    # returns the profile of a user in the session
+def action_on_suggestion(request): # WORKS
+    # check if there is a user in the session
     if "user" in request.session:
-        status = 'success'
-        message = 'other user data send successfully'
-        user = User.objects.get(id=request.session['user'])
-        json_data = {"status": status, "message": message, "user_info": model_to_dict(user)}
-    else:
-        status = 'error'
-        message = 'there is no user with this name'
-        json_data = {"status": status, "message": message}
-
-    return JsonResponse(json_data)
-
-    
-@api_view(['GET'])
-def match_list_index(request):
-    # does not need any json loading because checking with session already
-    if "user" in request.session:
-        matchlistIndex = []
-        matchlistRows = Match.objects.filter(Q(user_id=request.session['user']) & Q(state='pending'))
-        if matchlistRows.exists():
-            status = 'success'
-            message = 'Match list will be displayed'
-            index = 0
-            for match in matchlistRows:
-                index += 1
-                matchlistIndex.append({"matchlist_info": model_to_dict(match),
-                                       "givingBook_info": model_to_dict(match.giving_book),
-                                       "wantedBook_info": model_to_dict(match.wanted_book)})
-                if index > 50: # limited for 50 matches only - no randomizing
-                    break
-        else:
-            status = "error"
-            message = "there is no match list to display"
-            matchlistIndex = None
-    else:
-        status = 'error'
-        message = 'you should login first'
-        matchlistIndex = None
-
-    json_data = {"status": status, "message": message, "matchlistIndex": matchlistIndex}
-    return JsonResponse(json_data)
-
-
-@api_view(['GET'])
-def suggestion_list_index(request):
-    # does not need any json loading
-    if "user" in request.session:
-        suggests = Suggestion.objects.filter(user_id=request.session['user'])
-        if suggests.exists():
-            suggest_list = []
-            index = 0
-            for suggest in suggests:
-                index += 1
-                suggest_list.append({
-                    "suggest_info": model_to_dict(suggest),
-                    "giving_book_info": model_to_dict(suggest.giving_book),
-                    "wanted_book_info": model_to_dict(suggest.wanted_book),
-                    "suggested_book_info": model_to_dict(suggest.suggested_book_id)
-                })
-                if index > 50: # limited for 50 suggestions only - no randomizing
-                    break
-            status = 'success'
-            message = 'suggestion data sent successfully'
-        else:
-            status = 'error'
-            message = 'no suggestion for this user'
-            suggest_list = None
-    else:
-        status = 'error'
-        message = 'you should login first'
-        suggest_list = None
-
-    json_data = {"status": status, "message": message, "suggestionList": suggest_list}
-    return JsonResponse(json_data)
-
-
-@api_view(['GET'])
-def main_menu_index(request):
-    # this function returns the books from the menu screen of the user
-    # user_data = json.loads(request.body) # json = { "action":"main_menu" } it is optional is not needed actually
-    # if there is a user in the session
-    menu_index = []
-    if "user" in request.session:
-        tradelist = TradeList.objects.filter(~Q(user_id=request.session['user']))
-        if tradelist.exists():
-            status = "success"
-            message = "here are the books for your main menu"
-        else:
-            status = "error"
-            message = "there is nothing to show for the main menu"
-            menu_index = None
-    else:
-        tradelist = TradeList.objects.all()
-        if tradelist.exists():
-            status = "success"
-            message = "here are the books for your main menu"
-        else:
-            status = "error"
-            message = "there is nothing to show for the main menu"
-            menu_index = None
-    index = 0
-    for trade in tradelist:
-        index += 1
-        menu_index.append({
-            "trade_info": model_to_dict(trade),
-            "book_info": model_to_dict(trade.givingBook_id),
-            "user_info": model_to_dict(trade.user_id)
-        })
-        if index > 50:
-            break
-
-    json_data = {"status": status, "message": message, "mainMenuIndex": menu_index}
-    return JsonResponse(json_data, safe=False)
-
-
-@api_view(['POST'])
-def search_index(request):
-    user_data = json.loads(request.body)  # json = { "search_query":"something" }
-    search_index = []
-    if "user" in request.session:
-        tradelist = TradeList.objects.filter(~Q(user_id=request.session['user'])).select_related(
-            "givingBook_id").filter(givingBook_id__title__icontains=user_data['search_query'])
-        if tradelist.exists():
-            status = "success"
-            message = "the search query is found successfully"
-        else:
-            status = "error"
-            message = "nothing was found for this search query"
-            search_index = None
-    else:
-        tradelist = TradeList.objects.all().select_related("givingBook_id").filter(
-            givingBook_id__title__icontains=user_data['search_query'])
-        if tradelist.exists():
-            status = "success"
-            message = "the search query is found successfully"
-        else:
-            status = "error"
-            message = "nothing was found for this search query"
-            search_index = None
-
-    index = 0
-    for trade in tradelist:
-        index += 1
-        search_index.append({
-            "trade_info": model_to_dict(trade),
-            "book_info": model_to_dict(trade.givingBook_id),
-            "user_info": model_to_dict(trade.user_id)
-        })
-        if index > 50:
-            break
-
-    json_data = {"status": status, "message": message, "searchIndex": search_index}
-    return JsonResponse(json_data, safe=False)
-
-
-@api_view(['POST'])
-def rate_user(request):
-    data = json.loads(request.body) # {"user_id":"1", "rating":"5"}
-    test = UserRating.objects.filter(rating_user=User.objects.get(id=request.session['user']), rated_user=User.objects.get(id=data['user_id']), rating=data['rating'])
-    if 'user' in request.session:
-        if Chat.objects.filter((Q(user_id_1=request.session['user']) & Q(user_id_2=data['user_id'])) | (Q(user_id_2=request.session['user']) & Q(user_id_1=data['user_id']))).exists():
-            chat = Chat.objects.get((Q(user_id_1=request.session['user']) & Q(user_id_2=data['user_id'])) | (Q(user_id_2=request.session['user']) & Q(user_id_1=data['user_id'])))
-            if chat.state_1 == 'confirmed' and chat.state_2 == 'confirmed':
-                if data['rating'] > 5 or data['rating'] < 1:
-                    status = 'error'
-                    message = 'the rating input is invalid'
-                elif test.exists():
-                    status = 'error'
-                    message = 'you have already rated this user'
+        # load user data: {"suggestion_id":1, "state":'confirmed'}
+        user_data = json.loads(request.body)
+        # find that match row in the match list
+        suggestion = Suggestion.objects.filter(id=user_data['suggestion_id'])
+        # if there is such match
+        if suggestion.exists():
+            suggestion = Suggestion.objects.get(id=user_data['suggestion_id'])
+            # check if the user in the session has a privilege for proceeding and action
+            if suggestion.user_id.id == request.session['user']:
+                other_users_suggestion = Suggestion.objects.filter((Q(user_id=suggestion.suggested_user) & Q(suggested_user=suggestion.user_id)) & (Q(suggested_book_id=suggestion.giving_book) & Q(giving_book=suggestion.suggested_book_id)))
+                date = datetime.datetime.now().strftime("%Y-%m-%d")
+                if other_users_suggestion.exists():
+                    other_users_suggestion = Suggestion.objects.get((Q(user_id=suggestion.suggested_user) & Q(suggested_user=suggestion.user_id)) & (Q(suggested_book_id=suggestion.giving_book) & Q(giving_book=suggestion.suggested_book_id)))
+                    # if session user confirmed the match
+                    if user_data['state'] == 'confirmed':
+                        if other_users_suggestion.state == 'confirmed':
+                            if suggestion.state == 'pending':
+                                suggestion.state = 'confirmed'
+                                suggestion.save()
+                                new_history_row = History(id=None, user_id=suggestion.user_id, match_id=None, suggestion_id=suggestion, state='confirmed', dateOfAction=date)
+                                new_history_row.save()
+                                new_chat = Chat(id=None, state_1='not_confirmed', state_2='not_confirmed', user_id_1=suggestion.user_id, user_id_2=suggestion.suggested_user, match_id=None, suggestion_id=suggestion)
+                                new_chat.save()
+                                status = 'success'
+                                message = 'the match was confirmed from both sides'
+                            else:
+                                status = 'error'
+                                message = 'this match is not active'
+                        if other_users_suggestion.state == 'rejected':
+                            suggestion.state = 'rejected'
+                            suggestion.save()
+                            new_history_row = History(id=None, user_id=suggestion.user_id, match_id=None, suggestion_id=suggestion, state='rejected', dateOfAction=date)
+                            new_history_row.save()
+                            status = 'error'
+                            message = 'the match could not be confirmed, because it was rejected by the other user'
+                        if other_users_suggestion.state == 'pending':
+                            if suggestion.state == 'pending':
+                                suggestion.state = 'confirmed'
+                                suggestion.save()
+                                new_history_row = History(id=None, user_id=suggestion.user_id, match_id=None, suggestion_id=suggestion, state='confirmed', dateOfAction=date)
+                                new_history_row.save()
+                                status = 'success'
+                                message = 'the match was confirmed'
+                            else:
+                                status = 'error'
+                                message = 'this match is not active'
+                    # if session user rejected the match
+                    elif user_data['state'] == 'rejected':
+                        suggestion.state = 'rejected'
+                        suggestion.save()
+                        other_users_suggestion.state = 'rejected'
+                        other_users_suggestion.save()
+                        new_history_row = History(id=None, user_id=suggestion.user_id, match_id=None, suggestion_id=suggestion, state='rejected', dateOfAction=date)
+                        new_history_row.save()
+                        status = 'success'
+                        message = 'the match was rejected'
                 else:
-                    status = 'success'
-                    message = 'you succesfully rated the user'
-                    rating = UserRating(rating_user=User.objects.get(id=request.session['user']), rated_user=User.objects.get(id=data['user_id']), rating=data['rating'])
-                    rating.save()
+                    if user_data['state'] == 'confirmed':
+                        if suggestion.state == 'pending':
+                            suggestion.state = 'confirmed'
+                            suggestion.save()
+                            new_history_row = History(id=None, user_id=suggestion.user_id, match_id=None, suggestion_id=suggestion, state='confirmed', dateOfAction=date)
+                            new_history_row.save()
+                            status = 'success'
+                            message = 'the match was confirmed only by you for now'
+                        else:
+                            status = 'error'
+                            message = 'this match is not active'
+                    # if session user rejected the match
+                    elif user_data['state'] == 'rejected':
+                        if suggestion.state == 'pending':
+                            suggestion.state = 'rejected'
+                            suggestion.save()
+                            new_history_row = History(id=None, user_id=suggestion.user_id, match_id=None, suggestion_id=suggestion, state='rejected', dateOfAction=date)
+                            new_history_row.save()
+                            status = 'success'
+                            message = 'the match was rejected'
+                        else:
+                            status = 'error'
+                            message = 'this match is not active'
+            else:
+                status = 'error'
+                message = 'you do not have a privilege to do this action'
         else:
             status = 'error'
-            message = 'you cannot rate a user that you never had a trade with'
+            message = 'this match does not exist'
     else:
         status = 'error'
         message = 'you should login first'
@@ -419,23 +503,7 @@ def rate_user(request):
 
 
 @api_view(['POST'])
-def get_book(request):
-    data = json.loads(request.body)  # json = { "search_query":"something" }
-    if Book.objects.filter(id=data['book_id']).exists():
-        book = Book.objects.get(id=data['book_id'])
-        status = 'success'
-        message = 'book data send successfully'
-        json_data = {"status": status, "message": message, "book_info": model_to_dict(book)}
-    else:
-        status = 'error'
-        message = 'there is no book with this id'
-        json_data = {"status": status, "message": message}
-
-    return JsonResponse(json_data)
-
-
-@api_view(['POST'])
-def confirm_trade(request):
+def confirm_trade(request): # WORKS
     user_data = json.loads(request.body)  # {"chat_id":"1"}
     # check if user is logged in
     if "user" in request.session:
@@ -471,8 +539,6 @@ def confirm_trade(request):
                         if matches_2.exists():
                             for match_2 in matches_2:
                                 match_2.delete()
-                        # delete chat
-                        chat.delete()
                     elif chat.match_id == None:
                         user_id_giving_book = TradeList.objects.get(Q(givingBook_id=chat.suggestion_id.giving_book) & Q(user_id=chat.suggestion_id.user_id))
                         user_id_giving_book.delete()
@@ -490,8 +556,6 @@ def confirm_trade(request):
                         if suggestions_2.exists():
                             for suggestion_2 in suggestions_2:
                                 suggestion_2.delete()
-                        # delete chat
-                        chat.delete()
                     status = 'success'
                     message = 'the trade was confirmed succesfully, please rate the user'
                 elif chat.state_1 == 'confirmed':
@@ -529,8 +593,6 @@ def confirm_trade(request):
                         if matches_2.exists():
                             for match_2 in matches_2:
                                 match_2.delete()
-                        # delete chat
-                        chat.delete()
                     elif chat.match_id == None:
                         user_id_giving_book = TradeList.objects.get(Q(givingBook_id=chat.suggestion_id.giving_book) & Q(user_id=chat.suggestion_id.user_id))
                         user_id_giving_book.delete()
@@ -548,8 +610,6 @@ def confirm_trade(request):
                         if suggestions_2.exists():
                             for suggestion_2 in suggestions_2:
                                 suggestion_2.delete()
-                        # delete chat
-                        chat.delete()
                     status = 'success'
                     message = 'the trade was confirmed succesfully, please rate the user'
                 elif chat.state_2 == 'confirmed':
@@ -575,101 +635,33 @@ def confirm_trade(request):
 
 
 @api_view(['POST'])
-def action_on_suggestion(request):
-    # check if there is a user in the session
-    if "user" in request.session:
-        # load user data: {"suggestion_id":1, "state":'confirmed'}
-        user_data = json.loads(request.body)
-        # find that match row in the match list
-        suggestion = Suggestion.objects.filter(id=user_data['suggestion_id'])
-        # if there is such match
-        if suggestion.exists():
-            suggestion = Suggestion.objects.get(id=user_data['suggestion_id'])
-            # check if the user in the session has a privilege for proceeding and action
-            if suggestion.user_id.id == request.session['user']:
-                other_users_suggestion = Suggestion.objects.filter((Q(user_id=suggestion.suggested_user) & Q(suggested_user=suggestion.user_id)) & (Q(suggested_book_id=suggestion.giving_book) & Q(giving_book=suggestion.suggested_book_id)))
-                date = datetime.datetime.now().strftime("%Y-%m-%d")
-                if other_users_suggestion.exists():
-                    other_users_suggestion = Suggestion.objects.get((Q(user_id=suggestion.suggested_user) & Q(suggested_user=suggestion.user_id)) & (Q(suggested_book_id=suggestion.giving_book) & Q(giving_book=suggestion.suggested_book_id)))
-                    # if session user confirmed the match
-                    if user_data['state'] == 'confirmed':
-                        if other_users_suggestion.state == 'confirmed':
-                            if suggestion.state == 'pending':
-                                suggestion.state = 'confirmed'
-                                suggestion.save()
-                                new_history_row = History(id=None, user_id=suggestion.user_id, match_id=None, suggestion_id=suggestion, state='confirmed', dateOfAction=date)
-                                new_history_row.save()
-                                new_chat = Chat(id=None, state_1='not_confirmed', state_2='not_confirmed', user_id_1=match.user_id, user_id_2=match.matched_user, match_id=None, suggestion_id=suggestion)
-                                new_chat.save()
-                                status = 'success'
-                                message = 'the match was confirmed from both sides'
-                            else:
-                                status = 'error'
-                                message = 'this match is not active'
-                        if other_users_suggestion.state == 'rejected':
-                            suggestion.state = 'rejected'
-                            suggestion.save()
-                            new_history_row = History(id=None, user_id=match.user_id, match_id=None, suggestion_id=suggestion, state='rejected', dateOfAction=date)
-                            new_history_row.save()
-                            status = 'error'
-                            message = 'the match could not be confirmed, because it was rejected by the other user'
-                        if other_users_suggestion.state == 'pending':
-                            if suggestion.state == 'pending':
-                                suggestion.state = 'confirmed'
-                                suggestion.save()
-                                new_history_row = History(id=None, user_id=match.user_id, match_id=None, suggestion_id=suggestion, state='confirmed', dateOfAction=date)
-                                new_history_row.save()
-                                status = 'success'
-                                message = 'the match was confirmed'
-                            else:
-                                status = 'error'
-                                message = 'this match is not active'
-                    # if session user rejected the match
-                    elif user_data['state'] == 'rejected':
-                        suggestion.state = 'rejected'
-                        suggestion.save()
-                        other_users_suggestion.state = 'rejected'
-                        other_users_suggestion.save()
-                        new_history_row = History(id=None, user_id=match.user_id, match_id=None, suggestion_id=suggestion, state='rejected', dateOfAction=date)
-                        new_history_row.save()
-                        status = 'success'
-                        message = 'the match was rejected'
+def rate_user(request): # WORKS
+    data = json.loads(request.body) # {"user_id":"1", "rating":"5"}
+    if 'user' in request.session:
+        if Chat.objects.filter((Q(user_id_1=request.session['user']) & Q(user_id_2=data['user_id'])) | (Q(user_id_2=request.session['user']) & Q(user_id_1=data['user_id']))).exists():
+            chat = Chat.objects.get((Q(user_id_1=request.session['user']) & Q(user_id_2=data['user_id'])) | (Q(user_id_2=request.session['user']) & Q(user_id_1=data['user_id'])) & Q(match_id=data['match_id']) & Q(suggestion_id=data['suggestion_id']))
+            if chat.state_1 == 'confirmed' and chat.state_2 == 'confirmed':
+                if int(data['rating']) > 5 or int(data['rating']) < 1:
+                    status = 'error'
+                    message = 'the rating input is invalid'
                 else:
-                    if user_data['state'] == 'confirmed':
-                        if suggestion.state == 'pending':
-                            suggestion.state = 'confirmed'
-                            suggestion.save()
-                            new_history_row = History(id=None, user_id=match.user_id, match_id=None, suggestion_id=suggestion, state='confirmed', dateOfAction=date)
-                            new_history_row.save()
-                            status = 'success'
-                            message = 'the match was confirmed only by you for now'
-                        else:
-                            status = 'error'
-                            message = 'this match is not active'
-                    # if session user rejected the match
-                    elif user_data['state'] == 'rejected':
-                        if suggestion.state == 'pending':
-                            suggestion.state = 'rejected'
-                            suggestion.save()
-                            new_history_row = History(id=None, user_id=match.user_id, match_id=None, suggestion_id=suggestion, state='rejected', dateOfAction=date)
-                            new_history_row.save()
-                            status = 'success'
-                            message = 'the match was rejected'
-                        else:
-                            status = 'error'
-                            message = 'this match is not active'
+                    status = 'success'
+                    message = 'you succesfully rated the user'
+                    rating = UserRating(rating_user=User.objects.get(id=request.session['user']), rated_user=User.objects.get(id=data['user_id']), rating=data['rating'])
+                    rating.save()
             else:
                 status = 'error'
-                message = 'you do not have a privilege to do this action'
+                message = 'user cannot be rated without confirmation of trade'
         else:
             status = 'error'
-            message = 'this match does not exist'
+            message = 'you cannot rate a user that you never had a trade with'
     else:
         status = 'error'
         message = 'you should login first'
 
     json_data = {"status": status, "message": message}
     return JsonResponse(json_data)
+
 
 """
 ------------------------------------------------------SEEDING AREA, DO NOT ENTER-----------------------------------------------

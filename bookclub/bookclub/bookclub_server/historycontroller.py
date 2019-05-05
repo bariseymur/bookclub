@@ -6,7 +6,7 @@ from django.http import JsonResponse
 
 
 @api_view(['GET'])
-def index(request):
+def index(request): # WORKS
     if "user" in request.session:
         history = History.objects.filter(user_id=request.session['user'])
         if history.exists():
@@ -35,7 +35,7 @@ def index(request):
 
 
 @api_view(['DELETE'])
-def clear(request):
+def clear(request): # WORKS
     if "user" in request.session:
         history = History.objects.filter(user_id=request.session['user'])
         if history.exists():

@@ -10,7 +10,7 @@ import random
 
 
 @api_view(['GET'])
-def index(request):
+def index(request): # WORKS
     # the user in the session gets all tradelist
     tradelist_index = []
     if "user" in request.session:
@@ -41,7 +41,7 @@ def index(request):
 
 
 @api_view(['DELETE'])
-def delete(request):
+def delete(request): # WORKS
     # first checking if the row exists in the table, if yes then delete or return error
     user_data = json.loads(request.body)  # {"tradelist_id":"1"}
     if "user" in request.session:
@@ -61,8 +61,8 @@ def delete(request):
 
 
 @api_view(['POST'])
-def add(request):
-    user_data = json.loads(request.body)  # {"givingBook_id":1, "wantedBook_id":2, "user_id":1 }
+def add(request): # WORKS
+    user_data = json.loads(request.body)  # {"givingBook_id":1, "user_id":1 }
     if "user" in request.session:
         if TradeList.objects.filter(Q(givingBook_id=user_data['givingBook_id']) &
                                     Q(user_id=request.session['user'])).exists():
