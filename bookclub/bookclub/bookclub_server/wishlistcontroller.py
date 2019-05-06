@@ -39,7 +39,7 @@ def index(request): # WORKS
     return JsonResponse(json_data, safe=False)
 
 
-@api_view(['DELETE'])
+@api_view(['POST'])
 def delete(request): # WORKS
     # first checking if the row exists in the table, if yes then delete or return error
     user_data = json.loads(request.body)  # {"wishlist_id":"1"}

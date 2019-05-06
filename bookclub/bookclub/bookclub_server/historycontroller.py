@@ -34,7 +34,7 @@ def index(request): # WORKS
     return JsonResponse(json_data)
 
 
-@api_view(['DELETE'])
+@api_view(['GET'])
 def clear(request): # WORKS
     if "user" in request.session:
         history = History.objects.filter(user_id=request.session['user'])
