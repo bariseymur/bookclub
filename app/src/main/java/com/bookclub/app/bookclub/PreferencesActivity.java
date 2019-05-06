@@ -1,10 +1,13 @@
 package com.bookclub.app.bookclub;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -18,6 +21,7 @@ public class PreferencesActivity extends AppCompatActivity {
     LinearLayout accountSettings, wishList, tradeList, history, logout;
     ImageButton profileButton;
     private android.app.AlertDialog alertDialog;
+    SharedPreferences sp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,20 +94,31 @@ public class PreferencesActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(PreferencesActivity.this, MainActivity.class);
+        startActivity(intent);
+    }
+
     public class LogoutOperation extends AsyncTask<Void, Void, Void>{
 
         @Override
         protected Void doInBackground(Void... voids) {
 
             BookClubAPI api = new BookClubAPI();
-
-
             api.signout();
             return null;
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
+
+            sp = PreferencesActivity.this.getSharedPreferences(LoginActivity.PREFERENCE_FILE_KEY, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putString(LoginActivity.USERNAME_PREFERENCE_FILE_KEY, LoginActivity.NOT_EXIST);
+            editor.putString(LoginActivity.PASSWORD_PREFERENCE_FILE_KEY, LoginActivity.NOT_EXIST);
+            editor.commit();
+
             alertDialog.dismiss();
             Intent intent = new Intent(PreferencesActivity.this, WelcomeActivity.class);
             startActivity(intent);

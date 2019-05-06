@@ -89,6 +89,23 @@
                         android:text="24 April 1995"
                         android:textAlignment="textStart"
                         android:textSize="18sp" />
+
+                    <TextView
+                        android:id="@+id/textView4"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Country: "
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/country"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp"
+                        android:text="Country"
+                        android:textAlignment="textStart"
+                        android:textSize="18sp" />
                 </LinearLayout>
 
             </android.support.v7.widget.CardView>

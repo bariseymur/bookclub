@@ -1,6 +1,8 @@
 package com.bookclub.app.bookclub;
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -12,13 +14,17 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.CardView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.SearchView;
 import android.widget.TextView;
 
 import com.bookclub.app.bookclub.bookclubapi.Book;
@@ -55,7 +61,10 @@ public class GeneralListFragment extends Fragment {
     private ImageButton preferencesButton, chatButton;
     private AlertDialog alertDialog;
     private OnFragmentInteractionListener mListener;
-
+    private SearchView searchBar;
+    ArrayAdapter<GeneralListContent> generalListContentArrayAdapter;
+    ListView listView;
+    private boolean guestSession;
     public GeneralListFragment() {
         // Required empty public constructor
     }
@@ -78,11 +87,12 @@ public class GeneralListFragment extends Fragment {
         return fragment;
     }
 
+
+
     private void populateGeneralList(){
         generalListContents = new ArrayList<>();
 
         BookClubAPI api = new BookClubAPI();
-        System.out.println("Coockie Info : " + api.getCookie());
         ArrayList<Object> list = api.mainMenuIndex();
        // Log.d("General List", "List : " + list);
         System.out.println(list);
@@ -94,28 +104,15 @@ public class GeneralListFragment extends Fragment {
             User user = (User)trade.get(1);
             Book book = (Book)trade.get(2);
 
-            //System.out.println("i: " + i + "id: " + id + "\nUser: " + user + "\nBook: " + book);
-            generalListContents.add(new GeneralListContent(id, book.getTitle(), book.getAuthorName(), book.getBookPhotoUrl()));
 
+            generalListContents.add(new GeneralListContent(id, user, book));
         }
 
         for (GeneralListContent g: generalListContents){
            // System.out.println(g);
         }
 
-        /*
-        generalListContent.add(new GeneralListContent(1, "1984", "George Orwell", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
-        generalListContent.add(new GeneralListContent(2, "Harry Potter", "J.K. Rowling", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
-        generalListContent.add(new GeneralListContent(1, "Küçük Prens", "Saint-exupery", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
-        generalListContent.add(new GeneralListContent(1, "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
-        generalListContent.add(new GeneralListContent(1, "1984", "George Orwell", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
-        generalListContent.add(new GeneralListContent(2, "Harry Potter", "J.K. Rowling", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
-        generalListContent.add(new GeneralListContent(1, "Küçük Prens", "Saint-exupery", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
-        generalListContent.add(new GeneralListContent(1, "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
-        generalListContent.add(new GeneralListContent(1, "1984", "George Orwell", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
-        generalListContent.add(new GeneralListContent(2, "Harry Potter", "J.K. Rowling", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
-        generalListContent.add(new GeneralListContent(1, "Küçük Prens", "Saint-exupery", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg"));
-*/
+
     }
 
     @Override
@@ -127,6 +124,7 @@ public class GeneralListFragment extends Fragment {
         }
 
         //get items from server here
+        guestSession = false;
         System.out.println("onCreate General List");
     }
 
@@ -141,14 +139,27 @@ public class GeneralListFragment extends Fragment {
         new GeneralListCreator().execute();
 
        // populateGeneralList();
-        ListView listView = view.findViewById(R.id.generalList);
-        ArrayAdapter<GeneralListContent> generalListContentArrayAdapter = new GeneralListAdapter(generalListContents, getContext());
-        listView.setAdapter(generalListContentArrayAdapter);
+        listView = view.findViewById(R.id.generalList);
+        generalListContentArrayAdapter = new GeneralListAdapter(generalListContents, getContext());
+        try {
+            listView.setAdapter(generalListContentArrayAdapter);
+
+        }catch (NullPointerException exception){
+            exception.printStackTrace();
+            listView = view.findViewById(R.id.generalList);
+            generalListContentArrayAdapter = new GeneralListAdapter(generalListContents, getContext());
+            listView.setAdapter(generalListContentArrayAdapter);
+          /*  Intent intent = new Intent(getActivity(), WelcomeActivity.class);
+            Snackbar.make(view.findViewById(R.id.frameLayout), "An error occured", Snackbar.LENGTH_SHORT).show();
+            startActivity(intent);
+
+        */}
 
         preferencesButton = view.findViewById(R.id.preferencesButton);
         preferencesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 Intent intent = new Intent(getActivity(), PreferencesActivity.class);
                 startActivity(intent);
             }
@@ -162,6 +173,28 @@ public class GeneralListFragment extends Fragment {
                 startActivity(intent);
             }
         });
+
+
+        searchBar = view.findViewById(R.id.searchBar);
+        searchBar.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+
+                alertDialog.show();
+                new BookSearchTask(query).execute();
+
+
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+        });
+
+
+
 
         Log.d("Fragment Created", "GeneralListFragment Created");
         //alertDialog.dismiss();
@@ -223,22 +256,79 @@ public class GeneralListFragment extends Fragment {
         ImageButton transactionImageButton;
         TextView authorNameTextView;
         TextView bookTitleTextView;
+        TextView usernameTextView;
         ImageButton bookImageButton;
+        CardView cv;
     }
 
+
+    public class BookSearchTask extends AsyncTask<Void, Void, Boolean>{
+
+        String query;
+
+        public BookSearchTask(String q) {
+            query = q;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aVoid) {
+            super.onPostExecute(aVoid);
+            if (aVoid){
+                generalListContentArrayAdapter = new GeneralListAdapter(generalListContents, getContext());
+                listView.setAdapter(generalListContentArrayAdapter);
+            }
+            else{
+                Snackbar.make(getView(), "Could not find a book with '" + query + "' in the title.", Snackbar.LENGTH_LONG).show();
+            }
+            alertDialog.dismiss();
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... voids) {
+
+            BookClubAPI api = new BookClubAPI();
+            ArrayList<Object> arr = api.searchIndex(query);
+            String status = (String)arr.get(0);
+            ArrayList<Object> tradeArray = (ArrayList<Object>) arr.get(2);
+            if (tradeArray != null){
+                Collections.shuffle(tradeArray);
+                generalListContents = new ArrayList<>();
+                for (int i = 0; i < tradeArray.size(); i++){
+                    ArrayList<Object> trade = (ArrayList<Object>)tradeArray.get(i);
+                    int id = (int)trade.get(0);
+                    User user = (User)trade.get(1);
+                    Book book = (Book)trade.get(2);
+
+                    generalListContents.add(new GeneralListContent(id, user, book));
+                }
+
+             //   for (GeneralListContent g: generalListContents) System.out.println(g.getBook());
+
+                return true;
+
+            }
+            else return false;
+        }
+    }
 
     public class GeneralListAdapter extends ArrayAdapter<GeneralListContent> implements View.OnClickListener{
 
         private ArrayList<GeneralListContent> dataSet;
         Context context;
-
+        Animation scaleUp, fadeIn;
 
 
         public GeneralListAdapter(ArrayList<GeneralListContent> data, Context context) {
             super(context, R.layout.general_list_item, data);
             this.dataSet = data;
             this.context=context;
-
+            scaleUp = AnimationUtils.loadAnimation(getActivity(), R.anim.scale_up_fast);
+            fadeIn = AnimationUtils.loadAnimation(getActivity(), R.anim.move);
         }
 
         @NonNull
@@ -257,21 +347,9 @@ public class GeneralListFragment extends Fragment {
                 viewHolder.authorNameTextView = (TextView)convertView.findViewById(R.id.authorTextView);
                 viewHolder.bookTitleTextView= (TextView)convertView.findViewById(R.id.bookTitleTextView);
                 viewHolder.bookImageButton= (ImageButton) convertView.findViewById(R.id.bookImageButton);
+                viewHolder.usernameTextView = (TextView) convertView.findViewById(R.id.username);
+                viewHolder.cv = convertView.findViewById(R.id.pad);
 
-
-
-      /*          try {
-                    ImageLoader imageLoader = new ImageLoader(getContext(), generalListContent.getBookImageURL());
-                    bitmap = imageLoader.execute().get();
-
-                    viewHolder.bookImageButton.setImageBitmap(Bitmap.createScaledBitmap(bitmap, 300, 400, false));
-
-                } catch (Exception e) {
-                    // Log.e("Error Message", e.getMessage());
-                    e.printStackTrace();
-                }
-*/
-           //     viewHolder.transactionImageButton = (ImageButton) convertView.findViewById(R.id.transactionImageButton);
                 result = convertView;
                 convertView.setTag(viewHolder);
 
@@ -282,44 +360,27 @@ public class GeneralListFragment extends Fragment {
             }
 
             Picasso.get()
-                    .load(generalListContent.getBookImageURL())
+                    .load(generalListContent.getBook().getBookPhotoUrl())
                     .resize(300, 400)
                     .error(R.drawable.book)
+                    .placeholder(R.drawable.ic_get_app_black_24dp)
                     .into(viewHolder.bookImageButton);
-            System.out.println(generalListContent.getBookImageURL());
+            System.out.println(generalListContent.getBook().getBookPhotoUrl());
 
-            viewHolder.authorNameTextView.setText(generalListContent.getAuthorName());
-            viewHolder.bookTitleTextView.setText(generalListContent.getBookTitle());
-           // viewHolder.transactionImageButton.setImageResource(R.drawable.ic_compare_arrows_black_24dp);
-
+            viewHolder.authorNameTextView.setText(generalListContent.getBook().getAuthorName());
+            viewHolder.bookTitleTextView.setText(generalListContent.getBook().getTitle());
+            viewHolder.usernameTextView.setText(generalListContent.getUser().getUsername());
 
             viewHolder.bookImageButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Intent intent = new Intent(getActivity(), BookDetailActivity.class);
-                    intent.putExtra("title", generalListContent.getBookTitle());
-                    intent.putExtra("author", generalListContent.getAuthorName());
+                    intent.putExtra("BOOK", generalListContent.getBook());
                     startActivity(intent);
                 }
             });
 
-           /* viewHolder.transactionImageButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (generalListContent.getTradeID() == 1){
-                        Snackbar.make(v, "Transaction Type : Sell", Snackbar.LENGTH_SHORT).show();
-                    }
-                    else{
-                        Snackbar.make(v, "Transaction Type : Trade", Snackbar.LENGTH_SHORT).show();
-                    }
-                }
-            });*/
-
-
-
-            // viewHolder.bookImageButton.setImageDrawable(sadasd);
-            //viewHolder.transactionImageButton;
-
+            //viewHolder.cv.startAnimation(scaleUp);
 
             return convertView;
         }
@@ -335,7 +396,44 @@ public class GeneralListFragment extends Fragment {
         @Override
         protected Void doInBackground(Void... voids) {
 
-            populateGeneralList();
+            generalListContents = new ArrayList<>();
+
+            BookClubAPI api = new BookClubAPI();
+            ArrayList<Object> list = api.mainMenuIndex();
+            // Log.d("General List", "List : " + list);
+            System.out.println(list);
+            ArrayList<Object> tradeList = (ArrayList<Object>) list.get(2);
+            Collections.shuffle(tradeList);
+            for (int i = 0; i < tradeList.size(); i++){
+                ArrayList<Object> trade = (ArrayList<Object>)tradeList.get(i);
+                int id = (int)trade.get(0);
+                User user = (User)trade.get(1);
+                Book book = (Book)trade.get(2);
+
+                //System.out.println("i: " + i + "id: " + id + "\nUser: " + user + "\nBook: " + book);
+                // generalListContents.add(new GeneralListContent(id, book.getTitle(), book.getAuthorName(), book.getBookPhotoUrl()));
+                generalListContents.add(new GeneralListContent(id, user, book));
+            }
+
+
+            //  populateGeneralList();
+
+            try{
+                ArrayList<Object> arr = api.getSession();
+
+                System.out.println("Guest User :" + arr.get(0));
+                if (arr.get(2) == null){
+                    ((MainActivity)getActivity()).setGuestSession(true);
+                    preferencesButton.setVisibility(View.INVISIBLE);
+                    chatButton.setVisibility(View.INVISIBLE);
+                }
+                else   ((MainActivity)getActivity()).setGuestSession(false);
+
+            }catch (NullPointerException exception){
+                exception.printStackTrace();
+                ((MainActivity)getActivity()).setGuestSession(true);
+            }
+
 
             return null;
         }
@@ -343,6 +441,8 @@ public class GeneralListFragment extends Fragment {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+            generalListContentArrayAdapter = new GeneralListAdapter(generalListContents, getContext());
+            listView.setAdapter(generalListContentArrayAdapter);
 
             if (alertDialog.isShowing())alertDialog.dismiss();
         }
@@ -355,8 +455,9 @@ public class GeneralListFragment extends Fragment {
         String bookTitle;
         String authorName;
         String bookImageURL;
-
-
+        User user;
+        Book book;
+/*
         public GeneralListContent(int tradeID, String bookTitle, String authorName, String bookImageURL) {
             this.tradeID = tradeID;
             this.bookTitle = bookTitle;
@@ -364,7 +465,31 @@ public class GeneralListFragment extends Fragment {
 
             this.bookImageURL = bookImageURL;
         }
+        */
+        public GeneralListContent(int tradeID, User user, Book book){
+            this.tradeID = tradeID;
+            this.user = user;
+            this.book = book;
 
+        }
+
+        public User getUser() {
+            return user;
+        }
+
+        public void setUser(User user) {
+            this.user = user;
+        }
+
+        public Book getBook() {
+            return book;
+        }
+
+        public void setBook(Book book) {
+            this.book = book;
+        }
+
+        /*
         public int getTradeID() {
             return tradeID;
         }
@@ -400,5 +525,7 @@ public class GeneralListFragment extends Fragment {
         public void setBookImageURL(String bookImageURL) {
             this.bookImageURL = bookImageURL;
         }
+        */
+
     }
 }

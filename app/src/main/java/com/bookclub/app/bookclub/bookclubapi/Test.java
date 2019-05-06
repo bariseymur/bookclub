@@ -31,13 +31,27 @@ public class Test {
 //        System.out.println(reader.toString());
 //        System.out.println(forgotPassword("mert", "mert@mail.com").toString());
 //        System.out.println(api.seeOtherUserProfile("mert").toString());
-        System.out.println(api.login("mert33", "123").toString());
+        System.out.println(api.login("rengul41", "jrbcou").toString());
 //        System.out.println(api.signup("mert33", "123", "mert@mail.com", "Mert", "Dy", "Turkey", "555", new Date()).toString());
 //        System.out.println(api.getSession().toString());
 //        System.out.println(api.signout().toString());
 //        System.out.println(api.suggestionListIndex().toString());
 //        System.out.println(api.getSession().toString());
-        System.out.println(api.searchIndex("Deadly").toString());
+//        System.out.println(api.searchIndex("Deadly").toString());
+//        System.out.println(api.accountSettings_index().toString());
+//        System.out.println(api.accountSettings_reset().toString());
+//        System.out.println(api.accountSettings_changeAvailability().toString());
+//        System.out.println(api.accountSettings_changeMessagable().toString());
+//        System.out.println(api.accountSettings_lastSeen().toString());
+//        System.out.println(api.accountSettings_changePicture("mert.jpg").toString());
+//        System.out.println(api.accountSettings_changePhoneNumber("555 555 55 55").toString());
+//        System.out.println(api.accountSettings_changeMail("mert@dy.com").toString());
+//        System.out.println(api.accountSettings_changeLocation(10, 10, "Mars").toString());
+//        System.out.println(api.accountSettings_onlineState().toString());
+//        System.out.println(api.accountSettings_changePassword("1234").toString());
+        System.out.println(api.suggestionListIndex().toString());
+        System.out.println(api.matchListIndex().toString());
+        System.out.println(api.chat_index().toString());
 
 //System.out.println(api.getURL("https://stars.bilkent.edu.tr/bildorm/index", "PHPSESSID=iu9pskvri1qi6pc1hhlr78ejo5; HttpOnly;"));
     }

@@ -1,13 +1,16 @@
 package com.bookclub.app.bookclub;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -22,12 +25,18 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bookclub.app.bookclub.bookclubapi.Book;
+import com.bookclub.app.bookclub.bookclubapi.BookClubAPI;
+import com.bookclub.app.bookclub.bookclubapi.User;
 import com.hudomju.swipe.SwipeToDismissTouchListener;
 import com.hudomju.swipe.adapter.ListViewAdapter;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
+
+
+import dmax.dialog.SpotsDialog;
 
 import static android.widget.Toast.LENGTH_SHORT;
 
@@ -50,13 +59,15 @@ public class MatchListFragment extends Fragment {
     private String mParam1;
     private String mParam2;
 
+    BookClubAPI api;
+
     //our variables
     private ArrayList<MatchListContent> matchListContents;
     private OnFragmentInteractionListener mListener;
     private ImageButton preferencesButton, transactionButton, chatButton;
     private ListView listView;
-
-
+    ArrayAdapter<MatchListContent> matchListContentArrayAdapter;
+    AlertDialog alertDialog;
     public MatchListFragment() {
         // Required empty public constructor
     }
@@ -87,7 +98,7 @@ public class MatchListFragment extends Fragment {
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
 
-        populateMatchList();
+
     }
 
     @Override
@@ -95,10 +106,13 @@ public class MatchListFragment extends Fragment {
                              Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_match_list, container, false);
+        api = new BookClubAPI();
+        alertDialog = new SpotsDialog(getActivity());
+        alertDialog.show();
+        new GetMatchListTask().execute();
 
         listView = view.findViewById(R.id.matchList);
-        ArrayAdapter<MatchListContent> matchListContentArrayAdapter = new MatchListFragment.MatchListAdapter(matchListContents, getContext());
-        listView.setAdapter(matchListContentArrayAdapter);
+
 
         preferencesButton = view.findViewById(R.id.preferencesButton);
         preferencesButton.setOnClickListener(new View.OnClickListener() {
@@ -119,6 +133,7 @@ public class MatchListFragment extends Fragment {
 
                     @Override
                     public void onDismiss(ListViewAdapter view, int position) {
+                        new RejectMatchTask(matchListContents.get(position).getMatchID()).execute();
                         matchListContents.remove(position);
                         matchListContentArrayAdapter.notifyDataSetChanged();
                     }
@@ -153,16 +168,6 @@ public class MatchListFragment extends Fragment {
         return view;
     }
 
-
-    private void populateMatchList(){
-        matchListContents = new ArrayList<>();
-        matchListContents.add(new MatchListContent("faruq476", "1984", "George Orwell", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", "YaraliCocuq", "Harry Potter", "J.K. Rowling", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", 44));
-        matchListContents.add(new MatchListContent("faruq476", "Küçük Prens", "Saint-exupery", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", "KaraBela02", "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", 43));
-        matchListContents.add(new MatchListContent("faruq476", "Küçük Prens", "Saint-exupery", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", "KaraBela02", "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", 55));
-        matchListContents.add(new MatchListContent("faruq476", "Küçük Prens", "Saint-exupery", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", "KaraBela02", "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", 1));
-        matchListContents.add(new MatchListContent("faruq476", "Küçük Prens", "Saint-exupery", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", "KaraBela02", "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", 12));
-
-    }
 
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -270,15 +275,15 @@ public class MatchListFragment extends Fragment {
                 convertView.setTag(viewHolder);
 
                 //item content is defined here
-                viewHolder.user1Name.setText(matchListContent.getUserName1());
-                viewHolder.user2Name.setText(matchListContent.getUserName2());
-                viewHolder.author1Name.setText(matchListContent.getAuthorName1());
-                viewHolder.author2Name.setText(matchListContent.getAuthorName2());
-                viewHolder.book1Title.setText(matchListContent.getBookTitle1());
-                viewHolder.book2Title.setText(matchListContent.getBookTitle2());
+                viewHolder.user1Name.setText(matchListContent.getUser().getUsername());
+                viewHolder.user2Name.setText(matchListContent.getMatchedUser().getUsername());
+                viewHolder.author1Name.setText(matchListContent.getGivenBook().getAuthorName());
+                viewHolder.author2Name.setText(matchListContent.getWantedBook().getAuthorName());
+                viewHolder.book1Title.setText(matchListContent.getGivenBook().getTitle());
+                viewHolder.book2Title.setText(matchListContent.getWantedBook().getTitle());
 
                 Picasso.get()
-                        .load(matchListContent.getBook1ImageURL())
+                        .load(matchListContent.getGivenBook().getBookPhotoUrl())
                         .resize(300, 400)
                         .error(R.drawable.error)
                         .placeholder(R.drawable.loading)
@@ -286,7 +291,7 @@ public class MatchListFragment extends Fragment {
 
 
                 Picasso.get()
-                        .load(matchListContent.getBook2ImageURL())
+                        .load(matchListContent.getWantedBook().getBookPhotoUrl())
                         .resize(300, 400)
                         .error(R.drawable.error)
                         .placeholder(R.drawable.loading)
@@ -301,18 +306,13 @@ public class MatchListFragment extends Fragment {
             }
 
 
-
-
-
             viewHolder.transactionButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    // Snackbar.make(v, matchListContent.getUserName1() + " " + matchListContent.getBookTitle1() + "-" + matchListContent.getUserName2() + " " + matchListContent.getBookTitle2(), Snackbar.LENGTH_LONG).show();
-                    Intent intent = new Intent(getActivity(), ChatActivity.class);
-                    intent.putExtra("MatchID", matchListContent.getMatchID());
-                    intent.putExtra("ChatID", 8342);
-                    startActivity(intent);
 
+                    new AcceptMatchTask(matchListContent.getMatchID()).execute();
+                    matchListContents.remove(position);
+                    matchListContentArrayAdapter.notifyDataSetChanged();
                 }
             });
 
@@ -328,6 +328,24 @@ public class MatchListFragment extends Fragment {
 
     }
 
+    public class RejectMatchTask extends AsyncTask<Void, Void, Void>{
+
+        int matchID;
+
+        public RejectMatchTask(int matchID){
+            this.matchID = matchID;
+        }
+
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+            ArrayList<Object> arr = api.rejectMatch(matchID);
+            System.out.println(arr);
+            return null;
+        }
+    }
+
 
     /*
     *
@@ -338,132 +356,164 @@ public class MatchListFragment extends Fragment {
 
     class MatchListContent {
 
-        private String userName1, userName2;
-        private String bookTitle1, bookTitle2;
-        private String authorName1, authorName2;
-        private String book1ImageURL, book2ImageURL;
-        private long matchID;
-        private Bitmap book1Image, book2Image;
+        private int matchID;
+        private User user;
+        private User matchedUser;
+        private int score;
+        private Book givenBook;
+        private Book wantedBook;
+        private String matchDate;
+        private String match;
 
-        public MatchListContent(String userName1, String bookTitle1, String authorName1, String book1ImageURL,
-                                String userName2, String bookTitle2, String authorName2, String book2ImageURL, long matchID) {
-            this.userName1 = userName1;
-            this.userName2 = userName2;
-            this.bookTitle1 = bookTitle1;
-            this.bookTitle2 = bookTitle2;
-            this.authorName1 = authorName1;
-            this.authorName2 = authorName2;
-            this.book1ImageURL = book1ImageURL;
-            this.book2ImageURL = book2ImageURL;
+
+        public MatchListContent(int matchID, User user, User matchedUser, int score, Book givenBook,
+                                Book wantedBook){
+
             this.matchID = matchID;
-
-
-       /*         try {
-
-                    ImageLoader imageLoader = new ImageLoader(getContext(), book1ImageURL);
-                    book1Image = imageLoader.execute().get();
-                    imageLoader = new ImageLoader(getContext(), book2ImageURL);
-                    book2Image = imageLoader.execute().get();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-*/
+            this.user = user;
+            this.matchedUser = matchedUser;
+            this.score = score;
+            this.givenBook = givenBook;
+            this.wantedBook = wantedBook;
 
         }
 
-        public void setAuthorName2(String authorName2) {
-            this.authorName2 = authorName2;
-        }
 
-        public Bitmap getBook1Image() {
-            return book1Image;
-        }
-
-        public Bitmap getBook2Image() {
-            return book2Image;
-        }
-
-        public String getBook1ImageURL() {
-            return book1ImageURL;
-        }
-
-        public void setBook1ImageURL(String book1ImageURL) {
-            this.book1ImageURL = book1ImageURL;
-        }
-
-        public String getBook2ImageURL() {
-            return book2ImageURL;
-        }
-
-        public void setBook2ImageURL(String book2ImageURL) {
-            this.book2ImageURL = book2ImageURL;
-        }
-
-        public void setBook1Image(Bitmap book1Image) {
-            this.book1Image = book1Image;
-        }
-
-        public void setBook2Image(Bitmap book2Image) {
-            this.book2Image = book2Image;
-        }
-
-        public String getUserName1() {
-            return userName1;
-        }
-
-        public void setUserName1(String userName1) {
-            this.userName1 = userName1;
-        }
-
-        public String getUserName2() {
-            return userName2;
-        }
-
-        public void setUserName2(String userName2) {
-            this.userName2 = userName2;
-        }
-
-        public String getBookTitle1() {
-            return bookTitle1;
-        }
-
-        public void setBookTitle1(String bookTitle1) {
-            this.bookTitle1 = bookTitle1;
-        }
-
-        public String getBookTitle2() {
-            return bookTitle2;
-        }
-
-        public void setBookTitle2(String bookTitle2) {
-            this.bookTitle2 = bookTitle2;
-        }
-
-        public String getAuthorName1() {
-            return authorName1;
-        }
-
-        public void setAuthorName1(String authorName1) {
-            this.authorName1 = authorName1;
-        }
-
-        public String getAuthorName2() {
-            return authorName2;
-        }
-
-
-        public long getMatchID() {
+        public int getMatchID() {
             return matchID;
         }
 
-        public void setMatchID(long matchID) {
+        public void setMatchID(int matchID) {
             this.matchID = matchID;
         }
 
+        public User getUser() {
+            return user;
+        }
+
+        public void setUser(User user) {
+            this.user = user;
+        }
+
+        public User getMatchedUser() {
+            return matchedUser;
+        }
+
+        public void setMatchedUser(User matchedUser) {
+            this.matchedUser = matchedUser;
+        }
+
+        public int getScore() {
+            return score;
+        }
+
+        public void setScore(int score) {
+            this.score = score;
+        }
+
+        public Book getGivenBook() {
+            return givenBook;
+        }
+
+        public void setGivenBook(Book givenBook) {
+            this.givenBook = givenBook;
+        }
+
+        public Book getWantedBook() {
+            return wantedBook;
+        }
+
+        public void setWantedBook(Book wantedBook) {
+            this.wantedBook = wantedBook;
+        }
+
+        public String getMatchDate() {
+            return matchDate;
+        }
+
+        public void setMatchDate(String matchDate) {
+            this.matchDate = matchDate;
+        }
+
+        public String getMatch() {
+            return match;
+        }
+
+        public void setMatch(String match) {
+            this.match = match;
+        }
+    }
 
 
+    public class AcceptMatchTask extends AsyncTask<Void, Void, Void>{
+
+        int matchID;
+
+        public AcceptMatchTask(int matchID){
+            this.matchID = matchID;
+
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+            ArrayList<Object> result =  api.confirmMatch(matchID);
+            System.out.println(result);
+            return null;
+        }
+    }
+
+    public class GetMatchListTask extends AsyncTask<Void, Void, Void>{
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            matchListContentArrayAdapter = new MatchListFragment.MatchListAdapter(matchListContents, getContext());
+            listView.setAdapter(matchListContentArrayAdapter);
+
+            if (alertDialog.isShowing())alertDialog.dismiss();
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+
+            ArrayList<Object> arr = api.matchListIndex();
+            ArrayList<Object> matches = (ArrayList<Object>) arr.get(2);
+            matchListContents = new ArrayList<>();
+            if (matches != null && matches.size() > 0){
+
+                int userID = (int)((ArrayList)(((ArrayList<Object>)matches.get(0)).get(0))).get(1);
+                System.out.println("User ID" + userID);
+                System.out.println(api.getUserProfile(userID));
+                //User currentUser = (User)(api.getUserProfile(userID).get(2));
+                User currentUser = new User(3, "asd","asd", "asd", "asd", "asd", "asd", "asd", true, "1992-05-22", 38, 34);
+
+                for (int i = 0; i < matches.size(); i++){
+                    ArrayList<Object> match = (ArrayList<Object>) matches.get(i);
+                    ArrayList<Object> matchlistInfo = ((ArrayList)(((ArrayList<Object>)matches.get(i)).get(0)));
+                    MatchListContent m = new MatchListContent(
+                            (int)matchlistInfo.get(0),
+                            currentUser,
+                            currentUser,
+                            (int) matchlistInfo.get(3),
+                            (Book)match.get(1),
+                            (Book)match.get(2)
+                    );
+                    matchListContents.add(m);
+                }
+
+            }
+
+
+            return null;
+        }
     }
 
 

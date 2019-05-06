@@ -20,8 +20,12 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.bookclub.app.bookclub.bookclubapi.Book;
+import com.bookclub.app.bookclub.bookclubapi.BookClubAPI;
+import com.bookclub.app.bookclub.bookclubapi.User;
 import com.squareup.picasso.Picasso;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
@@ -81,50 +85,8 @@ public class SuggestionListFragment extends Fragment {
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
 
-  /*      suggestionListContents = new ArrayList<>();
-
-        Log.d("onCreate", "Before alert dialog");
-
-        AlertDialog alertDialog = new SpotsDialog(getActivity());
-
-        Log.d("onCreate", "Show alert dialog");
-      //  populateSuggestionList();
-
-        CreateSuggestionList c = new CreateSuggestionList();
-        alertDialog.show();
-        c.execute();
-
-        Log.d("onCreate", "After alert dialog");
-*/
-        // populateSuggestionList();
     }
 
-
-
-
-    public class CreateSuggestionList extends AsyncTask<Void,Void,Integer>{
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            Log.d("onPreExecute", "before");
-
-        }
-
-        @Override
-        protected void onPostExecute(Integer aVoid) {
-            Log.d("onPostExecute", "before");
-
-            alertDialog.dismiss();
-            Log.d("onPostExecute", "after");
-        }
-
-        @Override
-        protected Integer doInBackground(Void... voids) {
-            populateSuggestionList();
-            return 1;
-        }
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -132,28 +94,15 @@ public class SuggestionListFragment extends Fragment {
         Log.d("Fragment Created", "SuggestionListFragment Created");
         View view = inflater.inflate(R.layout.fragment_suggestion_list, container, false);
 
-        suggestionListContents = new ArrayList<>();
-
         Log.d("onCreateView", "Before alert dialog");
 
-        AlertDialog alertDialog = new SpotsDialog(getActivity());
+        alertDialog = new SpotsDialog(getActivity());
         alertDialog.show();
 
-        Log.d("onCreateView", "Show alert dialog");
-        populateSuggestionList();
-
-        Log.d("onCreateView", "Dissmiss alert dialog");
-        alertDialog.dismiss();
-        //CreateSuggestionList c = new CreateSuggestionList();
-        //c.execute();
-
+        new CreateSuggestionListTask().execute();
+        listView = view.findViewById(R.id.suggestionList);
         Log.d("onCreateView", "After alert dialog");
 
-
-        listView = view.findViewById(R.id.suggestionList);
-
-        adapter = new SuggestionListAdapter(suggestionListContents, getContext());
-        listView.setAdapter(adapter);
 
         preferencesButton = view.findViewById(R.id.preferencesButton);
         preferencesButton.setOnClickListener(new View.OnClickListener() {
@@ -187,19 +136,7 @@ public class SuggestionListFragment extends Fragment {
     }
 
 
-    private void populateSuggestionList(){
-        suggestionListContents = new ArrayList<>();
 
-        suggestionListContents.add(new SuggestionListFragment.SuggestionListContent("faruq476", "Küçük Prens", "Saint-exupery", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", "KaraBela02", "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", null));
-        suggestionListContents.add(new SuggestionListFragment.SuggestionListContent("faruq476", "Küçük Prens", "Saint-exupery", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", "KaraBela02", "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", null));
-
-        suggestionListContents.add(new SuggestionListFragment.SuggestionListContent("faruq476", "Küçük Prens", "Saint-exupery", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", "KaraBela02", "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", null));
-        suggestionListContents.add(new SuggestionListFragment.SuggestionListContent("faruq476", "Küçük Prens", "Saint-exupery", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", "KaraBela02", "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", null));
-
-        suggestionListContents.add(new SuggestionListFragment.SuggestionListContent("faruq476", "Küçük Prens", "Saint-exupery", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", "KaraBela02", "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", null));
-        suggestionListContents.add(new SuggestionListFragment.SuggestionListContent("faruq476", "Küçük Prens", "Saint-exupery", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", "KaraBela02", "Şeytan Ayrıntıda Saklıdır", "Ahmet Ümit", "http://images.amazon.com/images/P/0195153448.01.LZZZZZZZ.jpg", null));
-
-    }
 
     @Override
     public void onAttach(Context context) {
@@ -238,7 +175,7 @@ public class SuggestionListFragment extends Fragment {
     * Class SuggestionListAdapter
     * */
     private static class ViewHolder{
-        TextView user1Name, user2Name, author1Name, author2Name, book1Title, book2Title, price;
+        TextView user1Name, user2Name, author1Name, author2Name, book1Title, book2Title, causeText;
         ImageButton book1Image, book2Image;
         ImageButton transactionButton;
         
@@ -277,29 +214,31 @@ public class SuggestionListFragment extends Fragment {
                 viewHolder.author2Name = convertView.findViewById(R.id.author2Name);
                 viewHolder.book1Title = convertView.findViewById(R.id.book1Title);
                 viewHolder.book2Title = convertView.findViewById(R.id.book2Title);
+                viewHolder.causeText = convertView.findViewById(R.id.causeText);
 
                 //Image Button
                 viewHolder.book1Image = convertView.findViewById(R.id.book1Image);
                 viewHolder.book2Image = convertView.findViewById(R.id.book2Image);
                 viewHolder.transactionButton = convertView.findViewById(R.id.transactionButton);
 
-                viewHolder.user1Name.setText(suggestionListContent.getUserName1());
-                viewHolder.user2Name.setText(suggestionListContent.getUserName2());
-                viewHolder.author1Name.setText(suggestionListContent.getAuthorName1());
-                viewHolder.author2Name.setText(suggestionListContent.getAuthorName2());
-                viewHolder.book1Title.setText(suggestionListContent.getBookTitle1());
-                viewHolder.book2Title.setText(suggestionListContent.getBookTitle2());
-
+                viewHolder.user1Name.setText(suggestionListContent.getUser().getUsername());
+                viewHolder.user2Name.setText(suggestionListContent.getSuggestedUser().getUsername());
+                viewHolder.author1Name.setText(suggestionListContent.getGivingBook().getAuthorName());
+                viewHolder.author2Name.setText(suggestionListContent.getWantedBook().getAuthorName());
+                viewHolder.book1Title.setText(suggestionListContent.getGivingBook().getTitle());
+                viewHolder.book2Title.setText(suggestionListContent.getWantedBook().getTitle());
+                viewHolder.causeText.setText("You may like this trade because of this book you liked: "
+                        + suggestionListContent.getSuggestedBook().getTitle());
 
                 Picasso.get()
-                        .load(suggestionListContent.getBook1ImageURL())
+                        .load(suggestionListContent.getGivingBook().getBookPhotoUrl())
                         .resize(300, 400)
                         .error(R.drawable.book)
                         .placeholder(R.drawable.account)
                         .into(viewHolder.book1Image);
 
                 Picasso.get()
-                        .load(suggestionListContent.getBook2ImageURL())
+                        .load(suggestionListContent.getWantedBook().getBookPhotoUrl())
                         .resize(300, 400)
                         .error(R.drawable.book)
                         .placeholder(R.drawable.account)
@@ -308,13 +247,13 @@ public class SuggestionListFragment extends Fragment {
                 //viewHolder.book1Image.setImageBitmap(Bitmap.createScaledBitmap(suggestionListContent.getBook1Image(), 300, 400, false));
                 //viewHolder.book2Image.setImageBitmap(Bitmap.createScaledBitmap(suggestionListContent.getBook2Image(), 300, 400, false));
 
-                viewHolder.transactionButton.setOnClickListener(new View.OnClickListener() {
+/*                viewHolder.transactionButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         Snackbar.make(v, suggestionListContent.getUserName1() + " " + suggestionListContent.getBookTitle1() + "-" + suggestionListContent.getUserName2() + " " + suggestionListContent.getBookTitle2(), Snackbar.LENGTH_LONG).show();
                     }
                 });
-
+*/
                 result = convertView;
                 convertView.setTag(viewHolder);
             }
@@ -324,104 +263,7 @@ public class SuggestionListFragment extends Fragment {
             }
 
 
-            /*if (suggestionListContent.getTransactionType() == SuggestionListContent.TRANSACTION_EXCHANGE) {
-                SuggestionListFragment.ExchangeViewHolder viewHolder;
 
-                if (convertView == null){
-                    viewHolder = new SuggestionListFragment.ExchangeViewHolder();
-                    LayoutInflater inflater = LayoutInflater.from(getContext());
-                    convertView = inflater.inflate(R.layout.suggestion_list_exchange_item, parent, false);
-
-                    //Text Views
-                    viewHolder.user1Name = convertView.findViewById(R.id.userNameText);
-                    viewHolder.user2Name = convertView.findViewById(R.id.userName2);
-                    viewHolder.author1Name = convertView.findViewById(R.id.author1Name);
-                    viewHolder.author2Name = convertView.findViewById(R.id.authorName);
-                    viewHolder.book1Title = convertView.findViewById(R.id.bookTitle);
-                    viewHolder.book2Title = convertView.findViewById(R.id.bookTitle);
-                    viewHolder.price = convertView.findViewById(R.id.priceText);
-                    //Image Button
-                    viewHolder.book1Image = convertView.findViewById(R.id.bookImage);
-                    viewHolder.book2Image = convertView.findViewById(R.id.bookImage);
-                    viewHolder.transactionButton = convertView.findViewById(R.id.transactionButton);
-
-                    result = convertView;
-                    convertView.setTag(viewHolder);
-                }
-                else{
-                    viewHolder = (SuggestionListFragment.ExchangeViewHolder)convertView.getTag();
-                    viewHolder.user1Name.setText(suggestionListContent.getUserName1());
-                    viewHolder.user2Name.setText(suggestionListContent.getUserName2());
-                    viewHolder.author1Name.setText(suggestionListContent.getAuthorName1());
-                    viewHolder.author2Name.setText(suggestionListContent.getAuthorName2());
-                    viewHolder.book1Title.setText(suggestionListContent.getBookTitle1());
-                    viewHolder.book2Title.setText(suggestionListContent.getBookTitle2());
-
-                    viewHolder.book1Image.setImageBitmap(Bitmap.createScaledBitmap(suggestionListContent.getBook1Image(), 300, 400, false));
-                    viewHolder.book2Image.setImageBitmap(Bitmap.createScaledBitmap(suggestionListContent.getBook2Image(), 300, 400, false));
-
-                    viewHolder.transactionButton.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            Snackbar.make(v, suggestionListContent.getUserName1() + " " + suggestionListContent.getBookTitle1() + "-" + suggestionListContent.getUserName2() + " " + suggestionListContent.getBookTitle2(), Snackbar.LENGTH_LONG).show();
-                        }
-                    });
-                    result = convertView;
-                }
-
-
-                //item content is defined here
-
-                return convertView;
-            }
-            else if (suggestionListContent.getTransactionType() == SuggestionListContent.TRANSACTION_SELL){
-                SuggestionListFragment.SellViewHolder viewHolder;
-
-
-                if (convertView == null){
-                    viewHolder = new SuggestionListFragment.SellViewHolder();
-                    LayoutInflater inflater = LayoutInflater.from(getContext());
-                    convertView = inflater.inflate(R.layout.suggestion_list_sell_item, parent, false);
-
-                    //Text Views
-                    viewHolder.userName = convertView.findViewById(R.id.userName);
-                    viewHolder.authorName = convertView.findViewById(R.id.authorName);
-                    viewHolder.bookTitle = convertView.findViewById(R.id.bookTitle);
-
-                    //Image Views
-                    viewHolder.bookImage = convertView.findViewById(R.id.bookImage);
-
-                    //Image Buttons
-                    viewHolder.transactionButton = convertView.findViewById(R.id.transactionButton);
-                    viewHolder.price = convertView.findViewById(R.id.priceText);
-
-                    result = convertView;
-                    convertView.setTag(viewHolder);
-                }
-                else{
-                    viewHolder = (SuggestionListFragment.SellViewHolder)convertView.getTag();
-                    result = convertView;
-                }
-
-
-                //item content is defined here
-                viewHolder.userName.setText(suggestionListContent.getUserName1());
-                viewHolder.authorName.setText(suggestionListContent.getAuthorName1());
-                viewHolder.bookTitle.setText(suggestionListContent.getBookTitle1());
-                viewHolder.price.setText(""+suggestionListContent.getPrice());
-                viewHolder.bookImage.setImageBitmap(Bitmap.createScaledBitmap(suggestionListContent.getBook1Image(), 300, 400, false));
-                viewHolder.transactionButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Intent intent = new Intent(getActivity(), ChatActivity.class);
-                        startActivity(intent);
-                    }
-                });
-            }
-            else{
-                return null;
-            } 
-        */
             return convertView;
         }
 
@@ -430,7 +272,62 @@ public class SuggestionListFragment extends Fragment {
 
         }
     }
-    
+
+    public class CreateSuggestionListTask extends AsyncTask<Void,Void,Void>{
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            Log.d("onPreExecute", "before");
+
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+
+            adapter = new SuggestionListAdapter(suggestionListContents, getContext());
+            listView.setAdapter(adapter);
+            alertDialog.dismiss();
+
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            BookClubAPI api = new BookClubAPI();
+
+            ArrayList<Object> suggestions = (ArrayList<Object>) api.suggestionListIndex().get(2);
+            suggestionListContents = new ArrayList<>();
+
+            if (suggestions != null && suggestions.size() > 0){
+
+             //   int userID = (int)((ArrayList)(((ArrayList<Object>)suggestions.get(0)).get(0))).get(1);
+
+                User currentUser = new User(3, "asd","asd", "asd", "asd", "asd", "asd", "asd", true, "1992-05-22", 38, 34);
+                System.out.println(suggestions + "\nSize : " + suggestions.size());
+                for (int i = 0; i < suggestions.size(); i++){
+                    ArrayList<Object> suggestion = (ArrayList<Object>) suggestions.get(i);
+                    System.out.println("Suggestion: " + suggestion);
+                    // ArrayList<Object> suggestionListinfo = ((ArrayList<Object>)(((ArrayList<Object>)suggestions.get(i)).get(0)));
+                    ArrayList<Object> suggestionListinfo = (ArrayList<Object>) suggestion.get(0);
+                    SuggestionListContent suggestionListContent = new SuggestionListContent(
+                            (int)suggestionListinfo.get(0),
+                            currentUser,
+                            currentUser,
+                            (Book)suggestion.get(1),
+                            (Book)suggestion.get(2),
+                            (Book) suggestion.get(3),
+                            (int)suggestionListinfo.get(3)
+                    );
+                    suggestionListContents.add(suggestionListContent);
+                }
+
+
+            }
+
+
+            return null;
+        }
+    }
 
     /*
     * Class SuggestionListContent
@@ -441,169 +338,80 @@ public class SuggestionListFragment extends Fragment {
         public static final int TRANSACTION_EXCHANGE = 0;
         public static final int TRANSACTION_SELL = 1;
 
-        private double price;
-        private String userName1, userName2;
-        private String bookTitle1, bookTitle2;
-        private String authorName1, authorName2;
-        private Bitmap book1Image, book2Image;
-        private int transactionType;
-        private String reason;
-        private String book1ImageURL, book2ImageURL;
 
-        public SuggestionListContent(String userName1, String bookTitle1, String authorName1, String book1ImageURL,
-                                String userName2, String bookTitle2, String authorName2, String book2ImageURL, String reason) {
-            this.transactionType = TRANSACTION_EXCHANGE;
-            this.userName1 = userName1;
-            this.userName2 = userName2;
-            this.bookTitle1 = bookTitle1;
-            this.bookTitle2 = bookTitle2;
-            this.authorName1 = authorName1;
-            this.authorName2 = authorName2;
-            this.book1Image = book1Image;
-            this.book2Image = book2Image;
-            this.reason = reason;
-            this.book1ImageURL = book1ImageURL;
-            this.book2ImageURL = book2ImageURL;
-/*
-            try {
+          int suggestID;
+          User user, suggestedUser;
+          Book givingBook, wantedBook, suggestedBook;
+          int score;
 
-                ImageLoader imageLoader = new ImageLoader(getContext(), book1ImageURL);
-                book1Image = imageLoader.execute().get();
-                imageLoader = new ImageLoader(getContext(), book2ImageURL);
-                book2Image = imageLoader.execute().get();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-         */
+        public SuggestionListContent(int suggestID, User user, User suggestedUser, Book givingBook, Book wantedBook, Book suggestedBook, int score) {
+            this.suggestID = suggestID;
+            this.user = user;
+            this.suggestedUser = suggestedUser;
+            this.givingBook = givingBook;
+            this.wantedBook = wantedBook;
+            this.suggestedBook = suggestedBook;
+            this.score = score;
         }
 
-        public String getBook1ImageURL() {
-            return book1ImageURL;
+        public int getSuggestID() {
+            return suggestID;
         }
 
-        public void setBook1ImageURL(String book1ImageURL) {
-            this.book1ImageURL = book1ImageURL;
+        public void setSuggestID(int suggestID) {
+            this.suggestID = suggestID;
         }
 
-        public String getBook2ImageURL() {
-            return book2ImageURL;
+        public User getUser() {
+            return user;
         }
 
-        public void setBook2ImageURL(String book2ImageURL) {
-            this.book2ImageURL = book2ImageURL;
+        public void setUser(User user) {
+            this.user = user;
         }
 
-        public SuggestionListContent(String userName, String bookTitle, String authorName, String bookImageURL, double price, String reason) {
-            this.transactionType = TRANSACTION_SELL;
-            this.userName1 = userName;
-            this.bookTitle1 = bookTitle;
-            this.authorName1 = authorName;
-            this.price = price;
-            this.reason = reason;
-
-
-            try {
-
-                ImageLoader imageLoader = new ImageLoader(getContext(), bookImageURL);
-                book1Image = imageLoader.execute().get();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        public User getSuggestedUser() {
+            return suggestedUser;
         }
 
-
-        public double getPrice() {
-            return price;
+        public void setSuggestedUser(User suggestedUser) {
+            this.suggestedUser = suggestedUser;
         }
 
-        public void setPrice(double price) {
-            this.price = price;
+        public Book getGivingBook() {
+            return givingBook;
         }
 
-        public String getUserName1() {
-            return userName1;
+        public void setGivingBook(Book givingBook) {
+            this.givingBook = givingBook;
         }
 
-        public void setUserName1(String userName1) {
-            this.userName1 = userName1;
+        public Book getWantedBook() {
+            return wantedBook;
         }
 
-        public String getUserName2() {
-            return userName2;
+        public void setWantedBook(Book wantedBook) {
+            this.wantedBook = wantedBook;
         }
 
-        public void setUserName2(String userName2) {
-            this.userName2 = userName2;
+        public Book getSuggestedBook() {
+            return suggestedBook;
         }
 
-        public String getBookTitle1() {
-            return bookTitle1;
+        public void setSuggestedBook(Book suggestedBook) {
+            this.suggestedBook = suggestedBook;
         }
 
-        public void setBookTitle1(String bookTitle1) {
-            this.bookTitle1 = bookTitle1;
+        public int getScore() {
+            return score;
         }
 
-        public String getBookTitle2() {
-            return bookTitle2;
+        public void setScore(int score) {
+            this.score = score;
         }
 
-        public void setBookTitle2(String bookTitle2) {
-            this.bookTitle2 = bookTitle2;
-        }
-
-        public String getAuthorName1() {
-            return authorName1;
-        }
-
-        public void setAuthorName1(String authorName1) {
-            this.authorName1 = authorName1;
-        }
-
-        public String getAuthorName2() {
-            return authorName2;
-        }
-
-        public void setAuthorName2(String authorName2) {
-            this.authorName2 = authorName2;
-        }
-
-        public Bitmap getBook1Image() {
-            return book1Image;
-        }
-
-        public void setBook1Image(Bitmap book1Image) {
-            this.book1Image = book1Image;
-        }
-
-        public Bitmap getBook2Image() {
-            return book2Image;
-        }
-
-        public void setBook2Image(Bitmap book2Image) {
-            this.book2Image = book2Image;
-        }
-
-        public int getTransactionType() {
-            return transactionType;
-        }
-
-        public void setTransactionType(int transactionType) {
-            this.transactionType = transactionType;
-        }
-
-        public String getReason() {
-            return reason;
-        }
-
-        public void setReason(String reason) {
-            this.reason = reason;
-        }
     }
+
 
 
 }

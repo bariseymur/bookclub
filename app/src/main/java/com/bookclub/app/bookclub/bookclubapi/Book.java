@@ -5,6 +5,7 @@
  */
 package com.bookclub.app.bookclub.bookclubapi;
 
+import java.io.Serializable;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -15,7 +16,7 @@ import java.util.logging.Logger;
  *
  * @author mosma
  */
-public class Book {
+public class Book implements Serializable{
 
     private int id;
     private String title,
@@ -126,7 +127,7 @@ public class Book {
             Logger.getLogger(Book.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
     public String toString() {
         return "\nid: " + this.id
                 + "\ntitle: " + this.title

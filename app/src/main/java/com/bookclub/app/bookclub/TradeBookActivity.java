@@ -26,18 +26,18 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 
 
-public class RequestBookActivity extends AppCompatActivity {
+public class TradeBookActivity extends AppCompatActivity {
 
 
     ListView listView;
-    ArrayList<RequestBookListItem> requestBookListItems;
+    ArrayList<RequestBookListItem> tradeBookListItems;
     SearchView searchBar;
     ImageButton searchButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_request_book);
+        setContentView(R.layout.activity_trade_book);
         searchBar = findViewById(R.id.searchBar);
         searchButton = findViewById(R.id.searchButton);
         searchButton.setOnClickListener(new View.OnClickListener() {
@@ -53,23 +53,23 @@ public class RequestBookActivity extends AppCompatActivity {
 
     public static class ViewHolder{
         TextView author, bookTitle;
-        ImageButton bookImage, wishButton;
+        ImageButton bookImage, tradeButton;
         CardView cardView;
     }
 
-    public class RequestBookListAdapter extends ArrayAdapter<RequestBookListItem>{
+    public class TradeBookListAdapter extends ArrayAdapter<RequestBookListItem>{
 
         Animation scaleUp;
 
 
-        public RequestBookListAdapter(Context context, int resource) {
+        public TradeBookListAdapter(Context context, int resource) {
             super(context, resource);
         }
 
         @Nullable
         @Override
         public View getView(final int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-            final RequestBookListItem requestBookListItem= getItem(position);
+            final RequestBookListItem tradeBookListItem= getItem(position);
             ViewHolder viewHolder;
 
             final View result;
@@ -82,7 +82,7 @@ public class RequestBookActivity extends AppCompatActivity {
                 viewHolder.author = convertView.findViewById(R.id.authorName);
                 viewHolder.bookTitle = convertView.findViewById(R.id.bookTitle);
                 viewHolder.bookImage = convertView.findViewById(R.id.bookImage);
-                viewHolder.wishButton = convertView.findViewById(R.id.wishButton);
+                viewHolder.tradeButton = convertView.findViewById(R.id.wishButton);
                 result = convertView;
                 convertView.setTag(viewHolder);
 
@@ -93,26 +93,26 @@ public class RequestBookActivity extends AppCompatActivity {
             }
 
             Picasso.get()
-                    .load(requestBookListItem.getBook().getBookPhotoUrl())
+                    .load(tradeBookListItem.getBook().getBookPhotoUrl())
                     .resize(300, 400)
                     .error(R.drawable.book)
-                    .placeholder(R.drawable.book)
+                    .placeholder(R.drawable.ic_get_app_black_24dp)
                     .into(viewHolder.bookImage);
-            System.out.println(requestBookListItem.getBook().getBookPhotoUrl());
+            System.out.println(tradeBookListItem.getBook().getBookPhotoUrl());
 
-            viewHolder.author.setText(requestBookListItem.getBook().getAuthorName());
-            viewHolder.bookTitle.setText(requestBookListItem.getBook().getTitle());
+            viewHolder.author.setText(tradeBookListItem.getBook().getAuthorName());
+            viewHolder.bookTitle.setText(tradeBookListItem.getBook().getTitle());
 
 
-            viewHolder.wishButton.setOnClickListener(new View.OnClickListener() {
+            viewHolder.tradeButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    //TODO wish operation
-                    new WishBookTask(requestBookListItem.getBook()).execute();
+                    //TODO trade operation
+                    new TradeBookTask(tradeBookListItem.getBook()).execute();
                 }
             });
 
-          //  viewHolder.cardView.startAnimation(scaleUp);
+            //  viewHolder.cardView.startAnimation(scaleUp);
 
             return convertView;
 
@@ -121,7 +121,7 @@ public class RequestBookActivity extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            return requestBookListItems.size();
+            return tradeBookListItems.size();
         }
     }
 
@@ -161,11 +161,11 @@ public class RequestBookActivity extends AppCompatActivity {
         }
     }
 
-    public class WishBookTask extends AsyncTask<Void, Void, Void>{
+    public class TradeBookTask extends AsyncTask<Void, Void, Void>{
 
         Book book;
 
-        public WishBookTask(Book book) {
+        public TradeBookTask(Book book) {
             this.book = book;
         }
 

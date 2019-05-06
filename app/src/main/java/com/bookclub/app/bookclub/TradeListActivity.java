@@ -80,7 +80,7 @@ public class TradeListActivity extends AppCompatActivity {
         tradeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(TradeListActivity.this, RequestBookActivity.class);
+                Intent intent = new Intent(TradeListActivity.this, TradeBookActivity.class);
                 startActivity(intent);
             }
         });

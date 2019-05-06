@@ -5,6 +5,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -19,7 +20,6 @@ import android.location.LocationManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.app.LoaderManager.LoaderCallbacks;
 
@@ -57,6 +57,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
+import dmax.dialog.SpotsDialog;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -96,7 +98,9 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
     private double lat, lon;
     private ImageButton changeDateButton, changeLocationButton;
     private DatePickerDialog.OnDateSetListener mDateSetListener;
+    private boolean locationReceived, dateReceived;
     TextInputEditText userName, name, surname, phoneNumber, date, locationText;
+    private AlertDialog alertDialog;
 
 
     @Override
@@ -105,8 +109,8 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
         setContentView(R.layout.activity_signup);
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
-        populateAutoComplete();
-
+        locationReceived = false;
+        dateReceived = false;
         mPasswordView = (EditText) findViewById(R.id.password);
         mPasswordView.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -118,8 +122,8 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
                 return false;
             }
         });
-
-        Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
+        alertDialog = new SpotsDialog(this);
+        Button mEmailSignInButton = (Button) findViewById(R.id.sign_in_button);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -142,7 +146,7 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
         countrySpinner.setAdapter(mAdapter);
 
 
-        birthDateText = findViewById(R.id.userNameText);
+        birthDateText = findViewById(R.id.birthDateText);
 
         changeDateButton = findViewById(R.id.changeDatePickButton);
         changeDateButton.setOnClickListener(new View.OnClickListener() {
@@ -158,6 +162,7 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
                         android.R.style.Theme_Holo_Light_Dialog_MinWidth,
                         mDateSetListener,
                         year,month,day);
+                dialog.setTitle("Pick your birthday");
                 dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
                 dialog.show();
             }
@@ -170,6 +175,7 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
 
                 String date = day + "/" + month + "/" + year;
                 birthDateText.setText(date);
+                dateReceived = true;
             }
         };
 
@@ -195,9 +201,11 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
                         lat = location.getLatitude();
                         lon = location.getLongitude();
 
-                        String city = hereLocation(lat, lon);
+                        String city = hereLocation(SignupActivity.this, lat, lon);
 
                         locationText.setText(city);
+                        locationReceived = true;
+
                     }
                 }
             }
@@ -243,9 +251,9 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
         alert.show();
     }
 
-    private String hereLocation(double lat, double lon){
+    public static String hereLocation(Context context, double lat, double lon){
         String cityName = "";
-        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        Geocoder geocoder = new Geocoder(context, Locale.getDefault());
         List<Address> addresses;
         try {
             addresses = geocoder.getFromLocation(lat, lon, 10);
@@ -266,55 +274,50 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
     }
 
 
-    private void populateAutoComplete() {
-        if (!mayRequestContacts()) {
-            return;
-        }
-
-        getLoaderManager().initLoader(0, null, this);
-    }
-
-    private boolean mayRequestContacts() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return true;
-        }
-        if (checkSelfPermission(READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
-            return true;
-        }
-        if (shouldShowRequestPermissionRationale(READ_CONTACTS)) {
-            Snackbar.make(mEmailView, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
-                    .setAction(android.R.string.ok, new View.OnClickListener() {
-                        @Override
-                        @TargetApi(Build.VERSION_CODES.M)
-                        public void onClick(View v) {
-                            requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS);
-                        }
-                    });
-        } else {
-            requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_CONTACTS);
-        }
-        return false;
-    }
-
-    /**
-     * Callback received when a permissions request has been completed.
-     */
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        if (requestCode == REQUEST_READ_CONTACTS) {
-            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                populateAutoComplete();
-            }
-        }
-    }
-
 
     /**
      * Attempts to sign in or register the account specified by the login form.
      * If there are form errors (invalid email, missing fields, etc.), the
      * errors are presented and no actual login attempt is made.
      */
+
+    private void inputcheck () {
+        boolean cancel = false;
+        if (userName.getText().toString().contains(" ")){
+            userName.requestFocus();
+            userName.setError("Username entry is invalid");
+            cancel = true;
+        }
+        if (!mPasswordView.getText().toString().equals(mconfirmPassword.getText().toString())){
+            mconfirmPassword.requestFocus();
+            mconfirmPassword.setError("Passwords do not match");
+            cancel = true;
+        }
+        // locationReceived is made true inside the click listener
+        // /if the changeLocationButton was clicked
+        if (!locationReceived){
+            changeLocationButton.requestFocus();
+            cancel = true;
+        }
+        if (!mEmailView.getText().toString().contains("@")){
+            mEmailView.requestFocus();
+            mEmailView.setError("Invalid email address");
+
+            cancel = true;
+        }
+        // dateReceived is made true inside the click listener
+        // /if the changeDateButton was clicked
+        if (!dateReceived){
+            changeDateButton.requestFocus();
+            cancel = true;
+        }
+
+        if (!cancel){
+            alertDialog.show();
+            new UserLoginTask().execute();
+        }
+    }
+
     private void attemptSignup() {
         if (mAuthTask != null) {
             return;
@@ -323,6 +326,9 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
         // Reset errors.
         mEmailView.setError(null);
         mPasswordView.setError(null);
+        mconfirmPassword.setError(null);
+        name.setError(null);
+        userName.setError(null);
 
         // Store values at the time of the login attempt.
         String email = mEmailView.getText().toString();
@@ -332,19 +338,23 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
         View focusView = null;
 
         // Check for a valid password, if the user entered one.
-        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
+
+        if (userName.getText() == null || userName.getText().equals("") || userName.getText().toString().length() < 4 || userName.getText().toString().contains(" ")){
+            userName.setError("Username entry is invalid");
+            focusView = userName;
+            cancel = true;
+        } else if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
             mPasswordView.setError(getString(R.string.error_invalid_password));
             focusView = mPasswordView;
             cancel = true;
-        }
-        if (!mPasswordView.getText().toString().equals(mconfirmPassword.getText().toString())){
-            focusView = mPasswordView;
+        } else if (!dateReceived){
+            focusView = changeDateButton;
             cancel = true;
-        }
-
-
-        // Check for a valid email address.
-        if (TextUtils.isEmpty(email)) {
+        } else if (!mPasswordView.getText().toString().equals(mconfirmPassword.getText().toString())){
+            mconfirmPassword.setError("Passwords Do Not Match");
+            focusView = mconfirmPassword;
+            cancel = true;
+        } else if (TextUtils.isEmpty(email)) {
             mEmailView.setError(getString(R.string.error_field_required));
             focusView = mEmailView;
             cancel = true;
@@ -352,21 +362,27 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
             mEmailView.setError(getString(R.string.error_invalid_email));
             focusView = mEmailView;
             cancel = true;
+        } else if (!locationReceived){
+            focusView = changeLocationButton;
+            cancel = true;
         }
 
-
-
-        if (cancel) {
-            // There was an error; don't attempt login and focus the first
-            // form field with an error.
-            focusView.requestFocus();
-        } else {
-            // Show a progress spinner, and kick off a background task to
-            // perform the user login attempt.
-            showProgress(true);
+        if (!cancel) {
+            //showProgress(true);
+            alertDialog.show();
             mAuthTask = new UserLoginTask();
             mAuthTask.execute((Void) null);
         }
+        else {
+            focusView.requestFocus();
+        }
+    }
+
+    private boolean contains(String str, String search){
+        for (int i = 0; i <= str.length()-search.length(); i++){
+            if (str.substring(i, i+search.length()).equals(search)) return true;
+        }
+        return false;
     }
 
     private boolean isEmailValid(String email) {
@@ -387,7 +403,7 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
         // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
         // for very easy animations. If available, use these APIs to fade-in
         // the progress spinner.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+        /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
             int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
             mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
@@ -412,7 +428,8 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
             // and hide the relevant UI components.
             mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
             mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
+        }*/
+
     }
 
     @Override
@@ -495,7 +512,7 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
                 BookClubAPI api = new BookClubAPI();
                 ArrayList<Object> status = api.signup(userName.getText().toString(), mPasswordView.getText().toString(),
                         mEmailView.getText().toString(), name.getText().toString(), surname.getText().toString(),
-                        countrySpinner.getSelectedItem().toString(), phoneNumber.getText().toString(), d, 4.000, 4.000);
+                        countrySpinner.getSelectedItem().toString(), phoneNumber.getText().toString(), d, lon, lat);
                 Log.d("signup attempt", status.toString());
 
                 if (status.get(0).equals("success")){
@@ -509,8 +526,6 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
                 return false;
             }
 
-
-
             // TODO: register the new account here.
             return true;
         }
@@ -518,20 +533,40 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
         @Override
         protected void onPostExecute(final Boolean success) {
             mAuthTask = null;
-            showProgress(false);
-
+            //showProgress(false);
+            alertDialog.dismiss();
             if (success) {
-                finish();
+                final AlertDialog.Builder builder = new AlertDialog.Builder(SignupActivity.this);
+                builder.setMessage("Registration completed!")
+                        .setCancelable(false)
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                Intent intent = new Intent(SignupActivity.this, LoginActivity.class);
+                                startActivity(intent);
+                                dialog.cancel();
+                            }
+                        });
+                final AlertDialog alert = builder.create();
+                alert.show();
             } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
+                final AlertDialog.Builder builder = new AlertDialog.Builder(SignupActivity.this);
+                builder.setMessage("Registration was not complete!")
+                        .setCancelable(false)
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                                dialog.cancel();
+                            }
+                        });
+                final AlertDialog alert = builder.create();
+                alert.show();
             }
         }
 
         @Override
         protected void onCancelled() {
             mAuthTask = null;
-            showProgress(false);
+            //showProgress(false);
+            alertDialog.dismiss();
         }
     }
 }
