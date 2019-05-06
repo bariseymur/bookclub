@@ -18,13 +18,13 @@ def index(request):
     else:
         status = "error"
         message = "you should login first"
-        account_info = None
+        json_data = {"status": status, "message": message, "account_settings": None}
 
     json_data = {"status": status, "message": message, "account_settings": model_to_dict(account_info)}
     return JsonResponse(json_data, safe=False)
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 def reset(request):
     if "user" in request.session:
         status = "success"
@@ -34,16 +34,16 @@ def reset(request):
         account_info.userMessagable = True
         account_info.lastSeen = True
         account_info.save()
+        json_data = {"status": status, "message": message, "account_settings": model_to_dict(account_info)}
     else:
         status = "error"
         message = "you should login first"
-        account_info = None
+        json_data = {"status": status, "message": message, "account_settings": None}
 
-    json_data = {"status": status, "message": message, "account_settings": model_to_dict(account_info)}
     return JsonResponse(json_data, safe=False)
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 def change_user_availability(request):
     if "user" in request.session:
         status = "success"
@@ -54,16 +54,16 @@ def change_user_availability(request):
         else:
             account_info.userAvailability = True
         account_info.save()
+        json_data = {"status": status, "message": message, "account_settings": model_to_dict(account_info)}
     else:
         status = "error"
         message = "you should login first"
-        account_info = None
+        json_data = {"status": status, "message": message, "account_settings": None}
 
-    json_data = {"status": status, "message": message, "account_settings": model_to_dict(account_info)}
     return JsonResponse(json_data, safe=False)
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 def change_user_messagable(request):
     if "user" in request.session:
         status = "success"
@@ -74,16 +74,16 @@ def change_user_messagable(request):
         else:
             account_info.userMessagable = True
         account_info.save()
+        json_data = {"status": status, "message": message, "account_settings": model_to_dict(account_info)}
     else:
         status = "error"
         message = "you should login first"
-        account_info = None
+        json_data = {"status": status, "message": message, "account_settings": None}
 
-    json_data = {"status": status, "message": message, "account_settings": model_to_dict(account_info)}
     return JsonResponse(json_data, safe=False)
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 def change_last_seen_state(request):
     if "user" in request.session:
         status = "success"
@@ -94,16 +94,16 @@ def change_last_seen_state(request):
         else:
             account_info.lastSeen = True
         account_info.save()
+        json_data = {"status": status, "message": message, "account_settings": model_to_dict(account_info)}
     else:
         status = "error"
         message = "you should login first"
-        account_info = None
+        json_data = {"status": status, "message": message, "account_settings": None}
 
-    json_data = {"status": status, "message": message, "account_settings": model_to_dict(account_info)}
     return JsonResponse(json_data, safe=False)
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 def change_online_state(request):
     if "user" in request.session:
         user = User.objects.get(id=request.session['user'])
@@ -192,6 +192,7 @@ def change_email(request):
     json_data = {"status": status, "message": message}
     return JsonResponse(json_data)
 
+
 @api_view(['POST'])
 def change_password(request):
     # gps will be added (discussed)
@@ -208,5 +209,3 @@ def change_password(request):
 
     json_data = {"status": status, "message": message}
     return JsonResponse(json_data)
-
-# i may later merge all functions together, also optional. for now everything is ok

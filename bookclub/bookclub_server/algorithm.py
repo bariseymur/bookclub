@@ -346,5 +346,3 @@ def suggestion_algorithm(request):
                                               wanted_book_id=wanted_book_id, suggested_book_id_id=suggested_book_id)
             suggestion_table_row.save()
     return JsonResponse({"size_before": 'yes'})
-
-
