@@ -131,6 +131,22 @@ def see_other_user_profile(request): # WORKS
 
     return JsonResponse(json_data)
 
+@api_view(['POST'])
+def get_user_profile_id(request):
+    # returns the profile of a user with given id
+    data = json.loads(request.body)
+    if User.objects.filter(id=data['user_id']).exists():
+        user = User.objects.get(id=data['user_id'])
+        status = 'success'
+        message = 'other user data send successfully'
+        json_data = {"status": status, "message": message, "user_info": model_to_dict(user)}
+    else:
+        status = 'error'
+        message = 'there is no user with this name'
+        json_data = {"status": status, "message": message}
+
+    return JsonResponse(json_data)
+
 
 @api_view(['GET'])
 def get_user_profile(request): # WORKS

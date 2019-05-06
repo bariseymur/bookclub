@@ -17,6 +17,7 @@ urlpatterns = [
     path('mainMenuIndex/', usercontroller.main_menu_index),
     path('searchIndex/', usercontroller.search_index),
     path('getUserProfile/', usercontroller.get_user_profile),
+    path('getUserProfileID/', usercontroller.get_user_profile_id),
     path('rate/', usercontroller.rate_user),
     path('getBook/', usercontroller.get_book),
     path('confirmTrade/', usercontroller.confirm_trade),
