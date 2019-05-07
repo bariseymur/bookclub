@@ -31,8 +31,8 @@ def locate_near_users(user):
     #    lat_difference = 0.318
     #    long_difference = 0.813
 
-    radius_lat_gt = user_lat + 0.318  # 0.81
-    radius_long_gt = user_long + 0.416  # 2.1
+    radius_lat_gt = user_lat + 0.318  # 35.35 / 111    25V2
+    radius_long_gt = user_long + 0.416  # 35.35 / 85   25V2
     radius_lat_lt = user_lat - 0.318
     radius_long_lt = user_long - 0.416
 

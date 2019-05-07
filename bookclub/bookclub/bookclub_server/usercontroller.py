@@ -131,6 +131,7 @@ def see_other_user_profile(request): # WORKS
 
     return JsonResponse(json_data)
 
+
 @api_view(['POST'])
 def get_user_profile_id(request):
     # returns the profile of a user with given id
@@ -163,7 +164,7 @@ def get_user_profile(request): # WORKS
 
     return JsonResponse(json_data)
 
-    
+
 @api_view(['GET'])
 def match_list_index(request): # WORKS
     # does not need any json loading because checking with session already
@@ -303,6 +304,30 @@ def search_index(request): # WORKS
             break
 
     json_data = {"status": status, "message": message, "searchIndex": search_index}
+    return JsonResponse(json_data, safe=False)
+
+
+@api_view(['POST'])
+def search_book(request): # WORKS
+    user_data = json.loads(request.body)  # json = { "search_book":"something" }
+    books_index = []
+    if "user" in request.session:
+        books = Book.objects.filter(title__icontains=user_data['search_book'])
+        if books.exists():
+            status = "success"
+            message = "the booklist is found"
+        else:
+            status = "error"
+            message = "there is no book"
+            books_index = None
+    index = 0
+    for book in books:
+        index += 1
+        books_index.append({"book_info": model_to_dict(book)})
+        if index > 50:
+            break
+
+    json_data = {"status": status, "message": message, "books_index": books_index}
     return JsonResponse(json_data, safe=False)
 
 

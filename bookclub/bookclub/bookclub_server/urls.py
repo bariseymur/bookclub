@@ -21,6 +21,7 @@ urlpatterns = [
     path('rate/', usercontroller.rate_user),
     path('getBook/', usercontroller.get_book),
     path('confirmTrade/', usercontroller.confirm_trade),
+    path('searchBook/', usercontroller.search_book),
     # path('ekle/', usercontroller.add_books),
     # path('seed_user/', usercontroller.seed_user),
     # path('seed_wishlist/', usercontroller.seed_wishlist),
