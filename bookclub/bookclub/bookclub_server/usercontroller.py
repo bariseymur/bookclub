@@ -682,12 +682,18 @@ def confirm_trade(request): # WORKS
                             matches_1 = Match.objects.filter(Q(user_id=chat.match_id.user_id) & Q(giving_book=chat.match_id.giving_book))
                             if matches_1.exists():
                                 for match_1 in matches_1:
-                                    match_1.delete()
+                                    if match_1 == chat.match_id:
+                                        continue
+                                    else:
+                                        match_2.delete()
 
                             matches_2 = Match.objects.filter(Q(user_id=chat.match_id.matched_user) & Q(giving_book=chat.match_id.wanted_book))
                             if matches_2.exists():
                                 for match_2 in matches_2:
-                                    match_2.delete()
+                                    if match_2 == chat.match_id:
+                                        continue
+                                    else:
+                                        match_2.delete()
                         elif chat.match_id == None:
                             user_id_giving_book = TradeList.objects.get(Q(givingBook_id=chat.suggestion_id.giving_book) & Q(user_id=chat.suggestion_id.user_id))
                             user_id_giving_book.delete()
@@ -699,12 +705,18 @@ def confirm_trade(request): # WORKS
                             suggestions_1 = Suggestion.objects.filter(Q(user_id=chat.suggestion_id.user_id) & Q(giving_book=chat.suggestion_id.giving_book))
                             if suggestions_1.exists():
                                 for suggestion_1 in suggestions_1:
-                                    suggestion_1.delete()
+                                    if suggestion_1 == chat.suggestion_id:
+                                        continue
+                                    else:
+                                        suggestion_1.delete()
 
                             suggestions_2 = Suggestion.objects.filter(Q(user_id=chat.suggestion_id.suggested_user) & Q(giving_book=chat.suggestion_id.suggested_book_id))
                             if suggestions_2.exists():
                                 for suggestion_2 in suggestions_2:
-                                    suggestion_2.delete()
+                                    if suggestion_2 == chat.suggestion_id:
+                                        continue
+                                    else:
+                                        suggestion_2.delete()
                         status = 'success'
                         message = 'the trade was confirmed succesfully, please rate the user'
                     elif chat.state_2 == 'confirmed':
