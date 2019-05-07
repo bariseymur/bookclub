@@ -53,7 +53,8 @@ urlpatterns = [
     # path('tradelist/update/', tradelistcontroller.update),
 
     # historycontroller
-    path('history/index/', historycontroller.index),
+    path('history/index/match', historycontroller.indexMatch),
+    path('history/index/suggestion', historycontroller.indexSuggestion),
     path('history/clear/', historycontroller.clear),
 
     # chatcontroller

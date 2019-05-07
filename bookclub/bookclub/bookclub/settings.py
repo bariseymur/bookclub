@@ -75,34 +75,34 @@ WSGI_APPLICATION = 'bookclub.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'bookclub',
-        'USER': 'clubber',
-        'PASSWORD': 'arabeniyarim',
-        'HOST': 'db4free.net',
-        'PORT': '3306',
-        'OPTIONS': {
-            'autocommit': True,
-            "init_command": "SET foreign_key_checks = 0;",
-        },
-    }
-}
-
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.mysql',
 #         'NAME': 'bookclub',
-#         'USER': 'root',
-#         'PASSWORD': '',
-#         'HOST': 'localhost',
+#         'USER': 'clubber',
+#         'PASSWORD': 'arabeniyarim',
+#         'HOST': 'db4free.net',
 #         'PORT': '3306',
 #         'OPTIONS': {
 #             'autocommit': True,
+#             "init_command": "SET foreign_key_checks = 0;",
 #         },
 #     }
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'bookclub',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': 'localhost',
+        'PORT': '3306',
+        'OPTIONS': {
+            'autocommit': True,
+        },
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
