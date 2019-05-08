@@ -22,6 +22,7 @@ urlpatterns = [
     path('getBook/', usercontroller.get_book),
     path('confirmTrade/', usercontroller.confirm_trade),
     path('searchBook/', usercontroller.search_book),
+    path('userRating/', usercontroller.get_user_rating),
     # path('ekle/', usercontroller.add_books),
     # path('seed_user/', usercontroller.seed_user),
     # path('seed_wishlist/', usercontroller.seed_wishlist),
@@ -53,8 +54,8 @@ urlpatterns = [
     # path('tradelist/update/', tradelistcontroller.update),
 
     # historycontroller
-    path('history/index/match', historycontroller.indexMatch),
-    path('history/index/suggestion', historycontroller.indexSuggestion),
+    path('history/index/match/', historycontroller.index_match),
+    path('history/index/suggestion/', historycontroller.index_suggestion),
     path('history/clear/', historycontroller.clear),
 
     # chatcontroller

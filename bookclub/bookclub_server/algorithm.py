@@ -239,7 +239,6 @@ def match_algorithm(request):
         return JsonResponse({"status": 'error', "message": 'no near user found'})
     return JsonResponse({"status": 'success', "message": 'match algorithm generated the results'})
 
-
 @api_view(['GET'])
 def suggestion_algorithm(request):
     user = User.objects.get(id=request.session['user'])
