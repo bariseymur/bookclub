@@ -39,7 +39,9 @@ def login(request): # WORKS
     user_data = json.loads(request.body)
     if User.objects.filter(username=user_data['username']).exists():
         user = User.objects.get(username=user_data['username'])
-        hashed = hashlib.md5(user_data['password'].encode('utf8')).hexdigest()
+        salt = "%7hYY+5"
+        to_be_hashed = user_data['password'] + salt
+        hashed = hashlib.md5(to_be_hashed.encode('utf8')).hexdigest()
         if user.password == hashed:
             status = 'success'
             message = 'you are logged in'
@@ -68,9 +70,11 @@ def signup(request): # WORKS
     else:
         status = 'success'
         message = 'User successfully signed up'
+        salt = "%7hYY+5"
+        to_be_hashed = user_data['password'] + salt
         user = User(name=user_data['name'], country=user_data['country'],
                     mail=user_data['mail'], phoneNumber=user_data['phoneNumber'], dateOfBirth=user_data['dateOfBirth'],
-                    username=user_data['username'], password=hashlib.md5(user_data['password'].encode('utf8')).hexdigest(), long=user_data['long'],
+                    username=user_data['username'], password=hashlib.md5(to_be_hashed.encode('utf8')).hexdigest(), long=user_data['long'],
                     lat=user_data['lat'], onlineState=1,
                     profilePicture=user_data['profilePicture'])
         user.save()
