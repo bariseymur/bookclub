@@ -102,7 +102,10 @@ def forgot_password(request): # WORKS
             new_password = p
             new_request = {"username": user.username, "mail": user.mail, "new_password": new_password}
             emailservice.forgot_password_email(json.dumps(new_request))
-            user.password = new_password
+            salt = "%7hYY+5"
+            to_be_hashed = new_password + salt
+            hashed = hashlib.md5(to_be_hashed.encode('utf8')).hexdigest()
+            user.password = hashed
             user.save()
     else:
         status = 'error'
@@ -180,6 +183,25 @@ def get_user_profile(request): # WORKS
 
     return JsonResponse(json_data)
 
+@api_view(['GET'])
+def get_user_rating(request):
+    if "user" in request.session:
+        userRatings = UserRating.objects.filter(rated_user_id=request.session['user'])
+        rate_sum = 0
+        for rates in userRatings:
+            rate_sum = rate_sum + rates.rating
+        if len(userRatings) == 0:
+            final_rate = 2.5
+        else:
+            final_rate = rate_sum / len(userRatings)
+        status = 'success'
+        message = 'user rating send successfully'
+    else:
+        status = 'error'
+        message = 'there is no user with this name'
+        final_rate= None
+    json_data = {"status": status, "message": message, "final_rate": str(final_rate)}
+    return JsonResponse(json_data)
 
 @api_view(['GET'])
 def match_list_index(request): # WORKS
