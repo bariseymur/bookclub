@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.utils import json
 from .models import User, Match, TradeList, Suggestion, History, AccountSettings, UserRating, Chat, Book, WishList
 from . import emailservice
+from . import algorithm
 from django.http import JsonResponse
 from django.db.models import Q
 import random
@@ -14,14 +15,18 @@ from faker import Faker
 from faker import Factory
 import factory
 import factory.django
+import time
 
    
 @api_view(['GET'])
 def get_session(request): # WORKS
     # this method returns the id of the user who is in the session, 
     # if there is no user in the session it returns -1
+    current_milli_time = int(round(time.time() * 1000))
     if "user" in request.session:
-        return JsonResponse({'session_id': model_to_dict(User.objects.get(id=request.session['user']))})
+        enson = int(round(time.time() * 1000))
+        return JsonResponse({'session_id': model_to_dict(User.objects.get(id=request.session['user'])),
+                             'time':str(enson-current_milli_time)})
     else:
         return JsonResponse({'session_id': -1})
 
@@ -164,12 +169,13 @@ def get_user_profile(request): # WORKS
 
     return JsonResponse(json_data)
 
-    
+
 @api_view(['GET'])
 def match_list_index(request): # WORKS
     # does not need any json loading because checking with session already
     if "user" in request.session:
         matchlistIndex = []
+        current_milli_time = int(round(time.time() * 1000))
         matchlistRows = Match.objects.filter(Q(user_id=request.session['user']) & Q(state='pending'))
         if matchlistRows.exists():
             status = 'success'
@@ -191,7 +197,8 @@ def match_list_index(request): # WORKS
         message = 'you should login first'
         matchlistIndex = None
 
-    json_data = {"status": status, "message": message, "matchlistIndex": matchlistIndex}
+    enson = int(round(time.time() * 1000))
+    json_data = {"status": status, "message": message, "matchlistIndex": matchlistIndex, "time":str(enson-current_milli_time)}
     return JsonResponse(json_data)
 
 
@@ -304,6 +311,30 @@ def search_index(request): # WORKS
             break
 
     json_data = {"status": status, "message": message, "searchIndex": search_index}
+    return JsonResponse(json_data, safe=False)
+
+
+@api_view(['POST'])
+def search_book(request): # WORKS
+    user_data = json.loads(request.body)  # json = { "search_book":"something" }
+    books_index = []
+    if "user" in request.session:
+        books = Book.objects.filter(title__icontains=user_data['search_book'])
+        if books.exists():
+            status = "success"
+            message = "the booklist is found"
+        else:
+            status = "error"
+            message = "there is no book"
+            books_index = None
+    index = 0
+    for book in books:
+        index += 1
+        books_index.append({"book_info": model_to_dict(book)})
+        if index > 50:
+            break
+
+    json_data = {"status": status, "message": message, "books_index": books_index}
     return JsonResponse(json_data, safe=False)
 
 
@@ -521,7 +552,7 @@ def action_on_suggestion(request): # WORKS
 
 @api_view(['POST'])
 def confirm_trade(request): # WORKS
-    user_data = json.loads(request.body)  # {"chat_id":"1"}
+    user_data = json.loads(request.body)  # {"chat_id":"1", "state":"confirmed" or "state":"rejected"}
     # check if user is logged in
     if "user" in request.session:
         # if this chat exists
@@ -530,113 +561,204 @@ def confirm_trade(request): # WORKS
             chat = Chat.objects.get(id=user_data['chat_id'])
             # check if the user have privilige
             if chat.user_id_1.id == request.session['user']:
-                if chat.state_1 == 'not_confirmed' and chat.state_2 == 'confirmed':
-                    chat.state_1 = 'confirmed'
-                    chat.save()
-                    # both confirmed should do rating and delete from tradelist, wishlist and chat
-                    # delete from tradelist and wishlist for user_id
-                    if chat.suggestion_id == None:
-                        user_id_giving_book = TradeList.objects.get(Q(givingBook_id=chat.match_id.giving_book) & Q(user_id=chat.match_id.user_id))
-                        user_id_giving_book.delete()
-                        user_id_wanted_book = WishList.objects.get(Q(book_id=chat.match_id.wanted_book) & Q(user_id=chat.match_id.user_id))
-                        user_id_wanted_book.delete()
-                        # delete from tradelist and wishlist for matched_user
-                        matched_user_id_giving_book = WishList.objects.get(Q(book_id=chat.match_id.giving_book) & Q(user_id=chat.match_id.matched_user))
-                        matched_user_id_giving_book.delete()
-                        matched_user_id_wanted_book = TradeList.objects.get(Q(givingBook_id=chat.match_id.wanted_book) & Q(user_id=chat.match_id.matched_user))
-                        matched_user_id_wanted_book.delete()
+                if user_data['state'] == "confirmed":
+                    if chat.state_1 == 'not_confirmed' and chat.state_2 == 'confirmed':
+                        chat.state_1 = 'confirmed'
+                        chat.save()
+                        # both confirmed should do rating and delete from tradelist, wishlist and chat
+                        # delete from tradelist and wishlist for user_id
+                        if chat.suggestion_id == None:
+                            user_id_giving_book = TradeList.objects.get(Q(givingBook_id=chat.match_id.giving_book) & Q(user_id=chat.match_id.user_id))
+                            user_id_giving_book.delete()
+                            user_id_wanted_book = WishList.objects.get(Q(book_id=chat.match_id.wanted_book) & Q(user_id=chat.match_id.user_id))
+                            user_id_wanted_book.delete()
+                            # delete from tradelist and wishlist for matched_user
+                            matched_user_id_giving_book = WishList.objects.get(Q(book_id=chat.match_id.giving_book) & Q(user_id=chat.match_id.matched_user))
+                            matched_user_id_giving_book.delete()
+                            matched_user_id_wanted_book = TradeList.objects.get(Q(givingBook_id=chat.match_id.wanted_book) & Q(user_id=chat.match_id.matched_user))
+                            matched_user_id_wanted_book.delete()
 
-                        # delete the matches where wanted_book of the users and givingbooks exist
-                        matches_1 = Match.objects.filter(Q(user_id=chat.match_id.user_id) & Q(giving_book=chat.match_id.giving_book))
-                        if matches_1.exists():
-                            for match_1 in matches_1:
-                                match_1.delete()
+                            # delete the matches where wanted_book of the users and givingbooks exist
+                            matches_1 = Match.objects.filter(Q(user_id=chat.match_id.user_id) & Q(giving_book=chat.match_id.giving_book))
+                            if matches_1.exists():
+                                for match_1 in matches_1:
+                                    if match_1 == chat.match_id:
+                                        continue
+                                    else:
+                                        match_1.delete()
 
-                        matches_2 = Match.objects.filter(Q(user_id=chat.match_id.matched_user) & Q(giving_book=chat.match_id.wanted_book))
-                        if matches_2.exists():
-                            for match_2 in matches_2:
-                                match_2.delete()
-                    elif chat.match_id == None:
-                        user_id_giving_book = TradeList.objects.get(Q(givingBook_id=chat.suggestion_id.giving_book) & Q(user_id=chat.suggestion_id.user_id))
-                        user_id_giving_book.delete()
-                        # delete from tradelist for suggested_user
-                        suggested_user_id_giving_book = TradeList.objects.get(Q(givingBook_id=chat.suggestion_id.suggested_book_id) & Q(user_id=chat.suggestion_id.suggested_user))
-                        suggested_user_id_giving_book.delete()
+                            matches_2 = Match.objects.filter(Q(user_id=chat.match_id.matched_user) & Q(giving_book=chat.match_id.wanted_book))
+                            if matches_2.exists():
+                                for match_2 in matches_2:
+                                    if match_2 == chat.match_id:
+                                        continue
+                                    else:
+                                        match_2.delete()
+                        elif chat.match_id == None:
+                            user_id_giving_book = TradeList.objects.get(Q(givingBook_id=chat.suggestion_id.giving_book) & Q(user_id=chat.suggestion_id.user_id))
+                            user_id_giving_book.delete()
+                            # delete from tradelist for suggested_user
+                            suggested_user_id_giving_book = TradeList.objects.get(Q(givingBook_id=chat.suggestion_id.suggested_book_id) & Q(user_id=chat.suggestion_id.suggested_user))
+                            suggested_user_id_giving_book.delete()
 
-                        # delete the suggestions where wanted_book of the users and givingbooks exist
-                        suggestions_1 = Suggestion.objects.filter(Q(user_id=chat.suggestion_id.user_id) & Q(giving_book=chat.suggestion_id.giving_book))
-                        if suggestions_1.exists():
-                            for suggestion_1 in suggestions_1:
-                                suggestion_1.delete()
+                            # delete the suggestions where wanted_book of the users and givingbooks exist
+                            suggestions_1 = Suggestion.objects.filter(Q(user_id=chat.suggestion_id.user_id) & Q(giving_book=chat.suggestion_id.giving_book))
+                            if suggestions_1.exists():
+                                for suggestion_1 in suggestions_1:
+                                    if suggestion_1 == chat.suggestion_id:
+                                        continue
+                                    else:
+                                        suggestion_1.delete()
 
-                        suggestions_2 = Suggestion.objects.filter(Q(user_id=chat.suggestion_id.suggested_user) & Q(giving_book=chat.suggestion_id.suggested_book_id))
-                        if suggestions_2.exists():
-                            for suggestion_2 in suggestions_2:
-                                suggestion_2.delete()
-                    status = 'success'
-                    message = 'the trade was confirmed succesfully, please rate the user'
-                elif chat.state_1 == 'confirmed':
-                    status = 'error'
-                    message = 'the trade is already confirmed by you'
-                elif chat.state_1 == 'not_confirmed' and chat.state_2 == 'not_confirmed':
-                    chat.state_1 = 'confirmed'
-                    chat.save()
-                    status = 'success'
-                    message = 'the trade was confirmed succesfully, please wait the other user to confirm'
+
+                            suggestions_2 = Suggestion.objects.filter(Q(user_id=chat.suggestion_id.suggested_user) & Q(giving_book=chat.suggestion_id.suggested_book_id))
+                            if suggestions_2.exists():
+                                for suggestion_2 in suggestions_2:
+                                    if suggestion_2 == chat.suggestion_id:
+                                        continue
+                                    else:
+                                        suggestion_2.delete()
+                        status = 'success'
+                        message = 'the trade was confirmed succesfully, please rate the user'
+                    elif chat.state_1 == 'confirmed':
+                        status = 'error'
+                        message = 'the trade is already confirmed by you'
+                    elif chat.state_1 == 'rejected':
+                        status = 'error'
+                        message = 'the trade is already rejected by you'
+                    elif chat.state_1 == 'not_confirmed' and chat.state_2 == 'rejected':
+                        chat.state_1 = 'rejected'
+                        chat.save()
+                        status = 'error'
+                        message = 'the other user already rejected the trade, so the whole trade is rejected'
+                    elif chat.state_1 == 'not_confirmed' and chat.state_2 == 'not_confirmed':
+                        chat.state_1 = 'confirmed'
+                        chat.save()
+                        status = 'success'
+                        message = 'the trade was confirmed succesfully, please wait the other user to confirm'
+                elif user_data['state'] == "rejected":
+                    if chat.state_1 == 'not_confirmed' and chat.state_2 == 'confirmed':
+                        chat.state_1 = 'rejected'
+                        chat.state_2 = 'rejected'
+                        chat.save()
+                        status = 'success'
+                        message = 'the trade was rejected by you, which made the whole trade rejected'
+                    elif chat.state_1 == 'rejected':
+                        status = 'error'
+                        message = 'the trade is already rejected by you'
+                    elif chat.state_1 == 'confirmed':
+                        status = 'error'
+                        message = 'the trade is already confirmed by you'
+                    elif chat.state_1 == 'not_confirmed' and chat.state_2 == 'not_confirmed':
+                        chat.state_1 = 'rejected'
+                        chat.state_2 = 'rejected'
+                        chat.save()
+                        status = 'success'
+                        message = 'since you rejected the trade first, it was rejected for the other user too'
+                    elif chat.state_1 == 'not_confirmed' and chat.state_2 == 'rejected':
+                        chat.state_1 = 'rejected'
+                        chat.save()
+                        status = 'error'
+                        message = 'the other user already rejected the trade, so the whole trade is rejected'
             elif chat.user_id_2.id == request.session['user']:
-                if chat.state_2 == 'not_confirmed':
-                    chat.state_2 = 'confirmed'
-                    chat.save()
-                    # both confirmed should do rating and delete from tradelist, wishlist and chat
-                    # delete from tradelist and wishlist for user_id
-                    if chat.suggestion_id == None:
-                        user_id_giving_book = TradeList.objects.get(Q(givingBook_id=chat.match_id.giving_book) & Q(user_id=chat.match_id.user_id))
-                        user_id_giving_book.delete()
-                        user_id_wanted_book = WishList.objects.get(Q(book_id=chat.match_id.wanted_book) & Q(user_id=chat.match_id.user_id))
-                        user_id_wanted_book.delete()
-                        # delete from tradelist and wishlist for matched_user
-                        matched_user_id_giving_book = WishList.objects.get(Q(book_id=chat.match_id.giving_book) & Q(user_id=chat.match_id.matched_user))
-                        matched_user_id_giving_book.delete()
-                        matched_user_id_wanted_book = TradeList.objects.get(Q(givingBook_id=chat.match_id.wanted_book) & Q(user_id=chat.match_id.matched_user))
-                        matched_user_id_wanted_book.delete()
+                if user_data['state'] == "confirmed":
+                    if chat.state_2 == 'not_confirmed' and chat.state_1 == 'confirmed':
+                        chat.state_2 = 'confirmed'
+                        chat.save()
+                        # both confirmed should do rating and delete from tradelist, wishlist and chat
+                        # delete from tradelist and wishlist for user_id
+                        if chat.suggestion_id == None:
+                            user_id_giving_book = TradeList.objects.get(Q(givingBook_id=chat.match_id.giving_book) & Q(user_id=chat.match_id.user_id))
+                            user_id_giving_book.delete()
+                            user_id_wanted_book = WishList.objects.get(Q(book_id=chat.match_id.wanted_book) & Q(user_id=chat.match_id.user_id))
+                            user_id_wanted_book.delete()
+                            # delete from tradelist and wishlist for matched_user
+                            matched_user_id_giving_book = WishList.objects.get(Q(book_id=chat.match_id.giving_book) & Q(user_id=chat.match_id.matched_user))
+                            matched_user_id_giving_book.delete()
+                            matched_user_id_wanted_book = TradeList.objects.get(Q(givingBook_id=chat.match_id.wanted_book) & Q(user_id=chat.match_id.matched_user))
+                            matched_user_id_wanted_book.delete()
 
-                        # delete the matches where wanted_book of the users and givingbooks exist
-                        matches_1 = Match.objects.filter(Q(user_id=chat.match_id.user_id) & Q(giving_book=chat.match_id.giving_book))
-                        if matches_1.exists():
-                            for match_1 in matches_1:
-                                match_1.delete()
+                            # delete the matches where wanted_book of the users and givingbooks exist
+                            matches_1 = Match.objects.filter(Q(user_id=chat.match_id.user_id) & Q(giving_book=chat.match_id.giving_book))
+                            if matches_1.exists():
+                                for match_1 in matches_1:
+                                    if match_1 == chat.match_id:
+                                        continue
+                                    else:
+                                        match_2.delete()
 
-                        matches_2 = Match.objects.filter(Q(user_id=chat.match_id.matched_user) & Q(giving_book=chat.match_id.wanted_book))
-                        if matches_2.exists():
-                            for match_2 in matches_2:
-                                match_2.delete()
-                    elif chat.match_id == None:
-                        user_id_giving_book = TradeList.objects.get(Q(givingBook_id=chat.suggestion_id.giving_book) & Q(user_id=chat.suggestion_id.user_id))
-                        user_id_giving_book.delete()
-                        # delete from tradelist for suggested_user
-                        suggested_user_id_giving_book = TradeList.objects.get(Q(givingBook_id=chat.suggestion_id.suggested_book_id) & Q(user_id=chat.suggestion_id.suggested_user))
-                        suggested_user_id_giving_book.delete()
+                            matches_2 = Match.objects.filter(Q(user_id=chat.match_id.matched_user) & Q(giving_book=chat.match_id.wanted_book))
+                            if matches_2.exists():
+                                for match_2 in matches_2:
+                                    if match_2 == chat.match_id:
+                                        continue
+                                    else:
+                                        match_2.delete()
+                        elif chat.match_id == None:
+                            user_id_giving_book = TradeList.objects.get(Q(givingBook_id=chat.suggestion_id.giving_book) & Q(user_id=chat.suggestion_id.user_id))
+                            user_id_giving_book.delete()
+                            # delete from tradelist for suggested_user
+                            suggested_user_id_giving_book = TradeList.objects.get(Q(givingBook_id=chat.suggestion_id.suggested_book_id) & Q(user_id=chat.suggestion_id.suggested_user))
+                            suggested_user_id_giving_book.delete()
 
-                        # delete the suggestions where wanted_book of the users and givingbooks exist
-                        suggestions_1 = Suggestion.objects.filter(Q(user_id=chat.suggestion_id.user_id) & Q(giving_book=chat.suggestion_id.giving_book))
-                        if suggestions_1.exists():
-                            for suggestion_1 in suggestions_1:
-                                suggestion_1.delete()
+                            # delete the suggestions where wanted_book of the users and givingbooks exist
+                            suggestions_1 = Suggestion.objects.filter(Q(user_id=chat.suggestion_id.user_id) & Q(giving_book=chat.suggestion_id.giving_book))
+                            if suggestions_1.exists():
+                                for suggestion_1 in suggestions_1:
+                                    if suggestion_1 == chat.suggestion_id:
+                                        continue
+                                    else:
+                                        suggestion_1.delete()
 
-                        suggestions_2 = Suggestion.objects.filter(Q(user_id=chat.suggestion_id.suggested_user) & Q(giving_book=chat.suggestion_id.suggested_book_id))
-                        if suggestions_2.exists():
-                            for suggestion_2 in suggestions_2:
-                                suggestion_2.delete()
-                    status = 'success'
-                    message = 'the trade was confirmed succesfully, please rate the user'
-                elif chat.state_2 == 'confirmed':
-                    status = 'error'
-                    message = 'the trade is already confirmed by you'
-                elif chat.state_2 == 'not_confirmed' and chat.state_1 == 'not_confirmed':
-                    chat.state_2 = 'confirmed'
-                    chat.save()
-                    status = 'success'
-                    message = 'the trade was confirmed succesfully, please wait the other user to confirm'
+                            suggestions_2 = Suggestion.objects.filter(Q(user_id=chat.suggestion_id.suggested_user) & Q(giving_book=chat.suggestion_id.suggested_book_id))
+                            if suggestions_2.exists():
+                                for suggestion_2 in suggestions_2:
+                                    if suggestion_2 == chat.suggestion_id:
+                                        continue
+                                    else:
+                                        suggestion_2.delete()
+                        status = 'success'
+                        message = 'the trade was confirmed succesfully, please rate the user'
+                    elif chat.state_2 == 'confirmed':
+                        status = 'error'
+                        message = 'the trade is already confirmed by you'
+                    elif chat.state_2 == 'rejected':
+                        status = 'error'
+                        message = 'the trade is already rejected by you'
+                    elif chat.state_2 == 'not_confirmed' and chat.state_1 == 'not_confirmed':
+                        chat.state_2 = 'confirmed'
+                        chat.save()
+                        status = 'success'
+                        message = 'the trade was confirmed succesfully, please wait the other user to confirm'
+                    elif chat.state_2 == 'not_confirmed' and chat.state_1 == 'rejected':
+                        chat.state_2 = 'rejected'
+                        chat.save()
+                        status = 'error'
+                        message = 'the other user already rejected the trade, so the whole trade is rejected'
+                elif user_data['state'] == "rejected":
+                    if chat.state_2 == 'not_confirmed' and chat.state_1 == 'confirmed':
+                        chat.state_2 = 'rejected'
+                        chat.state_1 = 'rejected'
+                        chat.save()
+                        status = 'success'
+                        message = 'the trade was rejected by you, which made the whole trade rejected'
+                    elif chat.state_2 == 'rejected':
+                        status = 'error'
+                        message = 'the trade is already rejected by you'
+                    elif chat.state_2 == 'confirmed':
+                        status = 'error'
+                        message = 'the trade is already confirmed by you'
+                    elif chat.state_2 == 'not_confirmed' and chat.state_1 == 'not_confirmed':
+                        chat.state_2 = 'rejected'
+                        chat.state_1 = 'rejected'
+                        chat.save()
+                        status = 'success'
+                        message = 'since you rejected the trade, it was automatically rejected for the other user too'
+                    elif chat.state_2 == 'not_confirmed' and chat.state_1 == 'rejected':
+                        chat.state_2 = 'rejected'
+                        chat.save()
+                        status = 'error'
+                        message = 'the other user already rejected the trade, so the whole trade is rejected'
             else:
                 status = 'error'
                 message = 'you do not have a privilege to do this action'

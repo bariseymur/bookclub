@@ -39,7 +39,7 @@ def index(request): # WORKS
     return JsonResponse(json_data, safe=False)
 
 
-@api_view(['DELETE'])
+@api_view(['POST'])
 def delete(request): # WORKS
     # first checking if the row exists in the table, if yes then delete or return error
     user_data = json.loads(request.body)  # {"wishlist_id":"1"}
@@ -47,6 +47,13 @@ def delete(request): # WORKS
         if WishList.objects.filter(Q(user_id=request.session['user']) & Q(id=user_data['wishlist_id'])).exists():
             status = 'success'
             message = 'the book was deleted from the wishlist'
+            wishlist= WishList.objects.filter(Q(user_id=request.session['user']))
+            order= WishList.objects.get(Q(user_id=request.session['user']) & Q(id=user_data['wishlist_id']))
+            order= order.order
+            for wish in wishlist:
+                if order < wish.order:
+                    wish.order = wish.order - 1
+                    wish.save()
             WishList.objects.filter(Q(user_id=request.session['user']) & Q(id=user_data['wishlist_id'])).delete()
         else:
             status = 'error'
