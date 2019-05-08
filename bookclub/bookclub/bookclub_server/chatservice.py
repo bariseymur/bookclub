@@ -8,7 +8,7 @@ from django.db.models import Q
 
 
 @api_view(['POST'])
-def send(request):
+def send(request): # WORKS
     user_data = json.loads(request.body)  # {"messageText": "selam", "chat_id": "3"}
     if "user" in request.session:
         if Chat.objects.filter(Q(id=user_data['chat_id'])).exists():
@@ -34,7 +34,7 @@ def send(request):
 
 
 @api_view(['POST'])
-def message_list(request):
+def message_list(request): # WORKS
     chat_data = json.loads(request.body)  # {"chat_id":"1"}
     if "user" in request.session:
         messages = Message.objects.filter(chat_id=chat_data['chat_id'])
@@ -63,14 +63,14 @@ def message_list(request):
 
 
 @api_view(['POST'])
-def read(request):
-    message_data = json.loads(request.body)  # {"id":"1"}
+def read(request): # WORKS
+    message_data = json.loads(request.body)  # {"message_id":"1"}
     if "user" in request.session:
         message = Message.objects.filter(id=message_data['message_id'])
         if message.exists():
             message.update(isSeen=1)
             status = 'success'
-            message = 'message satatus changed'
+            message = 'message status changed'
         else:
             status = 'error'
             message = 'no message with this id'

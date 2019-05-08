@@ -17,9 +17,11 @@ urlpatterns = [
     path('mainMenuIndex/', usercontroller.main_menu_index),
     path('searchIndex/', usercontroller.search_index),
     path('getUserProfile/', usercontroller.get_user_profile),
+    path('getUserProfileID/', usercontroller.get_user_profile_id),
     path('rate/', usercontroller.rate_user),
     path('getBook/', usercontroller.get_book),
     path('confirmTrade/', usercontroller.confirm_trade),
+    path('searchBook/', usercontroller.search_book),
     # path('ekle/', usercontroller.add_books),
     # path('seed_user/', usercontroller.seed_user),
     # path('seed_wishlist/', usercontroller.seed_wishlist),
@@ -51,7 +53,8 @@ urlpatterns = [
     # path('tradelist/update/', tradelistcontroller.update),
 
     # historycontroller
-    path('history/index/', historycontroller.index),
+    path('history/index/match', historycontroller.indexMatch),
+    path('history/index/suggestion', historycontroller.indexSuggestion),
     path('history/clear/', historycontroller.clear),
 
     # chatcontroller
