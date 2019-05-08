@@ -216,10 +216,11 @@ def match_list_index(request):  # WORKS
     return JsonResponse(json_data)
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def get_user_rating(request):
-    if "user" in request.session:
-        userRatings = UserRating.objects.filter(rated_user_id=request.session['user'])
+    user_data = json.loads(request.body)
+    userRatings = UserRating.objects.filter(rated_user_id= user_data['id'])
+    if userRatings.exists():
         rate_sum = 0
         for rates in userRatings:
             rate_sum = rate_sum + rates.rating
@@ -231,10 +232,10 @@ def get_user_rating(request):
         message = 'user rating send successfully'
     else:
         status = 'error'
-        message = 'there is no user with this name'
-        final_rate= None
+        message = 'there is no user with this id'
     json_data = {"status": status, "message": message, "final_rate": str(final_rate)}
     return JsonResponse(json_data)
+
 @api_view(['GET'])
 def suggestion_list_index(request):  # WORKS
     # does not need any json loading
