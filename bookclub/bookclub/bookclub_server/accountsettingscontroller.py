@@ -1,3 +1,5 @@
+import hashlib
+
 from django.core.serializers.json import DjangoJSONEncoder
 from django.forms import model_to_dict
 from rest_framework.decorators import api_view
@@ -195,11 +197,13 @@ def change_email(request):
 
 @api_view(['POST'])
 def change_password(request):
-    # gps will be added (discussed)
     user_data = json.loads(request.body)  # {"password":"acacac"}
     if "user" in request.session:
         user = User.objects.get(id=request.session['user'])
-        user.password = user_data['password']
+        salt = "%7hYY+5"
+        to_be_hashed = user_data["password"] + salt
+        hashed = hashlib.md5(to_be_hashed.encode('utf8')).hexdigest()
+        user.password = hashed
         user.save()  # will use the real picture to store
         status = 'success'
         message = 'the password was updated successfully'

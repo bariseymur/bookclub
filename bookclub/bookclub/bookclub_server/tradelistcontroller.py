@@ -69,7 +69,7 @@ def add(request): # WORKS
             status = 'error'
             message = 'this trade already exists'
         else:
-            if request.session['user'] == user_data['user_id']:
+            if request.session['user'] == int(user_data['user_id']):
                 new_row = TradeList(id=None, givingBook_id=Book.objects.get(id=user_data['givingBook_id']),
                                     user_id=User.objects.get(id=request.session['user']))
                 new_row.save()

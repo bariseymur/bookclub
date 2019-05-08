@@ -6,7 +6,7 @@ from django.http import JsonResponse
 
 
 @api_view(['GET'])
-def indexMatch(request): # WORKS
+def index_match(request): # WORKS
     if "user" in request.session:
         history = History.objects.filter(user_id=request.session['user'])
         if history.exists():
@@ -41,7 +41,7 @@ def indexMatch(request): # WORKS
     return JsonResponse(json_data)
 
 @api_view(['GET'])
-def indexSuggestion(request): # WORKS
+def index_suggestion(request): # WORKS
     if "user" in request.session:
         history = History.objects.filter(user_id=request.session['user'])
         if history.exists():

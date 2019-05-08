@@ -47,6 +47,13 @@ def delete(request): # WORKS
         if WishList.objects.filter(Q(user_id=request.session['user']) & Q(id=user_data['wishlist_id'])).exists():
             status = 'success'
             message = 'the book was deleted from the wishlist'
+            wishlist= WishList.objects.filter(Q(user_id=request.session['user']))
+            order= WishList.objects.get(Q(user_id=request.session['user']) & Q(id=user_data['wishlist_id']))
+            order= order.order
+            for wish in wishlist:
+                if order < wish.order:
+                    wish.order = wish.order - 1
+                    wish.save()
             WishList.objects.filter(Q(user_id=request.session['user']) & Q(id=user_data['wishlist_id'])).delete()
         else:
             status = 'error'

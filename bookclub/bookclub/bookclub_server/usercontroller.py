@@ -16,6 +16,7 @@ from faker import Factory
 import factory
 import factory.django
 import time
+import hashlib
 
    
 @api_view(['GET'])
@@ -37,10 +38,15 @@ def login(request): # WORKS
     # the session is not closed until the user logs out
     user_data = json.loads(request.body)
     if User.objects.filter(username=user_data['username']).exists():
-        user = User.objects.get(username=user_data['username']) 
-        if user.password == user_data['password']:
+        user = User.objects.get(username=user_data['username'])
+        salt = "%7hYY+5"
+        to_be_hashed = user_data['password'] + salt
+        hashed = hashlib.md5(to_be_hashed.encode('utf8')).hexdigest()
+        if user.password == hashed:
             status = 'success'
             message = 'you are logged in'
+            user.onlineState = 1
+            user.save()
             request.session['user'] = user.id # opened a session
         else:
             status = 'error'
@@ -64,10 +70,12 @@ def signup(request): # WORKS
     else:
         status = 'success'
         message = 'User successfully signed up'
+        salt = "%7hYY+5"
+        to_be_hashed = user_data['password'] + salt
         user = User(name=user_data['name'], country=user_data['country'],
                     mail=user_data['mail'], phoneNumber=user_data['phoneNumber'], dateOfBirth=user_data['dateOfBirth'],
-                    username=user_data['username'], password=user_data['password'], long=user_data['long'],
-                    lat=user_data['lat'], onlineState=user_data['onlineState'],
+                    username=user_data['username'], password=hashlib.md5(to_be_hashed.encode('utf8')).hexdigest(), long=user_data['long'],
+                    lat=user_data['lat'], onlineState=1,
                     profilePicture=user_data['profilePicture'])
         user.save()
         user_settings = AccountSettings(user_id=user)
@@ -94,7 +102,10 @@ def forgot_password(request): # WORKS
             new_password = p
             new_request = {"username": user.username, "mail": user.mail, "new_password": new_password}
             emailservice.forgot_password_email(json.dumps(new_request))
-            user.password = new_password
+            salt = "%7hYY+5"
+            to_be_hashed = new_password + salt
+            hashed = hashlib.md5(to_be_hashed.encode('utf8')).hexdigest()
+            user.password = hashed
             user.save()
     else:
         status = 'error'
@@ -109,6 +120,9 @@ def forgot_password(request): # WORKS
 def sign_out(request): # WORKS
     # this method signs out the user and closes session
     if "user" in request.session:
+        user = User.objects.get(id=request.session["user"])
+        user.onlineState = 0
+        user.save()
         del request.session['user'] # session is closed
         status = 'success'
         message = 'you signed out'
@@ -136,6 +150,27 @@ def see_other_user_profile(request): # WORKS
 
     return JsonResponse(json_data)
 
+
+@api_view(['POST'])
+def get_user_rating(request):
+    user_data = json.loads(request.body)
+    userRatings = UserRating.objects.filter(rated_user_id= user_data['id'])
+    if userRatings.exists():
+        rate_sum = 0
+        for rates in userRatings:
+            rate_sum = rate_sum + rates.rating
+        if len(userRatings) == 0:
+            final_rate = 2.5
+        else:
+            final_rate = rate_sum / len(userRatings)
+        status = 'success'
+        message = 'user rating send successfully'
+    else:
+        status = 'error'
+        message = 'there is no user with this id'
+    json_data = {"status": status, "message": message, "final_rate": str(final_rate)}
+    return JsonResponse(json_data)
+    
 
 @api_view(['POST'])
 def get_user_profile_id(request):
@@ -812,7 +847,6 @@ def add_books(request):
             p = Book(isbn=row['isbn'], title=row['title'], authorName=row['authorName'], publishDate=row['publishDate'], publisher=row['publisher'], bookPhoto=row['bookPhoto'])
             p.save()
     return JsonResponse({'success':'yes'})
-
 @api_view(['POST'])
 def seed_user(request):
     i = 0
@@ -827,16 +861,13 @@ def seed_user(request):
         password = faker.password(length=6, special_chars=False, digits=False, upper_case=False, lower_case=True)
         longitude = random.uniform(36, 42) 
         latitude = random.uniform(26,45)
-
         user = User(name=name, country=country, mail=mail, phoneNumber=phoneNumber, dateOfBirth=dateOfBirth, username=username, password=password,
                     long=longitude, lat=latitude, onlineState=1, profilePicture='noimage.jpg')
-
         user.save()
         user_settings = AccountSettings(user_id=user)
         user_settings.save()
         i += 1
     return JsonResponse({'success': 'yes'})
-
 @api_view(['POST'])
 def seed_wishlist(request):
     i = 1
@@ -857,7 +888,6 @@ def seed_wishlist(request):
             index = index + 1
         i = i + 1
     return JsonResponse({'success': 'yes'})
-
 @api_view(['POST'])
 def seed_tradelist(request):
     i = 1
@@ -879,5 +909,4 @@ def seed_tradelist(request):
             index = index + 1
         i = i + 1
     return JsonResponse({'success': 'yes'})
-
 """
