@@ -16,6 +16,7 @@ from faker import Factory
 import factory
 import factory.django
 import time
+import hashlib
 
    
 @api_view(['GET'])
@@ -37,8 +38,9 @@ def login(request): # WORKS
     # the session is not closed until the user logs out
     user_data = json.loads(request.body)
     if User.objects.filter(username=user_data['username']).exists():
-        user = User.objects.get(username=user_data['username']) 
-        if user.password == user_data['password']:
+        user = User.objects.get(username=user_data['username'])
+        hashed = hashlib.md5(user_data['password'].encode('utf8')).hexdigest()
+        if user.password == hashed:
             status = 'success'
             message = 'you are logged in'
             user.onlineState = 1
@@ -68,7 +70,7 @@ def signup(request): # WORKS
         message = 'User successfully signed up'
         user = User(name=user_data['name'], country=user_data['country'],
                     mail=user_data['mail'], phoneNumber=user_data['phoneNumber'], dateOfBirth=user_data['dateOfBirth'],
-                    username=user_data['username'], password=user_data['password'], long=user_data['long'],
+                    username=user_data['username'], password=hashlib.md5(user_data['password'].encode('utf8')).hexdigest(), long=user_data['long'],
                     lat=user_data['lat'], onlineState=1,
                     profilePicture=user_data['profilePicture'])
         user.save()
