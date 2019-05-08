@@ -168,6 +168,7 @@ def get_user_rating(request):
     else:
         status = 'error'
         message = 'there is no user with this id'
+        final_rate= None
     json_data = {"status": status, "message": message, "final_rate": str(final_rate)}
     return JsonResponse(json_data)
     
@@ -208,9 +209,9 @@ def get_user_profile(request): # WORKS
 @api_view(['GET'])
 def match_list_index(request): # WORKS
     # does not need any json loading because checking with session already
+
     if "user" in request.session:
         matchlistIndex = []
-        current_milli_time = int(round(time.time() * 1000))
         matchlistRows = Match.objects.filter(Q(user_id=request.session['user']) & Q(state='pending'))
         if matchlistRows.exists():
             status = 'success'
@@ -231,9 +232,7 @@ def match_list_index(request): # WORKS
         status = 'error'
         message = 'you should login first'
         matchlistIndex = None
-
-    enson = int(round(time.time() * 1000))
-    json_data = {"status": status, "message": message, "matchlistIndex": matchlistIndex, "time":str(enson-current_milli_time)}
+    json_data = {"status": status, "message": message, "matchlistIndex": matchlistIndex}
     return JsonResponse(json_data)
 
 
@@ -353,8 +352,8 @@ def search_index(request): # WORKS
 def search_book(request): # WORKS
     user_data = json.loads(request.body)  # json = { "search_book":"something" }
     books_index = []
+    books = Book.objects.filter(title__icontains=user_data['search_book'])
     if "user" in request.session:
-        books = Book.objects.filter(title__icontains=user_data['search_book'])
         if books.exists():
             status = "success"
             message = "the booklist is found"
