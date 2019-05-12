@@ -54,7 +54,12 @@ def delete(request): # WORKS
                 if order < wish.order:
                     wish.order = wish.order - 1
                     wish.save()
+            book_1 = WishList.objects.get(id=user_data['wishlist_id'])
+            book = Book.objects.get(id=book_1.book_id.id)
             WishList.objects.filter(Q(user_id=request.session['user']) & Q(id=user_data['wishlist_id'])).delete()
+            suggestions_for_user = Suggestion.objects.filter(Q(user_id=request.session['user']) & Q(wanted_book=book))
+            for s in suggestions_for_user:
+                s.delete()
         else:
             status = 'error'
             message = 'the book is not in your wishlist'
@@ -96,7 +101,6 @@ def drag(request): # WORKS
         if WishList.objects.filter(Q(id=user_data['wishlist_id']) & Q(user_id=request.session['user'])).exists():
             wishlist = WishList.objects.get(Q(id=user_data['wishlist_id']) & Q(user_id=request.session['user']))
             ord=wishlist.order
-
             if user_data['action'] == 'up':
                 wishlist2 = WishList.objects.get(Q(order=ord - 1) & Q(user_id=request.session['user']))
                 status = 'success'

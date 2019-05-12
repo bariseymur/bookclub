@@ -212,7 +212,7 @@ def match_list_index(request): # WORKS
 
     if "user" in request.session:
         matchlistIndex = []
-        matchlistRows = Match.objects.filter(Q(user_id=request.session['user']) & Q(state='pending'))
+        matchlistRows = Match.objects.filter(Q(user_id=request.session['user']) & Q(state='pending')).order_by('-match_score')
         if matchlistRows.exists():
             status = 'success'
             message = 'Match list will be displayed'
@@ -240,7 +240,7 @@ def match_list_index(request): # WORKS
 def suggestion_list_index(request): # WORKS
     # does not need any json loading
     if "user" in request.session:
-        suggests = Suggestion.objects.filter(user_id=request.session['user'])
+        suggests = Suggestion.objects.filter(user_id=request.session['user']).order_by('-recommendation_score')
         if suggests.exists():
             suggest_list = []
             index = 0
@@ -643,8 +643,6 @@ def confirm_trade(request): # WORKS
                                         continue
                                     else:
                                         suggestion_1.delete()
-
-
                             suggestions_2 = Suggestion.objects.filter(Q(user_id=chat.suggestion_id.suggested_user) & Q(giving_book=chat.suggestion_id.suggested_book_id))
                             if suggestions_2.exists():
                                 for suggestion_2 in suggestions_2:

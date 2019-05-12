@@ -358,7 +358,7 @@ def suggestion_algorithm(request):
                                                                  suggested_book_id_id=suggested_book_id)
                 if suggestion_table_row.exists():
                     continue
-                elif suggestion_score >= 30:
+                elif suggestion_score >= 30 and not WishList.objects.filter(Q(user_id_id=user.id) & Q(book_id_id=suggested_book_id)).exists():
                     suggestion_table_row = Suggestion(suggestion_date=datetime.datetime.now().strftime("%Y-%m-%d"),
                                                       recommendation_score=suggestion_score,
                                                       user_id_id=user.id, giving_book_id=giving_book_id,

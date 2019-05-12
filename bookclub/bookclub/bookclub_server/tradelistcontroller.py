@@ -48,7 +48,22 @@ def delete(request): # WORKS
         if TradeList.objects.filter(Q(user_id=request.session['user']) & Q(id=user_data['tradelist_id'])).exists():
             status = 'success'
             message = 'the trade was deleted from the tradelist'
+            trade = TradeList.objects.get(id=user_data['tradelist_id'])
+            book_1 = trade.givingBook_id.id
+            book = Book.objects.get(id=book_1)
             TradeList.objects.filter(Q(user_id=request.session['user']) & Q(id=user_data['tradelist_id'])).delete()
+            suggestions_for_user = Suggestion.objects.filter(Q(user_id=request.session['user']) & Q(giving_book=book))
+            suggestions_for_others = Suggestion.objects.filter(Q(suggested_user=request.session['user']) & Q(suggested_book_id=book))
+            for s in suggestions_for_user:
+                s.delete()
+            for so in suggestions_for_others:
+                so.delete()  
+            matches_for_user = Match.objects.filter(Q(user_id=request.session['user']) & Q(giving_book=book))
+            matches_for_others = Match.objects.filter(Q(matched_user=request.session['user']) & Q(wanted_book=book))
+            for m in matches_for_user:
+                m.delete()
+            for mo in matches_for_others:
+                mo.delete()
         else:
             status = 'error'
             message = 'this trade is not in your tradelist'
