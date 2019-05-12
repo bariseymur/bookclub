@@ -65,14 +65,17 @@ def delete(request): # WORKS
     json_data = {"status": status, "message": message}
     return JsonResponse(json_data)
 
-
 @api_view(['POST'])
 def add(request): # WORKS
     user_data = json.loads(request.body) # {"book_id":"1"}
+    tradelist_check = TradeList.objects.filter(Q(givingBook_id=user_data['book_id']) & Q(user_id=request.session['user']))
     if "user" in request.session:
         if WishList.objects.filter(Q(book_id=user_data['book_id']) & Q(user_id=request.session['user'])).exists():
             status = 'error'
             message = 'this book is already in your wishlist'
+        elif tradelist_check.exists():
+            status = 'error'
+            message = 'this book is already in your tradelist'
         else:
             count = WishList.objects.filter(Q(user_id=request.session['user'])).count()
             new_row = WishList(id=None, book_id=Book.objects.get(id=user_data['book_id']), user_id=User.objects.get(id=request.session['user']), order=count+1)
@@ -85,7 +88,6 @@ def add(request): # WORKS
 
     json_data = {"status": status, "message": message}
     return JsonResponse(json_data)
-
 
 @api_view(['POST'])
 def drag(request): # WORKS

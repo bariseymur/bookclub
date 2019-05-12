@@ -99,6 +99,14 @@ class History(models.Model):
     state = models.CharField(max_length=250, default="nothing") # should be confirmed both
     dateOfAction = models.DateField(blank=False)
 
+
+# BookRating Table
+class BookRating(models.Model):
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    book_isbn = models.ForeignKey(Book, on_delete=models.CASCADE)
+    raiting = models.IntegerField(default=0)
+
+
 # UserRating Table
 class UserRating(models.Model):
     rating_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='rating_user')

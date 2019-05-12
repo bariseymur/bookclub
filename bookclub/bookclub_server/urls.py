@@ -23,6 +23,7 @@ urlpatterns = [
     path('confirmTrade/', usercontroller.confirm_trade),
     path('searchBook/', usercontroller.search_book),
     path('userRating/', usercontroller.get_user_rating),
+
     # path('ekle/', usercontroller.add_books),
     # path('seed_user/', usercontroller.seed_user),
     # path('seed_wishlist/', usercontroller.seed_wishlist),
