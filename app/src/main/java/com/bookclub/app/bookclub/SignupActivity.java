@@ -281,7 +281,7 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
      * errors are presented and no actual login attempt is made.
      */
 
-    private void inputcheck () {
+   /* private void inputcheck () {
         boolean cancel = false;
         if (userName.getText().toString().contains(" ")){
             userName.requestFocus();
@@ -316,7 +316,7 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
             alertDialog.show();
             new UserLoginTask().execute();
         }
-    }
+    }*/
 
     private void attemptSignup() {
         if (mAuthTask != null) {
@@ -337,8 +337,6 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
         boolean cancel = false;
         View focusView = null;
 
-        // Check for a valid password, if the user entered one.
-
         if (userName.getText() == null || userName.getText().equals("") || userName.getText().toString().length() < 4 || userName.getText().toString().contains(" ")){
             userName.setError("Username entry is invalid");
             focusView = userName;
@@ -348,18 +346,16 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
             focusView = mPasswordView;
             cancel = true;
         } else if (!dateReceived){
-            focusView = changeDateButton;
+            System.out.println("Inside date received");
+            focusView = birthDateText;
             cancel = true;
         } else if (!mPasswordView.getText().toString().equals(mconfirmPassword.getText().toString())){
             mconfirmPassword.setError("Passwords Do Not Match");
             focusView = mconfirmPassword;
             cancel = true;
-        } else if (TextUtils.isEmpty(email)) {
-            mEmailView.setError(getString(R.string.error_field_required));
-            focusView = mEmailView;
-            cancel = true;
-        } else if (!isEmailValid(email)) {
-            mEmailView.setError(getString(R.string.error_invalid_email));
+        }
+        else if (!isEmailValid(email)) {
+            mEmailView.setError("Invalid email address");
             focusView = mEmailView;
             cancel = true;
         } else if (!locationReceived){
@@ -375,6 +371,7 @@ public class SignupActivity extends AppCompatActivity implements LoaderCallbacks
         }
         else {
             focusView.requestFocus();
+            System.out.println("Date received"+dateReceived + " request: ");
         }
     }
 

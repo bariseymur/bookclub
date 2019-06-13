@@ -12,6 +12,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -109,9 +110,9 @@ public class MatchListFragment extends Fragment {
         api = new BookClubAPI();
         alertDialog = new SpotsDialog(getActivity());
         alertDialog.show();
-        new GetMatchListTask().execute();
-
         listView = view.findViewById(R.id.matchList);
+        //new RunMatchAlgorithmTask().execute();
+        new GetMatchListTask().execute();
 
 
         preferencesButton = view.findViewById(R.id.preferencesButton);
@@ -133,9 +134,11 @@ public class MatchListFragment extends Fragment {
 
                     @Override
                     public void onDismiss(ListViewAdapter view, int position) {
-                        new RejectMatchTask(matchListContents.get(position).getMatchID()).execute();
+                        int matchID = matchListContents.get(position).getMatchID();
                         matchListContents.remove(position);
-                        matchListContentArrayAdapter.notifyDataSetChanged();
+                        listView.setAdapter(matchListContentArrayAdapter);
+                        //matchListContentArrayAdapter.notifyDataSetChanged();
+                        new RejectMatchTask(matchID).execute();
                     }
                 });
 
@@ -162,20 +165,10 @@ public class MatchListFragment extends Fragment {
             }
         });
 
-
-        Log.d("Fragment Created", "MatchListFragment Created");
-        // Inflate the layout for this fragment
         return view;
     }
 
 
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
-    }
 
     @Override
     public void onAttach(Context context) {
@@ -194,16 +187,27 @@ public class MatchListFragment extends Fragment {
         mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
+    public class RunMatchAlgorithmTask extends AsyncTask<Void, Void, Void>{
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            System.out.println("Match algorithm finished running!!");
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            System.out.println(api.algo_match_algo());
+            return null;
+        }
+    }
+
+
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
@@ -216,7 +220,7 @@ public class MatchListFragment extends Fragment {
     * */
 
     private static class ViewHolder{
-        TextView user1Name, user2Name, author1Name, author2Name, book1Title, book2Title;
+        TextView user1Name, user2Name, author1Name, author2Name, book1Title, book2Title, score;
         ImageView book1Image, book2Image;
         ImageButton transactionButton;
 
@@ -263,6 +267,7 @@ public class MatchListFragment extends Fragment {
                 viewHolder.author2Name = convertView.findViewById(R.id.author2Name);
                 viewHolder.book1Title = convertView.findViewById(R.id.book1Title);
                 viewHolder.book2Title = convertView.findViewById(R.id.book2Title);
+                viewHolder.score = convertView.findViewById(R.id.scoreText);
 
                 //Image Views
                 viewHolder.book1Image = convertView.findViewById(R.id.book1Image);
@@ -274,28 +279,7 @@ public class MatchListFragment extends Fragment {
                 result = convertView;
                 convertView.setTag(viewHolder);
 
-                //item content is defined here
-                viewHolder.user1Name.setText(matchListContent.getUser().getUsername());
-                viewHolder.user2Name.setText(matchListContent.getMatchedUser().getUsername());
-                viewHolder.author1Name.setText(matchListContent.getGivenBook().getAuthorName());
-                viewHolder.author2Name.setText(matchListContent.getWantedBook().getAuthorName());
-                viewHolder.book1Title.setText(matchListContent.getGivenBook().getTitle());
-                viewHolder.book2Title.setText(matchListContent.getWantedBook().getTitle());
 
-                Picasso.get()
-                        .load(matchListContent.getGivenBook().getBookPhotoUrl())
-                        .resize(300, 400)
-                        .error(R.drawable.error)
-                        .placeholder(R.drawable.loading)
-                        .into(viewHolder.book1Image);
-
-
-                Picasso.get()
-                        .load(matchListContent.getWantedBook().getBookPhotoUrl())
-                        .resize(300, 400)
-                        .error(R.drawable.error)
-                        .placeholder(R.drawable.loading)
-                        .into(viewHolder.book2Image);
 
               //  viewHolder.book1Image.setImageBitmap(Bitmap.createScaledBitmap(matchListContent.getBook1Image(), 300, 400, false));
                // viewHolder.book2Image.setImageBitmap(Bitmap.createScaledBitmap(matchListContent.getBook2Image(), 300, 400, false));
@@ -305,14 +289,58 @@ public class MatchListFragment extends Fragment {
                 result = convertView;
             }
 
+            //item content is defined here
+            viewHolder.user1Name.setText(matchListContent.getUser().getUsername());
+            viewHolder.user2Name.setText(matchListContent.getMatchedUser().getUsername());
+            viewHolder.author1Name.setText(matchListContent.getGivenBook().getAuthorName());
+            viewHolder.author2Name.setText(matchListContent.getWantedBook().getAuthorName());
+            viewHolder.book1Title.setText(matchListContent.getGivenBook().getTitle());
+            viewHolder.book2Title.setText(matchListContent.getWantedBook().getTitle());
+            viewHolder.score.setText(String.valueOf((matchListContent.getScore())));
+
+            viewHolder.book1Image.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getActivity(), BookDetailActivity.class);
+                    intent.putExtra("BOOK", matchListContent.getGivenBook());
+                    startActivity(intent);
+                }
+            });
+
+            viewHolder.book2Image.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getActivity(), BookDetailActivity.class);
+                    intent.putExtra("BOOK", matchListContent.getWantedBook());
+                    startActivity(intent);
+                }
+            });
+
+            Picasso.get()
+                    .load(matchListContent.getGivenBook().getBookPhotoUrl())
+                    .resize(300, 400)
+                    .error(R.drawable.error)
+                    .placeholder(R.drawable.loading)
+                    .into(viewHolder.book1Image);
+
+
+            Picasso.get()
+                    .load(matchListContent.getWantedBook().getBookPhotoUrl())
+                    .resize(300, 400)
+                    .error(R.drawable.error)
+                    .placeholder(R.drawable.loading)
+                    .into(viewHolder.book2Image);
 
             viewHolder.transactionButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
 
-                    new AcceptMatchTask(matchListContent.getMatchID()).execute();
+                    int matchID = matchListContent.getMatchID();
                     matchListContents.remove(position);
-                    matchListContentArrayAdapter.notifyDataSetChanged();
+                    listView.setAdapter(matchListContentArrayAdapter);
+                    //matchListContentArrayAdapter.notifyDataSetChanged();
+                    new AcceptMatchTask(matchID).execute();
+
                 }
             });
 
@@ -340,7 +368,7 @@ public class MatchListFragment extends Fragment {
         @Override
         protected Void doInBackground(Void... voids) {
 
-            ArrayList<Object> arr = api.rejectMatch(matchID);
+            ArrayList<Object> arr = api.actionOnMatch(matchID, false);
             System.out.println(arr);
             return null;
         }
@@ -463,7 +491,7 @@ public class MatchListFragment extends Fragment {
         @Override
         protected Void doInBackground(Void... voids) {
 
-            ArrayList<Object> result =  api.confirmMatch(matchID);
+            ArrayList<Object> result =  api.actionOnMatch(matchID, true);
             System.out.println(result);
             return null;
         }
@@ -483,7 +511,7 @@ public class MatchListFragment extends Fragment {
         @Override
         protected Void doInBackground(Void... voids) {
 
-
+            System.out.println(api.algo_match_algo());
             ArrayList<Object> arr = api.matchListIndex();
             ArrayList<Object> matches = (ArrayList<Object>) arr.get(2);
             matchListContents = new ArrayList<>();
@@ -492,8 +520,7 @@ public class MatchListFragment extends Fragment {
                 int userID = (int)((ArrayList)(((ArrayList<Object>)matches.get(0)).get(0))).get(1);
                 System.out.println("User ID" + userID);
                 System.out.println(api.getUserProfile(userID));
-                //User currentUser = (User)(api.getUserProfile(userID).get(2));
-                User currentUser = new User(3, "asd","asd", "asd", "asd", "asd", "asd", "asd", true, "1992-05-22", 38, 34);
+                User currentUser = (User)api.getSession().get(2);//new User(3, "asd","asd", "asd", "asd", "asd", "asd", "asd", true, "1992-05-22", 38, 34);
 
                 for (int i = 0; i < matches.size(); i++){
                     ArrayList<Object> match = (ArrayList<Object>) matches.get(i);
@@ -501,7 +528,7 @@ public class MatchListFragment extends Fragment {
                     MatchListContent m = new MatchListContent(
                             (int)matchlistInfo.get(0),
                             currentUser,
-                            currentUser,
+                            (User)api.getUserProfileID((int)matchlistInfo.get(2)).get(2),
                             (int) matchlistInfo.get(3),
                             (Book)match.get(1),
                             (Book)match.get(2)
@@ -511,6 +538,10 @@ public class MatchListFragment extends Fragment {
 
             }
 
+            for (MatchListContent m: matchListContents){
+                System.out.println("------------------\n" + m.getGivenBook().getTitle() + " " + m.getUser().getUsername()
+                +  m.getWantedBook().getTitle() + " " + m.getMatchedUser().getUsername() + "\n-------------------");
+            }
 
             return null;
         }

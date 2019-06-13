@@ -69,6 +69,9 @@ public class MainActivity extends AppCompatActivity implements MatchListFragment
     public void setGuestSession(boolean b){
         guestSession = b;
     }
+    public boolean isGuestSession(){
+        return guestSession;
+    }
 
     @Override
     protected void onDestroy() {
@@ -84,6 +87,7 @@ public class MainActivity extends AppCompatActivity implements MatchListFragment
             if (!guestSession){
                 switch (item.getItemId()) {
                     case R.id.generalList:
+                        if (active instanceof GeneralListFragment) break;
                         if (generalListFragment == null) generalListFragment = new GeneralListFragment();
 
                         try{
@@ -99,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements MatchListFragment
 
 
                     case R.id.matchList:
+                        if (active instanceof MatchListFragment) break;
                         if (matchListFragment == null) matchListFragment = new MatchListFragment();
 
                         try{
@@ -114,6 +119,7 @@ public class MainActivity extends AppCompatActivity implements MatchListFragment
                         }
 
                     case R.id.suggestionList:
+                        if (active instanceof SuggestionListFragment) break;
                         if (suggestionListFragment == null) suggestionListFragment = new SuggestionListFragment();
 
                         try{
@@ -150,6 +156,8 @@ public class MainActivity extends AppCompatActivity implements MatchListFragment
             return false;
         }
     };
+
+
 
     @Override
     public void onBackPressed() {

@@ -1,5 +1,6 @@
 package com.bookclub.app.bookclub;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -7,7 +8,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AlertDialog;
+
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -23,20 +24,22 @@ import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
-import com.bookclub.app.bookclub.Model.Message;
+import com.bookclub.app.bookclub.bookclubapi.Message;
 import com.bookclub.app.bookclub.bookclubapi.BookClubAPI;
+import com.bookclub.app.bookclub.bookclubapi.User;
+import com.yarolegovich.lovelydialog.LovelyStandardDialog;
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import dmax.dialog.SpotsDialog;
+
 
 public class ChatActivity extends AppCompatActivity {
 
-    final int CURRENT_USER_ID = 1;
 
     private RecyclerView recyclerView;
     private MessageListAdapter messageListAdapter;
@@ -44,23 +47,38 @@ public class ChatActivity extends AppCompatActivity {
     private int chat;
     private Button sendButton, acceptButton, rejectButton;
     private EditText editText;
+    TextView chattedNameText;
     TimerTask doAsynchronousTask;
     Handler handler;
     Runnable handlerTask;
     Dialog dialog;
+    AlertDialog alertDialog;
+    BookClubAPI api;
+    int chatID, chattedUserID;
+    String chattedUserName;
+    User chattedUser, currentUser;
+    boolean receivingMessage;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        api = new BookClubAPI();
         setContentView(R.layout.activity_chat);
-        populateMessages();
         recyclerView = findViewById(R.id.reyclerview_message_list);
-        messageListAdapter = new MessageListAdapter(this, messages);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        recyclerView.setLayoutManager(linearLayoutManager);
-        recyclerView.setAdapter(messageListAdapter);
+        chattedUser = null;
+        chatID = getIntent().getIntExtra("ChatID", 0);
+        chattedUserID = getIntent().getIntExtra("ChattedUserID", 0);
+        chattedUserName = getIntent().getStringExtra("ChattedUserName");
+        System.out.println("ChatID: " + chatID + " ChattedUserID : "+ chattedUserID + " ChattedUserName: " + chattedUserName);
+        chattedNameText = findViewById(R.id.userNameText);
+        chattedNameText.setText(chattedUserName);
+        receivingMessage = false;
+        alertDialog = new SpotsDialog(this);
+        alertDialog.show();
+
+        new ChatCreatorTask().execute();
+
         editText = findViewById(R.id.edittext_chatbox);
         sendButton = findViewById(R.id.button_chatbox_send);
 
@@ -69,53 +87,48 @@ public class ChatActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (editText.getText() != null && !editText.getText().equals("")){
                     Log.d("send pressed", editText.getText().toString());
-                    messages.add(new Message(editText.getText().toString(), "Deniz Şen", 1, new Date(42345), false));
-                    messageListAdapter.notifyDataSetChanged();
+                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                    Date date = new Date();
+                    Message message = new Message(editText.getText().toString(), currentUser.getName(), currentUser.getId(),  simpleDateFormat.format(date), false);
+                    //messages.add(message);
+                    //messageListAdapter.notifyDataSetChanged();
+                    new SendMessageTask(editText.getText().toString()).execute();
+
                     editText.setText("");
                     recyclerView.scrollToPosition(messages.size()-1);
-
-                    new SendMessageTask().execute();
 
                 }
             }
         });
 
-        dialog = new Dialog(this);
-        dialog.setContentView(R.layout.rating_popup);
-        TextView dialogUserName = dialog.findViewById(R.id.username);
-        RatingBar ratingBar  = dialog.findViewById(R.id.ratingBar);
-        ImageButton dialogAccept = dialog.findViewById(R.id.confirmButton);
-        ImageButton dialogCancel = dialog.findViewById(R.id.cancelButton);
-        dialogCancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-            }
-        });
+
 
         acceptButton = findViewById(R.id.acceptButton);
         acceptButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                /*final AlertDialog.Builder builder = new AlertDialog.Builder(ChatActivity.this);
-                builder.setMessage("You are about to confirm this trade. Are you sure?")
-                        .setCancelable(false)
-                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                //confirmation process
-
+                new LovelyStandardDialog(ChatActivity.this, LovelyStandardDialog.ButtonLayout.HORIZONTAL)
+                        .setTopColorRes(R.color.buttonColor)
+                        .setButtonsColorRes(R.color.colorAccent)
+                        .setIcon(R.drawable.bookclub_icon)
+                        .setTitle("Confirm?")
+                        .setMessage("Are you sure you want to confirm this trade?")
+                        .setPositiveButton("Confirm", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                alertDialog.show();
+                                new ConfirmTrade(true).execute();
+                                Intent intent = new Intent(ChatActivity.this, ChatListActivity.class);
+                                startActivity(intent);
+                            }
+                        })
+                        .setNeutralButton("Cancel", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
 
                             }
                         })
-                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                            public void onClick(final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
-                                dialog.cancel();
-                            }
-                        });
-                final AlertDialog alert = builder.create();
-                alert.show();
-                */
-                dialog.show();
+                        .show();
             }
         });
 
@@ -129,7 +142,8 @@ public class ChatActivity extends AppCompatActivity {
                         .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                             public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
                                 //rejection process
-
+                                alertDialog.show();
+                                new ConfirmTrade(false).execute();
                             }
                         })
                         .setNegativeButton("No", new DialogInterface.OnClickListener() {
@@ -146,11 +160,36 @@ public class ChatActivity extends AppCompatActivity {
         handlerTask = new Runnable() {
             @Override
             public void run() {
-                new ReceiveNewMessages().execute();
-                handler.postDelayed(this, 2000);
+                if (!receivingMessage){
+                    new ReceiveNewMessages().execute();
+                }
+                handler.postDelayed(this, 5000);
             }
         };
         handlerTask.run();
+    }
+
+    public class ConfirmTrade extends AsyncTask<Void, Void, Void>{
+        boolean isConfirmed;
+
+        public ConfirmTrade(boolean isConfirmed){
+            this.isConfirmed = isConfirmed;
+
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            alertDialog.dismiss();
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+            System.out.println(api.confirmTrade(chatID, isConfirmed));
+
+            return null;
+        }
     }
 
     @Override
@@ -160,51 +199,74 @@ public class ChatActivity extends AppCompatActivity {
         handler.removeCallbacks(handlerTask);
     }
 
-    public void callAsynchronousTask() {
-        final Handler handler = new Handler();
-        Timer timer = new Timer();
-        doAsynchronousTask = new TimerTask() {
-            @Override
-            public void run() {
-                handler.post(new Runnable() {
-                    public void run() {
-                        try {
-                            ReceiveNewMessages performBackgroundTask = new ReceiveNewMessages();
-                            // PerformBackgroundTask this class is the class that extends AsynchTask
-                            performBackgroundTask.execute();
-                        } catch (Exception e) {
-                            // TODO Auto-generated catch block
-                        }
-                    }
-                });
-            }
-        };
-        timer.schedule(doAsynchronousTask, 5000); //execute in every 5000 ms
-
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(ChatActivity.this, ChatListActivity.class);
+        startActivity(intent);
     }
-
 
     public class ReceiveNewMessages extends AsyncTask<Void, Void, Void>{
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-
+            receivingMessage = true;
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            messageListAdapter.notifyDataSetChanged();
+            //messageListAdapter.notifyDataSetChanged();
+            messageListAdapter = new MessageListAdapter(ChatActivity.this, messages);
+            recyclerView.setAdapter(messageListAdapter);
+            recyclerView.scrollToPosition(messages.size()-1);
+            receivingMessage = false;
         }
+
+
 
         @Override
         protected Void doInBackground(Void... voids) {
-            System.out.println("Hello");
+
+            System.out.println("ReceiveNewMessages doinbackground");
+
+            messages = new ArrayList<>();
+
+            ArrayList<Object> chats = (ArrayList<Object>) api.chat_messagelist(chatID).get(2);
+            System.out.println("-----------Chats: " + chats);
+            currentUser = (User)api.getSession().get(2);
+            if (chats != null){
+                System.out.println("Current User: " + currentUser);
+            }
+            else chats = new ArrayList<>();
+
+            for (int i = 0; i < chats.size(); i++){
+                ArrayList<Object> chat = (ArrayList<Object>) chats.get(i);
+                if ((int)chat.get(3) == currentUser.getId()){
+
+                }
+                Message message = new Message(
+                        (String)chat.get(2),
+                        (int)chat.get(3) == chattedUserID ? chattedUserName : currentUser.getName(),
+                        (int)chat.get(3),
+                        (String)chat.get(0),
+                        (boolean)chat.get(1)
+                );
+
+                messages.add(message);
+            }
+
             return null;
         }
     }
 
     public class SendMessageTask extends AsyncTask<Void, Void, Void>{
+
+        String q;
+
+        public SendMessageTask(String q){
+            this.q = q;
+        }
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
@@ -215,59 +277,49 @@ public class ChatActivity extends AppCompatActivity {
             super.onPostExecute(aVoid);
             //update the chat list
             //messageListAdapter.notifyDataSetChanged();
+            messageListAdapter = new MessageListAdapter(ChatActivity.this, messages);
+            recyclerView.setAdapter(messageListAdapter);
+            recyclerView.scrollToPosition(messages.size()-1);
+
         }
 
 
         @Override
         protected Void doInBackground(Void... voids) {
 
-            //send message
-            BookClubAPI api = new BookClubAPI();
-            // api.sendMessage(userID, editText.getText());
+            Date date = new Date();
+            api.chat_send(chatID, q);
+
+            messages = new ArrayList<>();
+
+            ArrayList<Object> chats = (ArrayList<Object>) api.chat_messagelist(chatID).get(2);
+            System.out.println(chats);
+            currentUser = (User)api.getSession().get(2);
+            if (chats != null){
+                System.out.println("Current User: " + currentUser);
+            }
+            else chats = new ArrayList<>();
+
+            for (int i = 0; i < chats.size(); i++){
+                ArrayList<Object> chat = (ArrayList<Object>) chats.get(i);
+                if ((int)chat.get(3) == currentUser.getId()){
+
+                }
+                Message message = new Message(
+                        (String)chat.get(2),
+                        (int)chat.get(3) == chattedUserID ? chattedUserName : currentUser.getName(),
+                        (int)chat.get(3),
+                        (String)chat.get(0),
+                        (boolean)chat.get(1)
+                );
+
+                messages.add(message);
+            }
 
             return null;
         }
     }
 
-
-    private void populateMessages(){
-
-        messages = new ArrayList<>();
-        messages.add(new Message("wassup", "Deniz Şen", 1, new Date(43242345), false));
-        messages.add(new Message("Haylo", "Mehmet", 2, new Date(8537384), true));
-
-        messages.add(new Message("wassup", "Deniz Şen", 1, new Date(432445), false));
-        messages.add(new Message("Haylo", "Mehmet", 2, new Date(85374384), true));
-
-        messages.add(new Message("Haylo", "Mehmet", 2, new Date(85884), true));
-        messages.add(new Message("Haylo", "Mehmet", 2, new Date(8537384), true));
-
-        messages.add(new Message("wassup", "Deniz Şen", 1, new Date(432445), false));
-        messages.add(new Message("Haylo", "Mehmet", 2, new Date(85374384), true));
-
-        messages.add(new Message("wassup", "Deniz Şen", 1, new Date(42345), false));
-        messages.add(new Message("Haylo", "Mehmet", 2, new Date(85884), true));
-
-        messages.add(new Message("wassup", "Deniz Şen", 1, new Date(43242345), false));
-        messages.add(new Message("Haylo", "Mehmet", 2, new Date(8537384), true));
-
-        messages.add(new Message("wassup", "Deniz Şen", 1, new Date(432445), false));
-        messages.add(new Message("Haylo Haylo Haylo Haylo Haylo Haylo Haylo Haylo Haylo Haylo Haylo Haylo Haylo Haylo Haylo Haylo Haylo Haylo Haylo Haylo Haylo Haylo Haylo Haylo aylo Haylo ", "Mehmet", 2, new Date(85374384), true));
-
-        messages.add(new Message("wassup", "Deniz Şen", 1, new Date(42345), false));
-        messages.add(new Message("Haylo", "Mehmet", 2, new Date(85884), true));
-
-        messages.add(new Message("wassup", "Deniz Şen", 1, new Date(43242345), false));
-        messages.add(new Message("Haylo", "Mehmet", 2, new Date(8537384), true));
-
-        messages.add(new Message("wassup", "Deniz Şen", 1, new Date(432445), false));
-        messages.add(new Message("Haylo", "Mehmet", 2, new Date(85374384), true));
-
-        messages.add(new Message("wassup", "Deniz Şen", 1, new Date(42345), false));
-        messages.add(new Message("Haylo", "Mehmet", 2, new Date(85884), true));
-
-
-    }
 
     public class MessageListAdapter extends RecyclerView.Adapter{
         private static final int VIEW_TYPE_MESSAGE_SENT = 1;
@@ -301,7 +353,6 @@ public class ChatActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
             Message message = messages.get(i);
-            Log.d("pizza", "onBindViewHolder");
             switch (viewHolder.getItemViewType()) {
                 case VIEW_TYPE_MESSAGE_SENT:
                     ((SentMessageHolder) viewHolder).bind(message);
@@ -319,7 +370,7 @@ public class ChatActivity extends AppCompatActivity {
         @Override
         public int getItemViewType(int position) {
             Message message = messages.get(position);
-            if (message.getUserID()==1) {
+            if (message.getUserID()== currentUser.getId()) {
                 // If the current user is the sender of the message
                 return VIEW_TYPE_MESSAGE_SENT;
             } else {
@@ -335,12 +386,46 @@ public class ChatActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+
+
+            messageListAdapter = new MessageListAdapter(ChatActivity.this, messages);
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(ChatActivity.this);
+            linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+            recyclerView.setLayoutManager(linearLayoutManager);
+            recyclerView.setAdapter(messageListAdapter);
+            chattedNameText.setText(chattedUserName);
+            alertDialog.dismiss();
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
 
-            populateMessages();
+            messages = new ArrayList<>();
+
+            ArrayList<Object> chats = (ArrayList<Object>) api.chat_messagelist(chatID).get(2);
+            System.out.println(chats);
+            if (chats != null){
+                currentUser = (User)api.getSession().get(2);
+                System.out.println("Current User: " + currentUser);
+            }
+            else return null;
+
+            for (int i = 0; i < chats.size(); i++){
+                ArrayList<Object> chat = (ArrayList<Object>) chats.get(i);
+                if ((int)chat.get(3) == currentUser.getId()){
+
+                }
+                Message message = new Message(
+                        (String)chat.get(2),
+                        (int)chat.get(3) == chattedUserID ? chattedUserName : currentUser.getName(),
+                        (int)chat.get(3),
+                        (String)chat.get(0),
+                        (boolean)chat.get(1)
+                );
+
+                messages.add(message);
+            }
+
 
             return null;
         }
@@ -365,11 +450,12 @@ public class ChatActivity extends AppCompatActivity {
 
             // Format the stored timestamp into a readable String using method.
 
-            Date date = message.getDate();
-            DateFormat dateFormat = new SimpleDateFormat("hh:mm");
-            String strDate = dateFormat.format(date);
+          //  Date date = message.getDate();
+           // DateFormat dateFormat = new SimpleDateFormat("hh:mm");
+            //String strDate = dateFormat.format(date);
 
-            timeText.setText(strDate);
+            //timeText.setText(strDate);
+            timeText.setText(message.getDate());
             nameText.setText(message.getName());
 
 
@@ -390,13 +476,7 @@ public class ChatActivity extends AppCompatActivity {
             Log.d("pizza", "bind sent");
             messageText.setText(message.getText());
 
-            // Format the stored timestamp into a readable String using method.
-
-            Date date = message.getDate();
-            DateFormat dateFormat = new SimpleDateFormat("hh:mm");
-            String strDate = dateFormat.format(date);
-
-            timeText.setText(strDate);
+            timeText.setText(message.getDate());
 
 
         }

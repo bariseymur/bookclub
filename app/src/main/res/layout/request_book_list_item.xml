@@ -26,38 +26,43 @@
 
             <ImageButton
                 android:id="@+id/bookImage"
-                android:layout_width="300px"
-                android:layout_height="400px"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
+                android:background="@android:color/transparent"
                 app:srcCompat="@drawable/bookclub_icon" />
 
             <LinearLayout
-                android:layout_width="207dp"
-                android:layout_height="match_parent"
-                android:layout_weight="2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:gravity="center_vertical"
                 android:orientation="vertical"
-                android:paddingLeft="10dp">
+                android:paddingLeft="5dp">
 
                 <TextView
                     android:id="@+id/bookTitle"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="2"
+                    android:autoSizeTextType="uniform"
                     android:text="TextView"
-                    android:textSize="18sp"
+                    android:textSize="14sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/authorName"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="bottom"
                     android:text="TextView" />
             </LinearLayout>
 
             <ImageButton
                 android:id="@+id/wishButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_gravity="center_vertical"
                 android:layout_weight="1"
                 android:background="@android:color/transparent"

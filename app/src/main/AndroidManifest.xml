@@ -22,7 +22,8 @@
         android:roundIcon="@mipmap/bookclub_icon"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-        <activity android:name=".WelcomeActivity">
+        <activity android:name=".WelcomeActivity"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -31,7 +32,8 @@
         </activity>
         <activity
             android:name=".LoginActivity"
-            android:label="@string/title_activity_login" />
+            android:label="@string/title_activity_login"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".SignupActivity"
             android:label="@string/title_activity_signup"
@@ -39,22 +41,24 @@
         <activity
             android:name=".MainActivity"
             android:hardwareAccelerated="true"
-            android:label="@string/title_activity_main" />
-        <activity android:name=".PreferencesActivity" />
-        <activity android:name=".AccountSettingsActivity" />
-        <activity android:name=".WishListActivity" />
+            android:label="@string/title_activity_main"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".PreferencesActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".AccountSettingsActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".WishListActivity" android:screenOrientation="portrait"/>
         <activity
             android:name=".RequestBookActivity"
             android:label="@string/title_activity_request_book"
+            android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-        <activity android:name=".BookDetailActivity" />
-        <activity android:name=".ChatActivity" />
-        <activity android:name=".ForgotPasswordActivity" />
-        <activity android:name=".ProfileActivity" />
-        <activity android:name=".TradeListActivity" />
-        <activity android:name=".HistoryActivity" />
-        <activity android:name=".ChatListActivity" />
-        <activity android:name=".TradeBookActivity"></activity>
+        <activity android:name=".BookDetailActivity" android:screenOrientation="portrait" />
+        <activity android:name=".ChatActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".ForgotPasswordActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".ProfileActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".TradeListActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".HistoryActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".ChatListActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".TradeBookActivity" android:screenOrientation="portrait"></activity>
     </application>
 
 </manifest>

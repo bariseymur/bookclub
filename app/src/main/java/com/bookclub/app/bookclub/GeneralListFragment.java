@@ -362,7 +362,7 @@ public class GeneralListFragment extends Fragment {
             Picasso.get()
                     .load(generalListContent.getBook().getBookPhotoUrl())
                     .resize(300, 400)
-                    .error(R.drawable.book)
+                    .error(R.drawable.dead)
                     .placeholder(R.drawable.ic_get_app_black_24dp)
                     .into(viewHolder.bookImageButton);
             System.out.println(generalListContent.getBook().getBookPhotoUrl());
@@ -443,7 +443,10 @@ public class GeneralListFragment extends Fragment {
             super.onPostExecute(aVoid);
             generalListContentArrayAdapter = new GeneralListAdapter(generalListContents, getContext());
             listView.setAdapter(generalListContentArrayAdapter);
-
+            if (((MainActivity)getActivity()).isGuestSession()){
+                preferencesButton.setVisibility(View.INVISIBLE);
+                chatButton.setVisibility(View.INVISIBLE);
+            }
             if (alertDialog.isShowing())alertDialog.dismiss();
         }
     }

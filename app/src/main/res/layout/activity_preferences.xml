@@ -19,29 +19,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@android:color/background_light"
-            app:srcCompat="@mipmap/bookclub_icon" />
-
-        <TextView
-            android:id="@+id/user_fullname"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:fontFamily="@font/roboto"
-            android:text="Zoey"
-            android:textAlignment="center"
-            android:textSize="24dp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/user_mail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:fontFamily="@font/roboto"
-            android:text="zoey@mail.com"
-            android:textAlignment="center"
-            android:textSize="18dp"
-            android:textStyle="normal" />
+            app:srcCompat="@drawable/account_circle_100px" />
 
         <ScrollView
             android:layout_width="match_parent"
@@ -68,7 +46,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="80dp"
                         android:background="#fff"
-                        app:srcCompat="@drawable/ic_account_circle_black_48dp" />
+                        app:srcCompat="@drawable/account_edit" />
 
                     <TextView
                         android:id="@+id/accountSettings_text"

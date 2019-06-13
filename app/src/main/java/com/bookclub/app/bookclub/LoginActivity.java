@@ -152,6 +152,12 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         alertDialog = new SpotsDialog(this);
     }
 
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(LoginActivity.this, WelcomeActivity.class);
+        startActivity(intent);
+    }
+
     private void populateAutoComplete() {
         if (!mayRequestContacts()) {
             return;
@@ -375,6 +381,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
              //   Log.d("Login", "aaaaaaaaaaaaaaaaaaa");
                 BookClubAPI api = new BookClubAPI();
                 ArrayList<Object> status = api.login(mEmailView.getText().toString(), mPasswordView.getText().toString());
+
                 Log.d("login attempt", status.toString());
                 if (status.get(0).equals("success"))
                     return true;

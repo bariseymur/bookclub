@@ -1,4 +1,4 @@
-package com.bookclub.app.bookclub.Model;
+package com.bookclub.app.bookclub.bookclubapi;
 
 import java.util.Date;
 
@@ -11,11 +11,11 @@ public class Message {
     String text;
     String name;
     long userID;
-    Date date;
+    String date;
     boolean isSeen;
 
 
-    public Message(String text, String name, long userID, Date date, boolean isSeen) {
+    public Message(String text, String name, long userID, String date, boolean isSeen) {
         this.text = text;
         this.name = name;
         this.userID = userID;
@@ -47,11 +47,11 @@ public class Message {
         this.userID = userID;
     }
 
-    public Date getDate() {
+    public String getDate() {
         return date;
     }
 
-    public void setDate(Date date) {
+    public void setDate(String date) {
         this.date = date;
     }
 

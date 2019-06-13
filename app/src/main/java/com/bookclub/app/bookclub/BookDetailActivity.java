@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat;
 public class BookDetailActivity extends AppCompatActivity {
 
     private Book book;
-    private TextView bookTitleText, authorNameText, publicationDateText, publisherText;
+    private TextView bookTitleText, authorNameText, publicationDateText, publisherText, isbnText;
     private ImageView bookImage;
 
 
@@ -37,6 +37,9 @@ public class BookDetailActivity extends AppCompatActivity {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM YYYY");
         publicationDateText.setText(simpleDateFormat.format(book.getPublishDate()));
         publisherText.setText(book.getPublisher());
+
+        isbnText = findViewById(R.id.isbnNo);
+        isbnText.setText(book.getIsbn());
 
         Picasso.get()
                 .load(book.getBookPhotoUrl())

@@ -17,10 +17,10 @@
 
         <TextView
             android:id="@+id/userNameText"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="36"
-            android:paddingTop="10dp"
+            android:autoSizeTextType="uniform"
             android:text="TextView"
             android:textAlignment="viewStart"
             android:textColor="@android:color/background_light"
@@ -29,18 +29,22 @@
         <Button
             android:id="@+id/acceptButton"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@color/buttonColor"
-            android:text="Accept Trade" />
+            android:text="Accept Trade"
+            android:textColor="@android:color/holo_red_light"
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/rejectButton"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@android:color/holo_red_dark"
-            android:text="Reject Trade" />
+            android:text="Reject Trade"
+            android:textColor="@color/backgroundColor"
+            android:textStyle="bold" />
 
     </LinearLayout>
 

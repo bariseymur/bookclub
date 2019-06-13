@@ -37,13 +37,15 @@
                     android:layout_height="200px"
                     android:layout_alignParentStart="true"
                     android:layout_below="@+id/userNameText"
+                    android:layout_weight="1"
                     android:background="@color/backgroundColor"
                     app:srcCompat="@drawable/ic_account_circle_black_48dp" />
 
                 <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_marginLeft="10dp"
+                    android:layout_weight="1"
                     android:orientation="vertical">
 
                     <TextView
@@ -66,6 +68,14 @@
                         android:text="bhttn43" />
 
                 </LinearLayout>
+
+                <ImageButton
+                    android:id="@+id/rateButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    app:srcCompat="@drawable/rate" />
 
             </LinearLayout>
 

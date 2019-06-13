@@ -52,7 +52,8 @@ public class PreferencesActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(PreferencesActivity.this, ProfileActivity.class);
-                intent.putExtra("UserID", 5);
+                //intent.putExtra("UserID", 5);
+                intent.putExtra("Current", true);
                 startActivity(intent);
             }
         });

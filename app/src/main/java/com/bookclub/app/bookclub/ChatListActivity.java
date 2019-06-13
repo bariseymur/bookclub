@@ -1,6 +1,7 @@
 package com.bookclub.app.bookclub;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -12,12 +13,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import com.bookclub.app.bookclub.bookclubapi.BookClubAPI;
@@ -35,6 +40,7 @@ public class ChatListActivity extends AppCompatActivity {
     ArrayAdapter<ChatListContent> adapter;
     AlertDialog alertDialog;
     BookClubAPI api;
+    Dialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,9 +49,70 @@ public class ChatListActivity extends AppCompatActivity {
         api = new BookClubAPI();
         alertDialog = new SpotsDialog(this);
         alertDialog.show();
-
         new CreateChatListTask().execute();
 
+    }
+
+    private Dialog makeDialog(String username, int userId, int matchId, int suggestionId){
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.rating_popup);
+        TextView dialogUserName = dialog.findViewById(R.id.username);
+        dialogUserName.setText(username);
+        RatingBar ratingBar  = dialog.findViewById(R.id.ratingBar);
+        ImageButton dialogAccept = dialog.findViewById(R.id.confirmButton);
+        dialogAccept.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alertDialog.show();
+                new RateTask(userId, ratingBar.getNumStars(), matchId, suggestionId).execute();
+                dialog.dismiss();
+            }
+        });
+        ImageButton dialogCancel = dialog.findViewById(R.id.cancelButton);
+        dialogCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        return dialog;
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(ChatListActivity.this, MainActivity.class);
+        startActivity(intent);
+    }
+
+    public class RateTask extends AsyncTask<Void, Void, Void>{
+
+        int userId, rating, matchId, suggestionId;
+
+        public RateTask(int userId, int rating, int matchId, int suggestionId ){
+            this.userId = userId;
+            this.rating = rating;
+            this.matchId = matchId;
+            this.suggestionId = suggestionId;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            alertDialog.dismiss();
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+            System.out.println("Rate Task: " + api.rate(userId, rating, matchId, suggestionId));
+
+            return null;
+        }
     }
 
     public class CreateChatListTask extends AsyncTask<Void, Void, Void>{
@@ -55,12 +122,16 @@ public class ChatListActivity extends AppCompatActivity {
             super.onPostExecute(aVoid);
 
 
-
             listView = findViewById(R.id.listView);
             listView.setOnItemClickListener((parent, view, position, id) -> {
                 Log.d("chatListActivity", "adasdad");
                 Intent intent = new Intent(ChatListActivity.this, ChatActivity.class);
                 intent.putExtra("ChatID", chatListContents.get(position).getChatId());
+                intent.putExtra("ChattedUserID", chatListContents.get(position).getChattedUser().getId());
+                intent.putExtra("ChattedUserName", chatListContents.get(position).getChattedUser().getName());
+                System.out.println("%%%%%%%%%%%%%%%%%%%%%%%ChatID: " + chatListContents.get(position).getChatId() +
+                        " ChattedUserID" +  chatListContents.get(position).getChattedUser().getId()
+                        + " ChattedUserName" + chatListContents.get(position).getChattedUser().getName());
                 startActivity(intent);
             });
 
@@ -77,6 +148,7 @@ public class ChatListActivity extends AppCompatActivity {
 
             User currentuser = (User)api.getSession().get(2);
             int userId = currentuser.getId();
+            System.out.println("Current User Id : " + userId);
             ArrayList<Object> chatlist = (ArrayList<Object>) api.chat_index().get(2);
             if (chatlist == null) return null;
 
@@ -94,13 +166,13 @@ public class ChatListActivity extends AppCompatActivity {
                     currentUserIndex = 2;
                 }
 
-                User currentUser = new User(3, "asd","asd", "asd", "asd", "asd", "asd", "asd", true, "1992-05-22", 38, 34);
-
+                User chattedUser = (User)api.getUserProfileID(chattedUserId).get(2);
+                System.out.println("Match id: " + (int)chat.get(5)+ " Suggestion id: " + (int)chat.get(6));
                 ChatListContent chatListContent = new ChatListContent(
                         (int) chat.get(0),
                         (int)chat.get(5),
                         (int)chat.get(6),
-                        currentUser,
+                        chattedUser,
                         !chat.get(currentUserIndex + 2).equals("not_confirmed"),
                         !chat.get(chattedUserIndex + 2).equals("not_confirmed")
                         );
@@ -109,15 +181,15 @@ public class ChatListActivity extends AppCompatActivity {
 
             }
 
-
             return null;
         }
     }
 
 
+
     private static class ViewHolder{
         TextView userName, name;
-        ImageButton profilePicture;
+        ImageButton profilePicture, rateButton;
         CardView cardView;
     }
 
@@ -131,14 +203,10 @@ public class ChatListActivity extends AppCompatActivity {
         }
 
 
-
-
         @NonNull
         @Override
         public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
             ChatListContent chatListContent = chatListContents.get(position);
-
-            Log.d("getView", "GetView at " + position);
 
             View result;
             ViewHolder vh;
@@ -152,6 +220,7 @@ public class ChatListActivity extends AppCompatActivity {
                 vh.name = convertView.findViewById(R.id.nameText);
                 vh.profilePicture = convertView.findViewById(R.id.bookImage);
                 vh.cardView = convertView.findViewById(R.id.pad);
+                vh.rateButton = convertView.findViewById(R.id.rateButton);
 
                 result = convertView;
                 convertView.setTag(vh);
@@ -168,10 +237,51 @@ public class ChatListActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     Intent intent = new Intent(ChatListActivity.this, ProfileActivity.class);
+                    intent.putExtra("UserID", chatListContent.getChattedUser().getId());
                     startActivity(intent);
-
                 }
             });
+
+            vh.rateButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    System.out.println("Rate button");
+
+                    Dialog dialog = new Dialog(ChatListActivity.this);
+                    dialog.setTitle("Rate");
+                    dialog.setContentView(R.layout.rating_popup);
+
+                    TextView dialogUserName = dialog.findViewById(R.id.username);
+                    dialogUserName.setText(chatListContent.getChattedUser().getUsername());
+                    RatingBar ratingBar  = dialog.findViewById(R.id.ratingBar);
+                    ImageButton dialogAccept = dialog.findViewById(R.id.confirmButton);
+                    dialogAccept.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            alertDialog.show();
+                            new RateTask(chatListContent.getChattedUser().getId(),
+                                    ratingBar.getNumStars(),
+                                    chatListContent.getMatchID(),
+                                    chatListContent.getSuggestionID()).execute();
+                            dialog.dismiss();
+                        }
+                    });
+                    ImageButton dialogCancel = dialog.findViewById(R.id.cancelButton);
+                    dialogCancel.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            dialog.dismiss();
+                        }
+                    });
+
+                    dialog.show();
+                }
+            });
+
+            if (!chatListContent.isChattedUserState() || !chatListContent.isCurrentUserState()){
+                vh.rateButton.setVisibility(View.INVISIBLE);
+
+            }
 
             vh.cardView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -179,6 +289,8 @@ public class ChatListActivity extends AppCompatActivity {
                     Log.d("chatListActivity", "adasdad");
                     Intent intent = new Intent(ChatListActivity.this, ChatActivity.class);
                     intent.putExtra("ChatID", chatListContent.getChatId());
+                    intent.putExtra("ChattedUserID", chatListContent.getChattedUser().getId());
+                    intent.putExtra("ChattedUserName", chatListContent.getChattedUser().getName());
                     startActivity(intent);
                 }
             });
@@ -245,6 +357,14 @@ public class ChatListActivity extends AppCompatActivity {
             this.currentUserState = currentUserState;
         }
 
+        public int getSuggestionID() {
+            return suggestionID;
+        }
+
+        public void setSuggestionID(int suggestionID) {
+            this.suggestionID = suggestionID;
+        }
+
         public boolean isChattedUserState() {
             return chattedUserState;
         }
@@ -253,61 +373,7 @@ public class ChatListActivity extends AppCompatActivity {
             this.chattedUserState = chattedUserState;
         }
 
-        /* String userName, name;
-        int chatID;
-        Bitmap profilePic;
 
-
-        public ChatListContent(User user, int chatID) {
-            this.userName= user.getUsername();
-            this.chatID = chatID;
-            this.name = user.getName();
-
-
-        }
-
-        public ChatListContent(String userName, String name, String profilePicURL, int chatID){
-            this.userName = userName;
-            this.name = name;
-            this.chatID = chatID;
-
-            try {
-
-                ImageLoader imageLoader = new ImageLoader( profilePicURL);
-                profilePic = imageLoader.execute().get();
-
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-        }
-
-        public String getUserName() {
-            return userName;
-        }
-
-        public void setUserName(String userName) {
-            this.userName = userName;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public int getChatID() {
-            return chatID;
-        }
-
-        public void setChatID(int chatID) {
-            this.chatID = chatID;
-        }
-        */
     }
 
 

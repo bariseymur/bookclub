@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -14,6 +15,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.bookclub.app.bookclub.bookclubapi.BookClubAPI;
+import com.yarolegovich.lovelydialog.LovelyStandardDialog;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -79,6 +81,30 @@ public class WelcomeActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    public void onBackPressed() {
+        new LovelyStandardDialog(WelcomeActivity.this, LovelyStandardDialog.ButtonLayout.HORIZONTAL)
+                .setTopColorRes(R.color.buttonColor)
+                .setButtonsColorRes(R.color.colorAccent)
+                .setIcon(R.drawable.bookclub_icon)
+                .setTitle("Is this is a goodbye?")
+                .setMessage("Are you sure you want to close BookClub?")
+                .setPositiveButton("Confirm", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        finish();
+                        System.exit(0);
+                    }
+                })
+                .setNeutralButton("Cancel", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                    }
+                })
+                .show();
+    }
+
     public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
 
         @Override
@@ -95,6 +121,9 @@ public class WelcomeActivity extends AppCompatActivity {
                 //TODO: login credential checking will be done here
 
             } catch (Exception e) {
+                e.printStackTrace();
+
+
                 return false;
             }
 
@@ -106,8 +135,10 @@ public class WelcomeActivity extends AppCompatActivity {
             if (success) {
                 Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
                 startActivity(intent);
-                alertDialog.dismiss();
             }
+            else{
+            }
+            alertDialog.dismiss();
         }
 
     }

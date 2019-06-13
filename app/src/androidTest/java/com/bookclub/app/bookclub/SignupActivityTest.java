@@ -44,6 +44,14 @@ public class SignupActivityTest {
         signupActivity = signupActivityActivityTestRule.getActivity();
     }
 
+    /*
+        Username with space
+        Birthday not received
+        Email without @
+        Location not received
+        Passwordds do not match
+
+     */
 
     @Test
     public void testSignUp_usernameWithSpace(){
@@ -99,8 +107,6 @@ public class SignupActivityTest {
         onView(withId(R.id.sign_in_button)).perform(click());
         assertTrue(signupActivity.findViewById(R.id.passwordConfirm).isFocused());
         assertTrue(((EditText)(signupActivity.findViewById(R.id.passwordConfirm))).getError().equals("Passwords Do Not Match"));
-
-
     }
 
     @Test
@@ -187,7 +193,7 @@ public class SignupActivityTest {
             e.printStackTrace();
         }
 
-        assertTrue(signupActivity.findViewById(R.id.changeDatePickButton).isFocused());
+        assertTrue(signupActivity.findViewById(R.id.birthDateText).isFocused());
 
     }
 

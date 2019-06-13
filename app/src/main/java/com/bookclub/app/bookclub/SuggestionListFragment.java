@@ -15,14 +15,19 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bookclub.app.bookclub.bookclubapi.Book;
 import com.bookclub.app.bookclub.bookclubapi.BookClubAPI;
 import com.bookclub.app.bookclub.bookclubapi.User;
+import com.hudomju.swipe.SwipeToDismissTouchListener;
+import com.hudomju.swipe.adapter.ListViewAdapter;
 import com.squareup.picasso.Picasso;
 
 import java.lang.reflect.Array;
@@ -30,6 +35,8 @@ import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
 import dmax.dialog.SpotsDialog;
+
+import static android.widget.Toast.LENGTH_SHORT;
 
 
 /**
@@ -55,6 +62,7 @@ public class SuggestionListFragment extends Fragment {
     ImageButton preferencesButton, chatButton;
     private OnFragmentInteractionListener mListener;
     AlertDialog alertDialog;
+    BookClubAPI api;
     public SuggestionListFragment() {
         // Required empty public constructor
     }
@@ -93,16 +101,46 @@ public class SuggestionListFragment extends Fragment {
                              Bundle savedInstanceState) {
         Log.d("Fragment Created", "SuggestionListFragment Created");
         View view = inflater.inflate(R.layout.fragment_suggestion_list, container, false);
-
+        api = new BookClubAPI();
         Log.d("onCreateView", "Before alert dialog");
 
-        alertDialog = new SpotsDialog(getActivity());
+        alertDialog = new SpotsDialog(getActivity(), "Your suggestions are being generated.\nThis operation can take up to 30 seconds.\nPlease Wait.");
         alertDialog.show();
 
         new CreateSuggestionListTask().execute();
+       // new RunSuggestionAlgoTask().execute();
+
         listView = view.findViewById(R.id.suggestionList);
         Log.d("onCreateView", "After alert dialog");
+        final SwipeToDismissTouchListener<ListViewAdapter> touchListener = new SwipeToDismissTouchListener<>(
+                new ListViewAdapter(listView),
+                new SwipeToDismissTouchListener.DismissCallbacks<ListViewAdapter>() {
+                    @Override
+                    public boolean canDismiss(int position) {
+                        return true;
+                    }
 
+                    @Override
+                    public void onDismiss(ListViewAdapter view, int position) {
+                        int suggestionID = suggestionListContents.get(position).getSuggestID();
+                        suggestionListContents.remove(position);
+                        adapter.notifyDataSetChanged();
+                        new RejectSuggestionTask(suggestionID).execute();
+                    }
+                });
+
+        listView.setOnTouchListener(touchListener);
+        listView.setOnScrollListener((AbsListView.OnScrollListener) touchListener.makeScrollListener());
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (touchListener.existPendingDismisses()) {
+                    touchListener.undoPendingDismiss();
+                } else {
+                    Toast.makeText(getActivity(), "Position " + position, LENGTH_SHORT).show();
+                }
+            }
+        });
 
         preferencesButton = view.findViewById(R.id.preferencesButton);
         preferencesButton.setOnClickListener(new View.OnClickListener() {
@@ -122,7 +160,6 @@ public class SuggestionListFragment extends Fragment {
                 startActivity(intent);
             }
         });
-
 
         // Inflate the layout for this fragment
         return view;
@@ -175,7 +212,7 @@ public class SuggestionListFragment extends Fragment {
     * Class SuggestionListAdapter
     * */
     private static class ViewHolder{
-        TextView user1Name, user2Name, author1Name, author2Name, book1Title, book2Title, causeText;
+        TextView score, user1Name, user2Name, author1Name, author2Name, book1Title, book2Title, causeText;
         ImageButton book1Image, book2Image;
         ImageButton transactionButton;
         
@@ -215,45 +252,14 @@ public class SuggestionListFragment extends Fragment {
                 viewHolder.book1Title = convertView.findViewById(R.id.book1Title);
                 viewHolder.book2Title = convertView.findViewById(R.id.book2Title);
                 viewHolder.causeText = convertView.findViewById(R.id.causeText);
+                viewHolder.score = convertView.findViewById(R.id.scoreText);
 
                 //Image Button
                 viewHolder.book1Image = convertView.findViewById(R.id.book1Image);
                 viewHolder.book2Image = convertView.findViewById(R.id.book2Image);
                 viewHolder.transactionButton = convertView.findViewById(R.id.transactionButton);
 
-                viewHolder.user1Name.setText(suggestionListContent.getUser().getUsername());
-                viewHolder.user2Name.setText(suggestionListContent.getSuggestedUser().getUsername());
-                viewHolder.author1Name.setText(suggestionListContent.getGivingBook().getAuthorName());
-                viewHolder.author2Name.setText(suggestionListContent.getWantedBook().getAuthorName());
-                viewHolder.book1Title.setText(suggestionListContent.getGivingBook().getTitle());
-                viewHolder.book2Title.setText(suggestionListContent.getWantedBook().getTitle());
-                viewHolder.causeText.setText("You may like this trade because of this book you liked: "
-                        + suggestionListContent.getSuggestedBook().getTitle());
 
-                Picasso.get()
-                        .load(suggestionListContent.getGivingBook().getBookPhotoUrl())
-                        .resize(300, 400)
-                        .error(R.drawable.book)
-                        .placeholder(R.drawable.account)
-                        .into(viewHolder.book1Image);
-
-                Picasso.get()
-                        .load(suggestionListContent.getWantedBook().getBookPhotoUrl())
-                        .resize(300, 400)
-                        .error(R.drawable.book)
-                        .placeholder(R.drawable.account)
-                        .into(viewHolder.book2Image);
-
-                //viewHolder.book1Image.setImageBitmap(Bitmap.createScaledBitmap(suggestionListContent.getBook1Image(), 300, 400, false));
-                //viewHolder.book2Image.setImageBitmap(Bitmap.createScaledBitmap(suggestionListContent.getBook2Image(), 300, 400, false));
-
-/*                viewHolder.transactionButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Snackbar.make(v, suggestionListContent.getUserName1() + " " + suggestionListContent.getBookTitle1() + "-" + suggestionListContent.getUserName2() + " " + suggestionListContent.getBookTitle2(), Snackbar.LENGTH_LONG).show();
-                    }
-                });
-*/
                 result = convertView;
                 convertView.setTag(viewHolder);
             }
@@ -262,6 +268,58 @@ public class SuggestionListFragment extends Fragment {
                 result = convertView;
             }
 
+            viewHolder.user1Name.setText(suggestionListContent.getUser().getUsername());
+            viewHolder.user2Name.setText(suggestionListContent.getSuggestedUser().getUsername());
+            viewHolder.author1Name.setText(suggestionListContent.getGivingBook().getAuthorName());
+            viewHolder.author2Name.setText(suggestionListContent.getSuggestedBook().getAuthorName());
+            viewHolder.book1Title.setText(suggestionListContent.getGivingBook().getTitle());
+            viewHolder.book2Title.setText(suggestionListContent.getSuggestedBook().getTitle());
+            viewHolder.causeText.setText("You may like this trade because of this book you wish: "
+                    + suggestionListContent.getWantedBook().getTitle());
+            viewHolder.score.setText(String.valueOf(suggestionListContent.getScore()));
+
+            viewHolder.book1Image.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getActivity(), BookDetailActivity.class);
+                    intent.putExtra("BOOK", suggestionListContent.getGivingBook());
+                    startActivity(intent);
+                }
+            });
+
+
+            viewHolder.book2Image.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getActivity(), BookDetailActivity.class);
+                    intent.putExtra("BOOK", suggestionListContent.getSuggestedBook());
+                    startActivity(intent);
+                }
+            });
+
+            Picasso.get()
+                    .load(suggestionListContent.getGivingBook().getBookPhotoUrl())
+                    .resize(300, 400)
+                    .error(R.drawable.book)
+                    .placeholder(R.drawable.account)
+                    .into(viewHolder.book1Image);
+
+            Picasso.get()
+                    .load(suggestionListContent.getSuggestedBook().getBookPhotoUrl())
+                    .resize(300, 400)
+                    .error(R.drawable.book)
+                    .placeholder(R.drawable.account)
+                    .into(viewHolder.book2Image);
+
+            viewHolder.transactionButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int suggestionID = suggestionListContent.getSuggestID();
+                    suggestionListContents.remove(position);
+                    adapter.notifyDataSetChanged();
+                    new AcceptSuggestionTask(suggestionID).execute();
+                }
+            });
 
 
             return convertView;
@@ -270,6 +328,62 @@ public class SuggestionListFragment extends Fragment {
         @Override
         public void onClick(View v) {
 
+        }
+    }
+
+    public class AcceptSuggestionTask extends AsyncTask<Void, Void, Void>{
+
+        int suggestionID;
+
+        public AcceptSuggestionTask(int suggestionID){
+            this.suggestionID = suggestionID;
+        }
+
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+            System.out.println(api.actionOnSuggestion(suggestionID, true));
+            return null;
+        }
+    }
+
+    public class RunSuggestionAlgoTask extends AsyncTask<Void, Void, Void>{
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            System.out.println("Suggestion algo ended!!");
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+            System.out.println(api.algo_suggestion_algo());
+
+            return null;
+        }
+    }
+
+    public class RejectSuggestionTask extends AsyncTask<Void, Void, Void>{
+
+        int suggestionID;
+
+        public RejectSuggestionTask(int suggestionID){
+            this.suggestionID = suggestionID;
+        }
+
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+            System.out.println(api.actionOnSuggestion(suggestionID, false));
+            return null;
         }
     }
 
@@ -293,8 +407,8 @@ public class SuggestionListFragment extends Fragment {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            BookClubAPI api = new BookClubAPI();
-
+            // api = new BookClubAPI();
+            System.out.println(api.algo_suggestion_algo());
             ArrayList<Object> suggestions = (ArrayList<Object>) api.suggestionListIndex().get(2);
             suggestionListContents = new ArrayList<>();
 
@@ -302,17 +416,16 @@ public class SuggestionListFragment extends Fragment {
 
              //   int userID = (int)((ArrayList)(((ArrayList<Object>)suggestions.get(0)).get(0))).get(1);
 
-                User currentUser = new User(3, "asd","asd", "asd", "asd", "asd", "asd", "asd", true, "1992-05-22", 38, 34);
+                User currentUser = (User)api.getSession().get(2);//new User(3, "asd","asd", "asd", "asd", "asd", "asd", "asd", true, "1992-05-22", 38, 34);
+
                 System.out.println(suggestions + "\nSize : " + suggestions.size());
                 for (int i = 0; i < suggestions.size(); i++){
                     ArrayList<Object> suggestion = (ArrayList<Object>) suggestions.get(i);
-                    System.out.println("Suggestion: " + suggestion);
-                    // ArrayList<Object> suggestionListinfo = ((ArrayList<Object>)(((ArrayList<Object>)suggestions.get(i)).get(0)));
                     ArrayList<Object> suggestionListinfo = (ArrayList<Object>) suggestion.get(0);
                     SuggestionListContent suggestionListContent = new SuggestionListContent(
                             (int)suggestionListinfo.get(0),
                             currentUser,
-                            currentUser,
+                            (User)api.getUserProfileID((int)suggestionListinfo.get(2)).get(2),
                             (Book)suggestion.get(1),
                             (Book)suggestion.get(2),
                             (Book) suggestion.get(3),
@@ -321,9 +434,12 @@ public class SuggestionListFragment extends Fragment {
                     suggestionListContents.add(suggestionListContent);
                 }
 
-
             }
 
+            for (SuggestionListContent s: suggestionListContents){
+                System.out.println("------------------\n" + s.getGivingBook().getTitle() + " " + s.getUser().getUsername()
+                        +  s.getSuggestedBook().getTitle() + " " + s.getSuggestedUser().getUsername() + "\n-------------------");
+            }
 
             return null;
         }
@@ -334,10 +450,6 @@ public class SuggestionListFragment extends Fragment {
     * */
 
     public class SuggestionListContent{
-
-        public static final int TRANSACTION_EXCHANGE = 0;
-        public static final int TRANSACTION_SELL = 1;
-
 
           int suggestID;
           User user, suggestedUser;

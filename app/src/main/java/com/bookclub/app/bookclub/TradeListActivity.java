@@ -1,13 +1,16 @@
 package com.bookclub.app.bookclub;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.CardView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,10 +25,17 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bookclub.app.bookclub.bookclubapi.Book;
+import com.bookclub.app.bookclub.bookclubapi.BookClubAPI;
+import com.bookclub.app.bookclub.bookclubapi.User;
 import com.hudomju.swipe.SwipeToDismissTouchListener;
 import com.hudomju.swipe.adapter.ListViewAdapter;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.Collections;
+
+import dmax.dialog.SpotsDialog;
 
 import static android.widget.Toast.LENGTH_SHORT;
 
@@ -33,21 +43,22 @@ public class TradeListActivity extends AppCompatActivity {
 
     LinearLayout linearLayout;
     TradeListAdapter adapter;
-    ArrayList<TradeListContent> tradeListContent;
+    ArrayList<TradeListContent> tradeListContents;
     ListView listView;
-    Button tradeButton;
+    Button tradeBookButton;
+    BookClubAPI api;
+    AlertDialog alertDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_trade_list);
-
+        api = new BookClubAPI();
+        alertDialog = new SpotsDialog(this);
+        alertDialog.show();
         linearLayout = findViewById(R.id.linearLayout);
         listView = findViewById(R.id.tradeList);
-
-        populateTradeList();
-        adapter = new TradeListAdapter(tradeListContent, this);
-        listView.setAdapter(adapter);
+        new GetTradeListTask().execute();
 
         final SwipeToDismissTouchListener<ListViewAdapter> touchListener = new SwipeToDismissTouchListener<>(
                 new ListViewAdapter(listView),
@@ -59,7 +70,10 @@ public class TradeListActivity extends AppCompatActivity {
 
                     @Override
                     public void onDismiss(ListViewAdapter view, int position) {
+                        int tradelistId = tradeListContents.get(position).getTradelistId();
                         adapter.remove(position);
+                        adapter.notifyDataSetChanged();
+                        new TradelistDeleteTask(tradelistId).execute();
                     }
                 });
 
@@ -76,8 +90,8 @@ public class TradeListActivity extends AppCompatActivity {
             }
         });
 
-        tradeButton = findViewById(R.id.tradeBookButton);
-        tradeButton.setOnClickListener(new View.OnClickListener() {
+        tradeBookButton = findViewById(R.id.tradeBookButton);
+        tradeBookButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(TradeListActivity.this, TradeBookActivity.class);
@@ -87,24 +101,10 @@ public class TradeListActivity extends AppCompatActivity {
 
     }
 
-
-    private void populateTradeList(){
-        tradeListContent = new ArrayList<>();
-        tradeListContent.add(new TradeListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        tradeListContent.add(new TradeListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        tradeListContent.add(new TradeListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        tradeListContent.add(new TradeListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        tradeListContent.add(new TradeListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        tradeListContent.add(new TradeListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        tradeListContent.add(new TradeListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        tradeListContent.add(new TradeListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-        tradeListContent.add(new TradeListContent("Gülben Author", "Mehmet Kitap", 1, null) );
-    }
-
     private static class ViewHolder{
         TextView authorText, bookText;
         ImageButton bookImage;
-        ImageView transactionImageButton;
+        CardView cardView;
     }
 
     public class TradeListAdapter extends ArrayAdapter<TradeListContent> implements View.OnClickListener {
@@ -116,25 +116,24 @@ public class TradeListActivity extends AppCompatActivity {
             super(context, R.layout.trade_list_item, data);
             this.dataSet = data;
             this.context=context;
+
         }
 
         @NonNull
         @Override
-        public View getView(final int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-            final TradeListContent tradeListContent= getItem(position);
-
-            TradeListActivity.ViewHolder viewHolder;
+        public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+            final TradeListContent tradeListContent = tradeListContents.get(position);
+            ViewHolder viewHolder;
 
             final View result;
 
             if (convertView == null){
-                viewHolder = new TradeListActivity.ViewHolder();
+                viewHolder = new ViewHolder();
                 LayoutInflater inflater = LayoutInflater.from(getContext());
                 convertView = inflater.inflate(R.layout.trade_list_item, parent, false);
-
+                viewHolder.cardView = convertView.findViewById(R.id.pad);
                 viewHolder.authorText = convertView.findViewById(R.id.authorTextView);
                 viewHolder.bookText = convertView.findViewById(R.id.bookTitleTextView);
-                viewHolder.transactionImageButton = convertView.findViewById(R.id.transactionButton);
                 viewHolder.bookImage = convertView.findViewById(R.id.bookImageView);
 
                 result = convertView;
@@ -142,53 +141,37 @@ public class TradeListActivity extends AppCompatActivity {
 
             }
             else{
-                viewHolder = (TradeListActivity.ViewHolder)convertView.getTag();
+                viewHolder = (ViewHolder)convertView.getTag();
                 result = convertView;
             }
 
-            viewHolder.authorText.setText(tradeListContent.getAuthorName());
-            viewHolder.bookText.setText(tradeListContent.getBookTitle());
+            Picasso.get()
+                    .load(tradeListContent.getBook().getBookPhotoUrl())
+                    .resize(300, 400)
+                    .error(R.drawable.dead)
+                    .placeholder(R.drawable.ic_get_app_black_24dp)
+                    .into(viewHolder.bookImage);
 
-            /*
-            if (tradeListContent.getTransactionType() == 1){
-                viewHolder.transactionImageButton.setBackgroundResource(R.drawable.ic_home_black_24dp);
-            }
-            else
-                viewHolder.transactionImageButton.setBackgroundResource(R.drawable.ic_launcher_foreground);
-            */
+            viewHolder.authorText.setText(tradeListContent.getBook().getAuthorName());
+            viewHolder.bookText.setText(tradeListContent.getBook().getTitle());
+
+
+
             viewHolder.bookImage.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     Intent intent = new Intent(TradeListActivity.this, BookDetailActivity.class);
-                    intent.putExtra("title", tradeListContent.getBookTitle());
-                    intent.putExtra("author", tradeListContent.getAuthorName());
+                    intent.putExtra("BOOK", tradeListContent.getBook());
                     startActivity(intent);
                 }
             });
-            viewHolder.transactionImageButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (tradeListContent.getTransactionType() == 1){
-                        Snackbar.make(v, "Transaction Type : Sell", Snackbar.LENGTH_SHORT).show();
-                    }
-                    else{
-
-                        Snackbar.make(v, "Transaction Type : Trade", Snackbar.LENGTH_SHORT).show();
-                    }
-                }
-            });
-
-
-
-            // viewHolder.bookImageButton.setImageDrawable(sadasd);
-            //viewHolder.transactionImageButton;
-
 
             return convertView;
         }
 
+
         public void remove(int position) {
-            tradeListContent.remove(position);
+            tradeListContents.remove(position);
             notifyDataSetChanged();
         }
 
@@ -199,59 +182,119 @@ public class TradeListActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        Intent i = new Intent(TradeListActivity.this, PreferencesActivity.class);
+        startActivity(i);
+    }
 
-    class TradeListContent {
 
-        private String authorName, bookTitle;
-        private int transactionType;
-        private Drawable bookImage;
+    public class TradelistDeleteTask extends AsyncTask<Void, Void, Void>{
 
-        public TradeListContent(String authorName, String bookTitle, int transactionType, Drawable bookImage) {
-            this.authorName = authorName;
-            this.bookTitle = bookTitle;
-            this.transactionType = transactionType;
-            this.bookImage = bookImage;
+        int tradeListId;
+
+        public TradelistDeleteTask(int tradelistId){
+
+            this.tradeListId = tradelistId;
+
         }
 
-        public TradeListContent(TradeListContent copy){
-            authorName = copy.getAuthorName();
-            bookTitle = copy.getAuthorName();
-            transactionType = copy.transactionType;
-            bookImage = copy.bookImage;
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            adapter.notifyDataSetChanged();
         }
 
-        public String getAuthorName() {
-            return authorName;
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            System.out.println("TradelistDeleteTask: " + tradeListId);
         }
 
-        public void setAuthorName(String authorName) {
-            this.authorName = authorName;
-        }
+        @Override
+        protected Void doInBackground(Void... voids) {
 
-        public String getBookTitle() {
-            return bookTitle;
-        }
+            System.out.println(api.tradelist_delete(tradeListId));
 
-        public void setBookTitle(String bookTitle) {
-            this.bookTitle = bookTitle;
-        }
-
-        public int getTransactionType() {
-            return transactionType;
-        }
-
-        public void setTransactionType(int transactionType) {
-            this.transactionType = transactionType;
-        }
-
-        public Drawable getBookImage() {
-            return bookImage;
-        }
-
-        public void setBookImage(Drawable bookImage) {
-            this.bookImage = bookImage;
+            return null;
         }
     }
+
+
+    public class GetTradeListTask extends AsyncTask<Void, Void, Void>{
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            adapter = new TradeListAdapter(tradeListContents, TradeListActivity.this);
+            listView.setAdapter(adapter);
+            alertDialog.dismiss();
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+
+            ArrayList<Object> arr = api.tradelist_index();
+            ArrayList<Object> tradees = (ArrayList<Object>) arr.get(2); //matchArray
+            tradeListContents = new ArrayList<>();
+            if (tradees != null && tradees.size() > 0){
+
+                System.out.println("423842837487468765----------Tradees: " + tradees + "------------------218378273897934");
+                for (int i = 0; i < tradees.size(); i++){
+                    ArrayList<Object> trade = (ArrayList<Object>) tradees.get(i); //match
+                    System.out.println("Trade: " + trade);
+                    ArrayList<Object> tradelistInfo = ((ArrayList)(trade.get(0))); //matchlistinfo
+                    Book book = (Book)trade.get(1); //book_info
+                    System.out.println("-------------Book: " + book+ "-----------------------");
+                    TradeListContent w = new TradeListContent(
+                            book,
+                            (int)tradelistInfo.get(0));
+                    tradeListContents.add(w);
+                }
+                for (TradeListContent tradeListContent: tradeListContents)
+                    System.out.println("Books : " + tradeListContent.getBook().getTitle());
+            }
+
+            return null;
+        }
+    }
+
+
+    class TradeListContent{
+
+        Book book;
+        private int  tradelistId;
+
+
+        public TradeListContent(Book book, int tradeListId) {
+
+
+            this.book = book;
+            this.tradelistId = tradeListId;
+        }
+
+        public Book getBook() {
+            return book;
+        }
+
+        public void setBook(Book book) {
+            this.book = book;
+        }
+
+        public int getTradelistId() {
+            return tradelistId;
+        }
+
+        public void setTradelistId(int tradelistId) {
+            this.tradelistId = tradelistId;
+        }
+
+  }
 
 
 }
